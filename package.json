@@ -1,0 +1,25 @@
+{
+  "name": "nmtran",
+  "displayName": "nmtran",
+  "description": "Syntax highlighting for NMTRAN",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "nmtran",
+      "aliases": ["NMTRAN", "nmtran"],
+      "extensions": [".ctl",".mod",".res",".lst"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "nmtran",
+      "scopeName": "source.mod",
+      "path": "./syntaxes/nmtran.tmLanguage.json"
+    }]
+  }
+}
