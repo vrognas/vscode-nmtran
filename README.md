@@ -1,10 +1,17 @@
-# Syntax highlighter for NMTRAN (NONMEM)
+# Syntax highlighter for NMTRAN (NONMEM) ![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran)
+
 
 This VSCode extension implements syntax highlighting for NMTRAN.
 
-## Features
+## Installation
 
-* Syntax highlighting
+To install the extension, open the Extensions view, search for `nonmem` to filter results and select NMTRAN extension.
+
+## Overview of the extension features
+
+### Syntax highlighting
+
+![demo](images/demo_syntax-highlight.png)
 
 ## Requirements
 
