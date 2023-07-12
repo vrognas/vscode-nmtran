@@ -12,6 +12,10 @@ VSCode v1.80.0
 
 ## Release Notes
 
+### 0.0.2
+
+Add logo
+
 ### 0.0.1
 
 Initial release
