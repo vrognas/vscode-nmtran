@@ -4,6 +4,7 @@
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
   "version": "0.0.1",
   "publisher": "vrognas",
+  "icon": "images/nonmem.png",
   "homepage": "https://github.com/vrognas/vscode-nmtran",
   "bugs": {
     "url": "https://github.com/vrognas/vscode-nmtran/issues"
