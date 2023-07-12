@@ -2,7 +2,7 @@
   "name": "nmtran",
   "displayName": "NMTRAN (NONMEM)",
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "vrognas",
   "categories": [
     "Programming Languages"
