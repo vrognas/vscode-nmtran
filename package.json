@@ -1,8 +1,17 @@
 {
   "name": "nmtran",
   "displayName": "nmtran",
-  "description": "Syntax highlighting for NMTRAN",
+  "description": "Syntax highlighting for NMTRAN (NONMEM) files",
   "version": "0.0.1",
+  "publisher": "vrognas",
+  "homepage": "https://github.com/vrognas/vscode-nmtran",
+  "bugs": {
+    "url": "https://github.com/vrognas/vscode-nmtran/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vrognas/vscode-nmtran.git"
+},
   "engines": {
     "vscode": "^1.80.0"
   },
