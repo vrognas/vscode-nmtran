@@ -10,16 +10,38 @@
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [{
-      "id": "nmtran",
-      "aliases": ["NMTRAN", "nmtran"],
-      "extensions": [".ctl",".mod",".res",".lst"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "nmtran",
-      "scopeName": "source.mod",
-      "path": "./syntaxes/nmtran.tmLanguage.json"
-    }]
+    "languages": [
+      {
+        "id": "nmtran",
+        "aliases": [
+          "NMTRAN",
+          "nmtran"
+        ],
+        "extensions": [
+          ".mod",
+          ".ctl",
+          ".lst",
+          ".modt",
+          ".phi",
+          ".coi",
+          ".cor",
+          ".cov",
+          ".cnv",
+          ".scm",
+          ".ext"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nmtran",
+        "scopeName": "source.nmtran",
+        "path": "./syntaxes/nmtran.tmLanguage.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
   }
 }
