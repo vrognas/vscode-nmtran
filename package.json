@@ -4,10 +4,14 @@
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
   "version": "0.0.2",
   "publisher": "vrognas",
+  "categories": [
+    "Programming Languages"
+  ],
   "icon": "images/nonmem.png",
   "homepage": "https://github.com/vrognas/vscode-nmtran",
   "bugs": {
-    "url": "https://github.com/vrognas/vscode-nmtran/issues"
+    "url": "https://github.com/vrognas/vscode-nmtran/issues",
+    "email": "viktor@vrognas.com"
   },
   "repository": {
     "type": "git",
