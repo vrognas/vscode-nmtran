@@ -16,6 +16,19 @@ To install the extension, open the Extensions view, search for `nonmem` to filte
 
 ![demo_advan-snippets](images/demo_advan-snippets.gif)
 
+Snippets for RUV (normal or log-scale):
+* RUV_add
+* RUV_prop
+* RUV_addprop
+
+Snippets for MIXTURE-models (just type $MIX):
+* 2-way mixture model
+* 3-way mixture model
+
+Snippets for creating an Xpose-friendly $TABLE scaffold (just type $TABLE).
+
+Snippet for including IIV on a parameter that is bound between 0 and 1 (type logit_iiv).
+
 ### Declarative Language Features
 
 * Comment toggling using the VS Code command `Toggle Line Comment` 

@@ -151,7 +151,7 @@
 		],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
-  "RUV_additive": {
+  "RUV_add": {
     "prefix": ["RUV_additive"],
     "body": [
 			"IPRED = F",
@@ -165,7 +165,7 @@
 		],
     "description": "Additive THETA-rized SIGMA"
   },
-  "RUV_proportional": {
+  "RUV_prop": {
     "prefix": ["RUV_proportional"],
     "body": [
 			"IPRED = F",
