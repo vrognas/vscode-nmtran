@@ -232,7 +232,7 @@
     "body": [
 			";\\$ERROR",
 			"DUM = (LLOQ - IPRED) / W ; Increase the lower the IPRED i.e. low IPRED -> high DUM",
-			";--- PHI(X) is the integral from –INF to X of N(0,1) ---",
+			";--- PHI(X) is the integral from -Inf to X of N(0,1) ---",
 			"DUM2 = PHI(DUM) ; Probability < LLOQ. Low IPRED -> high DUM2/probability",
 			";--- Likelihood for DV<LLOQ",
 			"IF (BQL == 1) THEN",
