@@ -18,11 +18,8 @@ To install the extension, open the Extensions view, search for `nonmem` to filte
 
 ### Declarative Language Features
 
-* Comment toggling using the VS Code command `Toggle Line Comment`
-* Brackets definition: 
-* Autoclosing
-* Autosurrounding
-* Word pattern
+* Comment toggling using the VS Code command `Toggle Line Comment` 
+* Autoclosing of brackets
 
 ## Requirements
 
