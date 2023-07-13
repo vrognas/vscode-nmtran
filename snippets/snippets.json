@@ -118,5 +118,140 @@
 		"prefix": "ADVAN18",
 		"body": "ADVAN18",
 		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  },
+  "2-way MIXTURE": {
+    "prefix": ["$MIX"],
+    "body": [
+			"\\$MIX",
+			"\tP1 = THETA($0) ; Constrained between 0 and 1",
+			"\tP(2) = 1 - P1",
+			"\tNSPOP = 2"
+		],
+    "description": "A 2-way mixture model."
+  },
+  "3-way MIXTURE": {
+    "prefix": ["$MIX"],
+    "body": [
+			"\\$MIX",
+			"\tP1 = THETA($0) ; This THETA constrained between 0 and 1",
+			"\t(1 - P(1)) * THETA($1) ; This THETA also constrained between 0 and 1",
+			"\tP(3) = 1 - P(1) - P(2)",
+			"\tNSPOP = 3"
+		],
+    "description": "A 2-way mixture model."
+  },
+  "Logit IIV": {
+    "prefix": ["logit_iiv"],
+    "body": [
+			"TVF1 = THETA($0) ; Constrained between 0 and 1",
+			"TMP = TVF1 / (1 - TVF1) ; Constrained between 0 and +Inf",
+			"LGT = LOG(TMP) ; Constrained between -Inf and +Inf",
+			"TRX = LGT + ETA($1)  ; Constrained between -Inf and +Inf",
+			"X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1"
+		],
+    "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
+  },
+  "RUV_additive": {
+    "prefix": ["RUV_additive"],
+    "body": [
+			"IPRED = F",
+			"IRES = DV - IPRED",
+			"W = THETA(additive) ; for additive RUV",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"\\$SIGMA 1 FIX"
+		],
+    "description": "Additive THETA-rized SIGMA"
+  },
+  "RUV_proportional": {
+    "prefix": ["RUV_proportional"],
+    "body": [
+			"IPRED = F",
+			"IRES = DV - IPRED",
+			"W = THETA(proportional) * IPRED ; for proportional RUV",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"$SIGMA 1 FIX"
+		],
+    "description": "Proportional THETA-rized SIGMA"
+  },
+  "RUV_addprop": {
+    "prefix": ["RUV_addprop"],
+    "body": [
+			"IPRED = F",
+			"IRES = DV - IPRED",
+			"W = SQRT(THETA(additive)**2 + (THETA(proportional) * IPRED)**2) ; for additive+proportional RUV",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"\\$SIGMA 1 FIX"
+		],
+    "description": "Slope-intercept THETA-rized SIGMA"
+  },
+  "RUV_add_log": {
+		"prefix": ["RUV_add_log"],
+    "body": [
+			"IPRED = LOG(F) ; input DV must be log-transformed",
+			"IRES = DV - IPRED",
+			"W = THETA(proportional) ; for additive+proportional RUV, on a log-scale",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"\\$SIGMA 1 FIX"
+		],
+    "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+  },
+  "RUV_prop_log": {
+		"prefix": ["RUV_prop_log"],
+    "body": [
+			"IPRED = LOG(F) ; input DV must be log-transformed",
+			"IRES = DV - IPRED",
+			"W = THETA(proportional) ; for proportional RUV, on a log-scale",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"\\$SIGMA 1 FIX"
+		],
+    "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+  },
+  "RUV_addprop_log": {
+		"prefix": ["RUV_addprop_log"],
+    "body": [
+			"IPRED = LOG(F) ; input DV must be log-transformed",
+			"IRES = DV - IPRED",
+			"W = SQRT(THETA(proportional)**2 + (THETA(additive) / F)**2) ; for additive+proportional RUV, on a log-scale",
+			"IF (W == 0) W = 1",
+			"IWRES = IRES / W",
+			"Y = IPRED + W * EPS(1)",
+			"",
+			"\\$SIGMA 1 FIX"
+		],
+    "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+  },
+	"Xpose TABLEs": {
+    "prefix": ["$TABLE"],
+    "body": [
+			"; In addition to the requested TABLE-items, NONMEM adds by default: DV, PRED, RES, WRES",
+			"",
+			"\\$TABLE ID TIME EVID MDV IPRED IRES IWRES CWRES",
+			"NOPRINT ONEHEADER FILE=sdtab ; Standard table file",
+			"",
+			"\\$TABLE ID CL V ETAS(1:LAST)",
+			"NOPRINT ONEHEADER FILE=patab ; Model parameters - THETAs, ETAs and EPSes",
+			"",
+			"\\$TABLE ID WT AGE",
+      "NOPRINT ONEHEADER FILE=cotab ; Continuous covariates",
+			"",
+			"\\$TABLE ID SEX",
+			"NOPRINT ONEHEADER FILE=catab ; Categorical covariates"
+		],
+    "description": "Xpose-compatible TABLE records"
   }
 }
