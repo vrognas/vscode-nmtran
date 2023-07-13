@@ -19,6 +19,8 @@
     "type": "git",
     "url": "https://github.com/vrognas/vscode-nmtran.git"
 },
+  "activationEvents": [],
+  "main": "./extension.js",
   "engines": {
     "vscode": "^1.80.0"
   },
