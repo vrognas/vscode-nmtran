@@ -1,6 +1,6 @@
 {
   "name": "nmtran",
-  "displayName": "NMTRAN (NONMEM)",
+  "displayName": "NMTRAN",
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
   "version": "0.0.4",
   "publisher": "vrognas",
