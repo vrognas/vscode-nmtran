@@ -4,6 +4,7 @@
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
   "version": "0.0.3",
   "publisher": "vrognas",
+  "license": "MIT",
   "categories": [
     "Programming Languages"
   ],
