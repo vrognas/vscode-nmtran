@@ -1,6 +1,6 @@
-# Syntax highlighter for NMTRAN (NONMEM) ![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran) ![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/vrognas.nmtran)
+# VSCode extension for NMTRAN (NONMEM) ![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran) ![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/vrognas.nmtran)
 
-This VSCode extension implements syntax highlighting for NMTRAN.
+A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with support for the NMTRAN language used in [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/) control streams.
 
 ## Installation
 
@@ -38,7 +38,7 @@ VSCode v1.80.0
 
 ## Contributing
 
-We encourage your contribution to the project. You can report issues and post suggestions of features via GitHub issues. Thank you!
+We encourage your contribution to the project. You can report issues and post suggestions of features via [GitHub issues](https://github.com/vrognas/vscode-nmtran/issues). Thank you!
 
 ## License
 
