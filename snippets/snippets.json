@@ -119,12 +119,24 @@
 		"body": "ADVAN18",
 		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
   },
+  "Modify DATA": {
+    "prefix": ["$INFN"],
+    "body": [
+			"\\$INFN",
+			"\tIF (ICALL == 1) THEN",
+			"\t\tDOWHILE(DATA)",
+			"\t\t\tIF ($0) $1",
+			"\t\tENDDO",
+			"\tENDIF"
+		],
+    "description": "Modify input data before NONMEM can see it."
+  },
   "2-way MIXTURE": {
     "prefix": ["$MIX"],
     "body": [
 			"\\$MIX",
-			"\tP1 = THETA($0) ; Constrained between 0 and 1",
-			"\tP(2) = 1 - P1",
+			"\tP(1) = THETA($0) ; Constrained between 0 and 1",
+			"\tP(2) = 1 - P(1)",
 			"\tNSPOP = 2"
 		],
     "description": "A 2-way mixture model."
@@ -133,12 +145,76 @@
     "prefix": ["$MIX"],
     "body": [
 			"\\$MIX",
-			"\tP1 = THETA($0) ; This THETA constrained between 0 and 1",
-			"\t(1 - P(1)) * THETA($1) ; This THETA also constrained between 0 and 1",
+			"\tP(1) = THETA($0) ; This THETA constrained between 0 and 1",
+			"\tP(2) = (1 - P(1)) * THETA($1) ; This THETA also constrained between 0 and 1",
 			"\tP(3) = 1 - P(1) - P(2)",
 			"\tNSPOP = 3"
 		],
-    "description": "A 2-way mixture model."
+    "description": "A 3-way mixture model."
+  },
+  "Baseline B1": {
+    "prefix": ["baseline_b1"],
+    "body": [
+			";-----Baseline model-----------",
+			"IBASE = THETA(X) * EXP(ETA(X)) ; individual baseline",
+			"A_0(X) = IBASE ; compartment initialization"
+		],
+    "description": "Estimating baseline (B1)\nConsidered “Gold standard”\nVariability among individuals is accounted for.\nIIV is assumed to be normally distributed (after transformation)\nBaseline observations are treated as any other observation and included in the estimation of RUV.\n"
+  },
+  "Baseline B2": {
+    "prefix": ["baseline_b2"],
+    "body": [
+			"; A separate DV column is used where the first observation is set to 0.",
+			"; A separate MDV column is used where the first row (baseline of eachindividual is set to 1 (not an observation).",
+			";-----Baseline model-----------",
+			"IF (TIME == 0) THEN",
+			"\tOBASE = EXP(ODV) ; observed baseline response at time 0",
+			"ENDIF",
+			"IBASE = OBASE * EXP(ETA(X) * THETA(X)) ; observed baseline response, acknowledging the uncertainty with the same magnitude as RUV",
+			"A_0(X) = IBASE ; compartment initialization",
+			"\\$THETA (0, 0.3) ; RUV magnitude (sd)",
+			"\\$OMEGA 1 FIX ; IIV IBASE"
+		],
+    "description": "Incorporating baseline as a covariate\n(IIV>>RV; B2)\nSlightly inferior to B1/B3.\nBaseline observation is not included as an observation but as a covariate.\nThe “covariate” is assumed to have the same RUV as other observations.\n"
+  },
+  "Baseline B3": {
+    "prefix": ["baseline_b3"],
+    "body": [
+			"; The DV and MDV columns are the same as for B1",
+			";-----Baseline model-----------",
+			"BPOP = THETA(X) ; the population baseline response",
+			"IF (TIME == 0) OBASE = EXP(DV) ; observed baseline response",
+			"IIV = THETA(Y) ; IIV of baseline response",
+			"W = THETA(Z) ; residual variability model (see RUV snippets)",
+			"IIVW = IIV**2 / (IIV**2 + W**2)",
+			"RVW = RV**2 / (IIV**2 + W**2)",
+			"BRV = EXP(ETA(X) * W * IIVW)",
+			"IBASE = (BPOP * RVW + OBASE * IIVW) * BRV ; individual baseline",
+			"A_0(X) = IBASE ; compartment initialization",
+			"",
+			"; PUT BELOW IN \\$ERROR",
+			"IF (TIME == 0) THEN",
+			"\tIPRED = LOG(BPOP) + ETA(Y) * IIV ; individual predicted baseline included to get an estimate of BPOP which is then used in the eq for IBASE",
+			"ELSE",
+			"\tIPRED = LOG(A(1))",
+			"ENDIF"
+		],
+    "description": "Baseline as a covariate.\nSimilar to ”Gold standard” (B1).\nNo assumption about size of IIV vs RV (B3)\n"
+  },
+  "Baseline B4": {
+    "prefix": ["baseline_b4"],
+    "body": [
+			"; A separate DV column is used, in which all measurements subsequent to the",
+			"; baseline observation are normalized by the baseline observation.",
+			"; A separate MDV column is used where the first row (baseline of each individual) is set to 1 (not an observation).",
+			";-----Baseline model-----------",
+			"IF (TIME == 0) IBASE = EXP(DV) ; observed baseline response",
+			"A_0(X) = IBASE ; compartment initialization",
+			"",
+			"; PUT BELOW IN \\$ERROR",
+			"IPRED = LOG(A(1) / IBASE) ; the observations subsequent to the baseline observation are normalized by the baseline value."
+		],
+    "description": "Subtracting baseline (B4)\nLargest bias and imprecision.\nWith this method the baseline observation is subtracted from all subsequent measurements, alternatively all subsequent measurements are divided with the baseline observation.\nThe error in the baseline observations will be carried on to all subsequent observations.\nThe performance of this method will be better the smaller the residual error of the baseline observations\n"
   },
   "Logit IIV": {
     "prefix": ["logit_iiv"],
@@ -148,6 +224,28 @@
 			"LGT = LOG(TMP) ; Constrained between -Inf and +Inf",
 			"TRX = LGT + ETA($1)  ; Constrained between -Inf and +Inf",
 			"X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1"
+		],
+    "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
+  },
+  "BQL M3": {
+    "prefix": ["M3_BQL"],
+    "body": [
+			";\\$ERROR",
+			"DUM = (LLOQ - IPRED) / W ; Increase the lower the IPRED i.e. low IPRED -> high DUM",
+			";--- PHI(X) is the integral from –INF to X of N(0,1) ---",
+			"DUM2 = PHI(DUM) ; Probability < LLOQ. Low IPRED -> high DUM2/probability",
+			";--- Likelihood for DV<LLOQ",
+			"IF (BQL == 1) THEN",
+			"\tF_FLAG = 1",
+			"\tY = DUM2",
+			"ENDIF",
+			";--- Prediction DV>=LLOQ ---",
+			"IRES = IPRED - DV",
+			"IWRES = IRES / W",
+			"IF(BQL == 0) THEN",
+			"\tF_FLAG = 0",
+			"\tY = IPRED + EPS(1) * W",
+			"ENDIF"
 		],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
@@ -234,6 +332,14 @@
 			"\\$SIGMA 1 FIX"
 		],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+  },
+  "FOCEI": {
+		"prefix": ["$ESTIMATION"],
+    "body": [
+			"\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVAL=9999 PRINT=1",
+			"\tNSIG=3 MCETA=0 RANMETHOD=4P SEED=14455 MSFO=$0.msf"
+		],
+    "description": "FOCEI with sane defaults"
   },
 	"Xpose TABLEs": {
     "prefix": ["$TABLE"],
