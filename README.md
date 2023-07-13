@@ -10,31 +10,23 @@ To install the extension, open the Extensions view, search for `nonmem` to filte
 
 ### Syntax highlighting
 
-![demo](images/demo_syntax-highlight.png)
+![demo_syntax-highlight](images/demo_syntax-highlight.png)
+
+### Snippets
+
+![demo_advan-snippets](images/demo_advan-snippets.gif)
+
+### Declarative Language Features
+
+* Comment toggling using the VS Code command `Toggle Line Comment`
+* Brackets definition: 
+* Autoclosing
+* Autosurrounding
+* Word pattern
 
 ## Requirements
 
 VSCode v1.80.0
-
-## Change Log
-
-### [0.0.3] - 2023-07-12
-
-#### Changed
-
-- Update README
-
-### [0.0.2] - 2023-07-12
-
-#### Added
-
-- Extension logo
-
-### [0.0.1] - 2023-07-12
-
-#### Added
-
-- Initial release
 
 ## Contributing
 

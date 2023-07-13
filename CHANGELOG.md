@@ -4,6 +4,16 @@ All notable changes to the "nmtran" extension will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2023-07-13
+
+### Added
+
+- Snippets gif
+
+### Removed
+
+- Removed changelog from README
+
 ## [0.1.0] - 2023-07-13
 
 ### Added
