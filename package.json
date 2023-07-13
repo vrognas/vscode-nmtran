@@ -6,7 +6,8 @@
   "publisher": "vrognas",
   "license": "MIT",
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Snippets"
   ],
   "icon": "images/nonmem.png",
   "homepage": "https://github.com/vrognas/vscode-nmtran",
@@ -50,6 +51,12 @@
         "language": "nmtran",
         "scopeName": "source.nmtran",
         "path": "./syntaxes/nmtran.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "nmtran",
+        "path": "./snippets/snippets.json"
       }
     ]
   },

@@ -1,0 +1,122 @@
+{
+	"1CMT-IV-RATES": {
+		"prefix": "ADVAN1 TRANS1",
+		"body": "ADVAN1 TRANS1",
+		"description": "Model: 1-comp, iv adm\nParameters: K and V\n"
+  },
+	"1CMT-IV-CL": {
+		"prefix": "ADVAN1 TRANS2",
+		"body": "ADVAN1 TRANS2",
+		"description": "Model: 1-comp, iv adm\nParameters: CL and V\n"
+  },
+	"1CMT-IV-MM": {
+		"prefix": "ADVAN10 TRANS1",
+		"body": "ADVAN10 TRANS1",
+		"description": "Model: 1-comp, iv adm, Michaeli-Menten elimination\nParameters: VM and KM\n"
+  },
+	"1CMT-PO-RATES": {
+		"prefix": "ADVAN2 TRANS1",
+		"body": "ADVAN2 TRANS1",
+		"description": "Model: 1-comp, po adm\nParameters: K, V, and KA\n"
+  },
+	"1CMT-PO-CL": {
+		"prefix": "ADVAN2 TRANS2",
+		"body": "ADVAN2 TRANS2",
+		"description": "Model: 1-comp, po adm\nParameters: CL, V, and KA\n"
+  },
+	"2CMT-IV-RATES": {
+		"prefix": "ADVAN3 TRANS1",
+		"body": "ADVAN3 TRANS1",
+		"description": "Model: 2-comp, iv adm\nParameters: K, K12, K21, and V\n"
+  },
+	"2CMT-IV-CL": {
+		"prefix": "ADVAN3 TRANS2",
+		"body": "ADVAN3 TRANS2",
+		"description": "Model: 2-comp, iv adm\nParameters: CL, V, Q, and VSS\n"
+  },
+	"2CMT-PO-RATES": {
+		"prefix": "ADVAN4 TRANS1",
+		"body": "ADVAN4 TRANS1",
+		"description": "Model: 2-comp, po adm \nParameters: K, K23, K32, V, and KA\n"
+  },
+	"2CMT-PO-CL": {
+		"prefix": "ADVAN4 TRANS2",
+		"body": "ADVAN4 TRANS2",
+		"description": "Model: 2-comp, po adm \nParameters: CL, V, Q, VSS, and KA\n"
+  },
+	"3CMT-IV-RATES": {
+		"prefix": "ADVAN11 TRANS1",
+		"body": "ADVAN11 TRANS1",
+		"description": "Model: 3-comp, iv adm \nParameters: K, K12, K21, K13, K31, and V\n"
+  },
+	"3CMT-IV-CL": {
+		"prefix": "ADVAN11 TRANS2",
+		"body": "ADVAN11 TRANS2",
+		"description": "Model: 3-comp, iv adm \nParameters: CL, V1, Q2, V2, Q3, and V3\n"
+  },
+	"3CMT-PO-RATES": {
+		"prefix": "ADVAN12 TRANS1",
+		"body": "ADVAN12 TRANS1",
+		"description": "Model: 3-comp, po adm\nParameters: K, K23, K32, K24, K42, V, and KA\n"
+  },
+	"3CMT-PO-CL": {
+		"prefix": "ADVAN12 TRANS2",
+		"body": "ADVAN12 TRANS2",
+		"description": "Model: 3-comp, po adm\nParameters: CL, V2, Q3, V3, Q4, V4, and KA\n"
+  },
+	"GLM": {
+		"prefix": "ADVAN5",
+		"body": "ADVAN5",
+		"description": "Model: General linear model\n"
+  },
+	"GLM-R": {
+		"prefix": "ADVAN7",
+		"body": "ADVAN7",
+		"description": "Model: General linear model with real eigenvalues\n"
+  },
+	"DVERK": {
+		"prefix": "ADVAN6",
+		"body": "ADVAN6",
+		"description": "Model: General non-linear model\nDiff eq solver: Runge-Kutta-Verner ﬁfth and sixth order method of integration (non-stiff))\n"
+  },
+	"DGEAR": {
+		"prefix": "ADVAN8",
+		"body": "ADVAN8",
+		"description": "Model: General non-linear model\nDiff eq solver: Gear method of numerical integration (stiff)\n"
+  },
+	"LSODA": {
+		"prefix": "ADVAN13",
+		"body": "ADVAN13",
+		"description": "Model: General non-linear model\nDiff eq solver: The LLNL solver for ordinary differential equations (LSODA), with automatic method switching for stiff (BDF) and non-stiff (Adams method) problems. It is a decendent of ADVAN8.)\n"
+	},
+	"CVODES": {
+		"prefix": "ADVAN14",
+		"body": "ADVAN14",
+		"description": "Model: General non-linear model\nDiff eq solver: The LLNL SUNDIALS system for ordinary differential equations and is a descendent of LSODA (ADVAN13). ADVAN14 also has a root-ﬁnding algorithm.)\n"
+	},
+	"LSODI": {
+		"prefix": "ADVAN9",
+		"body": "ADVAN9",
+		"description": "Model: General non-linear model\nDiff eq solver:The LLN solver for differential-algebraic equations, implicit form (LSODI), using the backward differentiation formulas (BDF) for stiff problems.)\n"
+  },
+	"IDA": {
+		"prefix": "ADVAN15",
+		"body": "ADVAN15",
+		"description": "Model: General non-linear model\nDiff eq solver - non-stiff)\n"
+  },
+	"RADAR5": {
+		"prefix": "ADVAN16",
+		"body": "ADVAN16",
+		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  },
+	"RADAR5-EQ": {
+		"prefix": "ADVAN17",
+		"body": "ADVAN17",
+		"description": "Model: General non-linear model\nDelay diff eq solver - equilibrium compartments)\n"
+  },
+	"DDE_SOLVER": {
+		"prefix": "ADVAN18",
+		"body": "ADVAN18",
+		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  }
+}
