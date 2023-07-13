@@ -18,9 +18,11 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/vrognas/vscode-nmtran.git"
-},
-  "activationEvents": [],
-  "main": "./extension.js",
+  },
+  "activationEvents": [
+    "onLanguage:nmtran"
+],
+  "main": "./out/extension.js",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -64,6 +66,9 @@
   },
   "semanticHighlighting": true,
   "devDependencies": {
-    "js-yaml": "^4.1.0"
+    "@types/node": "^16.18.34",
+    "@types/vscode": "^1.80.0",
+    "js-yaml": "^4.1.0",
+    "typescript": "^5.1.3"
   }
 }
