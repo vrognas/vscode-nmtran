@@ -4,6 +4,21 @@ All notable changes to the "nmtran" extension will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.4] - 2023-07-13
+
+### Added
+
+- Word pattern
+
+### Fixed
+
+- Improve exponentiation operator highlighting
+- Improve auto closing of symbol pairs
+
+### Removed
+
+- Duplicate extension category
+
 ## [0.0.3] - 2023-07-12
 
 ### Changed

@@ -2,7 +2,7 @@
   "name": "nmtran",
   "displayName": "NMTRAN (NONMEM)",
   "description": "Syntax highlighting for NMTRAN (NONMEM) files",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "vrognas",
   "license": "MIT",
   "categories": [
@@ -53,6 +53,7 @@
       }
     ]
   },
+  "semanticHighlighting": true,
   "devDependencies": {
     "js-yaml": "^4.1.0"
   }
