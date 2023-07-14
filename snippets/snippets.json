@@ -296,7 +296,7 @@
     "body": [
 			"IPRED = LOG(F) ; input DV must be log-transformed",
 			"IRES = DV - IPRED",
-			"W = THETA(proportional) ; for additive+proportional RUV, on a log-scale",
+			"W = THETA(additive) / F ; for additive RUV, on a log-scale",
 			"IF (W == 0) W = 1",
 			"IWRES = IRES / W",
 			"Y = IPRED + W * EPS(1)",
