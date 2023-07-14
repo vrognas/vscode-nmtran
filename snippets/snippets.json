@@ -216,6 +216,13 @@
 		],
     "description": "Subtracting baseline (B4)\nLargest bias and imprecision.\nWith this method the baseline observation is subtracted from all subsequent measurements, alternatively all subsequent measurements are divided with the baseline observation.\nThe error in the baseline observations will be carried on to all subsequent observations.\nThe performance of this method will be better the smaller the residual error of the baseline observations\n"
   },
+  "Emax model": {
+    "prefix": ["Emax"],
+    "body": [
+			"E = E0 + (Emax * C**Hill) / (EC50**Hill + C**Hill)"
+		],
+    "description": "Emax equation\n"
+  },
   "Logit IIV": {
     "prefix": ["logit_iiv"],
     "body": [
@@ -336,7 +343,7 @@
   "FOCEI": {
 		"prefix": ["$ESTIMATION"],
     "body": [
-			"\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVAL=9999 PRINT=1",
+			"\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVALS=99999 PRINT=1",
 			"\tNSIG=3 MCETA=0 RANMETHOD=4P SEED=14455 MSFO=$0.msf"
 		],
     "description": "FOCEI with sane defaults"
@@ -367,5 +374,12 @@
 			"NOPRINT ONEHEADER FILE=catab ; Categorical covariates"
 		],
     "description": "Xpose-compatible TABLE records"
+  },
+	"csv": {
+    "prefix": ["format_csv"],
+    "body": [
+			"FORMAT=,1PE15.8"
+		],
+    "description": "Format the NONMEM output into a comma separated file\nThe default is s1PE12.5.\nFirst character specifies delimiter (, s for space, or t for tab)\n1PE15.8 means E field notation, 15 total characters allotted to number, 8 digits beyond decimal point, 1 digits before decimal point"
   }
 }
