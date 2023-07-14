@@ -341,6 +341,14 @@
 		],
     "description": "FOCEI with sane defaults"
   },
+  "IMP_eval": {
+		"prefix": ["$ESTIMATION"],
+    "body": [
+			"\\$ESTIMATION METHOD=IMP INTERACTION ISAMPLES=10000 NITER=10 PRINT=1",
+			"\tEONLY=1 RANMETHOD=3S2P SEED=14455"
+		],
+    "description": "IMP for OFV evaluation"
+  },
 	"Xpose TABLEs": {
     "prefix": ["$TABLE"],
     "body": [
