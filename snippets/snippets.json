@@ -1,385 +1,384 @@
 {
-	"1CMT-IV-RATES": {
-		"prefix": "ADVAN1 TRANS1",
-		"body": "ADVAN1 TRANS1",
-		"description": "Model: 1-comp, iv adm\nParameters: K and V\n"
+  "1CMT-IV-RATES": {
+    "prefix": "ADVAN1 TRANS1",
+    "body": "ADVAN1 TRANS1$0",
+    "description": "Model: 1-comp, iv adm\nParameters: K and V\n"
   },
-	"1CMT-IV-CL": {
-		"prefix": "ADVAN1 TRANS2",
-		"body": "ADVAN1 TRANS2",
-		"description": "Model: 1-comp, iv adm\nParameters: CL and V\n"
+  "1CMT-IV-CL": {
+    "prefix": "ADVAN1 TRANS2",
+    "body": "ADVAN1 TRANS2$0",
+    "description": "Model: 1-comp, iv adm\nParameters: CL and V\n"
   },
-	"1CMT-IV-MM": {
-		"prefix": "ADVAN10 TRANS1",
-		"body": "ADVAN10 TRANS1",
-		"description": "Model: 1-comp, iv adm, Michaeli-Menten elimination\nParameters: VM and KM\n"
+  "1CMT-IV-MM": {
+    "prefix": "ADVAN10 TRANS1",
+    "body": "ADVAN10 TRANS1$0",
+    "description": "Model: 1-comp, iv adm, Michaeli-Menten elimination\nParameters: VM and KM\n"
   },
-	"1CMT-PO-RATES": {
-		"prefix": "ADVAN2 TRANS1",
-		"body": "ADVAN2 TRANS1",
-		"description": "Model: 1-comp, po adm\nParameters: K, V, and KA\n"
+  "1CMT-PO-RATES": {
+    "prefix": "ADVAN2 TRANS1",
+    "body": "ADVAN2 TRANS1$0",
+    "description": "Model: 1-comp, po adm\nParameters: K, V, and KA\n"
   },
-	"1CMT-PO-CL": {
-		"prefix": "ADVAN2 TRANS2",
-		"body": "ADVAN2 TRANS2",
-		"description": "Model: 1-comp, po adm\nParameters: CL, V, and KA\n"
+  "1CMT-PO-CL": {
+    "prefix": "ADVAN2 TRANS2",
+    "body": "ADVAN2 TRANS2$0",
+    "description": "Model: 1-comp, po adm\nParameters: CL, V, and KA\n"
   },
-	"2CMT-IV-RATES": {
-		"prefix": "ADVAN3 TRANS1",
-		"body": "ADVAN3 TRANS1",
-		"description": "Model: 2-comp, iv adm\nParameters: K, K12, K21, and V\n"
+  "2CMT-IV-RATES": {
+    "prefix": "ADVAN3 TRANS1",
+    "body": "ADVAN3 TRANS1$0",
+    "description": "Model: 2-comp, iv adm\nParameters: K, K12, K21, and V\n"
   },
-	"2CMT-IV-CL": {
-		"prefix": "ADVAN3 TRANS2",
-		"body": "ADVAN3 TRANS2",
-		"description": "Model: 2-comp, iv adm\nParameters: CL, V, Q, and VSS\n"
+  "2CMT-IV-CL": {
+    "prefix": "ADVAN3 TRANS2",
+    "body": "ADVAN3 TRANS2$0",
+    "description": "Model: 2-comp, iv adm\nParameters: CL, V, Q, and VSS\n"
   },
-	"2CMT-PO-RATES": {
-		"prefix": "ADVAN4 TRANS1",
-		"body": "ADVAN4 TRANS1",
-		"description": "Model: 2-comp, po adm \nParameters: K, K23, K32, V, and KA\n"
+  "2CMT-PO-RATES": {
+    "prefix": "ADVAN4 TRANS1",
+    "body": "ADVAN4 TRANS1$0",
+    "description": "Model: 2-comp, po adm \nParameters: K, K23, K32, V, and KA\n"
   },
-	"2CMT-PO-CL": {
-		"prefix": "ADVAN4 TRANS2",
-		"body": "ADVAN4 TRANS2",
-		"description": "Model: 2-comp, po adm \nParameters: CL, V, Q, VSS, and KA\n"
+  "2CMT-PO-CL": {
+    "prefix": "ADVAN4 TRANS2",
+    "body": "ADVAN4 TRANS2$0",
+    "description": "Model: 2-comp, po adm \nParameters: CL, V, Q, VSS, and KA\n"
   },
-	"3CMT-IV-RATES": {
-		"prefix": "ADVAN11 TRANS1",
-		"body": "ADVAN11 TRANS1",
-		"description": "Model: 3-comp, iv adm \nParameters: K, K12, K21, K13, K31, and V\n"
+  "3CMT-IV-RATES": {
+    "prefix": "ADVAN11 TRANS1",
+    "body": "ADVAN11 TRANS1$0",
+    "description": "Model: 3-comp, iv adm \nParameters: K, K12, K21, K13, K31, and V\n"
   },
-	"3CMT-IV-CL": {
-		"prefix": "ADVAN11 TRANS2",
-		"body": "ADVAN11 TRANS2",
-		"description": "Model: 3-comp, iv adm \nParameters: CL, V1, Q2, V2, Q3, and V3\n"
+  "3CMT-IV-CL": {
+    "prefix": "ADVAN11 TRANS2",
+    "body": "ADVAN11 TRANS2$0",
+    "description": "Model: 3-comp, iv adm \nParameters: CL, V1, Q2, V2, Q3, and V3\n"
   },
-	"3CMT-PO-RATES": {
-		"prefix": "ADVAN12 TRANS1",
-		"body": "ADVAN12 TRANS1",
-		"description": "Model: 3-comp, po adm\nParameters: K, K23, K32, K24, K42, V, and KA\n"
+  "3CMT-PO-RATES": {
+    "prefix": "ADVAN12 TRANS1",
+    "body": "ADVAN12 TRANS1$0",
+    "description": "Model: 3-comp, po adm\nParameters: K, K23, K32, K24, K42, V, and KA\n"
   },
-	"3CMT-PO-CL": {
-		"prefix": "ADVAN12 TRANS2",
-		"body": "ADVAN12 TRANS2",
-		"description": "Model: 3-comp, po adm\nParameters: CL, V2, Q3, V3, Q4, V4, and KA\n"
+  "3CMT-PO-CL": {
+    "prefix": "ADVAN12 TRANS2",
+    "body": "ADVAN12 TRANS2$0",
+    "description": "Model: 3-comp, po adm\nParameters: CL, V2, Q3, V3, Q4, V4, and KA\n"
   },
-	"GLM": {
-		"prefix": "ADVAN5",
-		"body": "ADVAN5",
-		"description": "Model: General linear model\n"
+  "GLM": {
+    "prefix": "ADVAN5",
+    "body": "ADVAN5$0",
+    "description": "Model: General linear model\n"
   },
-	"GLM-R": {
-		"prefix": "ADVAN7",
-		"body": "ADVAN7",
-		"description": "Model: General linear model with real eigenvalues\n"
+  "GLM-R": {
+    "prefix": "ADVAN7",
+    "body": "ADVAN7$0",
+    "description": "Model: General linear model with real eigenvalues\n"
   },
-	"DVERK": {
-		"prefix": "ADVAN6",
-		"body": "ADVAN6",
-		"description": "Model: General non-linear model\nDiff eq solver: Runge-Kutta-Verner ﬁfth and sixth order method of integration (non-stiff))\n"
+  "DVERK": {
+    "prefix": "ADVAN6",
+    "body": "ADVAN6$0",
+    "description": "Model: General non-linear model\nDiff eq solver: Runge-Kutta-Verner ﬁfth and sixth order method of integration (non-stiff))\n"
   },
-	"DGEAR": {
-		"prefix": "ADVAN8",
-		"body": "ADVAN8",
-		"description": "Model: General non-linear model\nDiff eq solver: Gear method of numerical integration (stiff)\n"
+  "DGEAR": {
+    "prefix": "ADVAN8",
+    "body": "ADVAN8$0",
+    "description": "Model: General non-linear model\nDiff eq solver: Gear method of numerical integration (stiff)\n"
   },
-	"LSODA": {
-		"prefix": "ADVAN13",
-		"body": "ADVAN13",
-		"description": "Model: General non-linear model\nDiff eq solver: The LLNL solver for ordinary differential equations (LSODA), with automatic method switching for stiff (BDF) and non-stiff (Adams method) problems. It is a decendent of ADVAN8.)\n"
-	},
-	"CVODES": {
-		"prefix": "ADVAN14",
-		"body": "ADVAN14",
-		"description": "Model: General non-linear model\nDiff eq solver: The LLNL SUNDIALS system for ordinary differential equations and is a descendent of LSODA (ADVAN13). ADVAN14 also has a root-ﬁnding algorithm.)\n"
-	},
-	"LSODI": {
-		"prefix": "ADVAN9",
-		"body": "ADVAN9",
-		"description": "Model: General non-linear model\nDiff eq solver:The LLN solver for differential-algebraic equations, implicit form (LSODI), using the backward differentiation formulas (BDF) for stiff problems.)\n"
+  "LSODA": {
+    "prefix": "ADVAN13",
+    "body": "ADVAN13$0",
+    "description": "Model: General non-linear model\nDiff eq solver: The LLNL solver for ordinary differential equations (LSODA), with automatic method switching for stiff (BDF) and non-stiff (Adams method) problems. It is a decendent of ADVAN8.)\n"
   },
-	"IDA": {
-		"prefix": "ADVAN15",
-		"body": "ADVAN15",
-		"description": "Model: General non-linear model\nDiff eq solver - non-stiff)\n"
+  "CVODES": {
+    "prefix": "ADVAN14",
+    "body": "ADVAN14$0",
+    "description": "Model: General non-linear model\nDiff eq solver: The LLNL SUNDIALS system for ordinary differential equations and is a descendent of LSODA (ADVAN13). ADVAN14 also has a root-ﬁnding algorithm.)\n"
   },
-	"RADAR5": {
-		"prefix": "ADVAN16",
-		"body": "ADVAN16",
-		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  "LSODI": {
+    "prefix": "ADVAN9",
+    "body": "ADVAN9$0",
+    "description": "Model: General non-linear model\nDiff eq solver:The LLN solver for differential-algebraic equations, implicit form (LSODI), using the backward differentiation formulas (BDF) for stiff problems.)\n"
   },
-	"RADAR5-EQ": {
-		"prefix": "ADVAN17",
-		"body": "ADVAN17",
-		"description": "Model: General non-linear model\nDelay diff eq solver - equilibrium compartments)\n"
+  "IDA": {
+    "prefix": "ADVAN15",
+    "body": "ADVAN15$0",
+    "description": "Model: General non-linear model\nDiff eq solver - non-stiff)\n"
   },
-	"DDE_SOLVER": {
-		"prefix": "ADVAN18",
-		"body": "ADVAN18",
-		"description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  "RADAR5": {
+    "prefix": "ADVAN16",
+    "body": "ADVAN16$0",
+    "description": "Model: General non-linear model\nDelay diff eq solver)\n"
+  },
+  "RADAR5-EQ": {
+    "prefix": "ADVAN17",
+    "body": "ADVAN17$0",
+    "description": "Model: General non-linear model\nDelay diff eq solver - equilibrium compartments)\n"
+  },
+  "DDE_SOLVER": {
+    "prefix": "ADVAN18",
+    "body": "ADVAN18$0",
+    "description": "Model: General non-linear model\nDelay diff eq solver)\n"
   },
   "Modify DATA": {
     "prefix": ["$INFN"],
     "body": [
-			"\\$INFN",
-			"\tIF (ICALL == 1) THEN",
-			"\t\tDOWHILE(DATA)",
-			"\t\t\tIF ($0) $1",
-			"\t\tENDDO",
-			"\tENDIF"
-		],
+      "\n",
+      "\\$INFN",
+      "\tIF (ICALL == 1) THEN",
+      "\t\tDOWHILE(DATA)",
+      "\t\t\tIF ($1) $2",
+      "\t\tENDDO",
+      "\tENDIF",
+      "\n$0"
+    ],
     "description": "Modify input data before NONMEM can see it."
   },
   "2-way MIXTURE": {
     "prefix": ["$MIX"],
     "body": [
-			"\\$MIX",
-			"\tP(1) = THETA($0) ; Constrained between 0 and 1",
-			"\tP(2) = 1 - P(1)",
-			"\tNSPOP = 2"
-		],
+      "\n",
+      "\\$MIX",
+      "\tP(1) = THETA($1) ; Constrained between 0 and 1",
+      "\tP(2) = 1 - P(1)",
+      "\tNSPOP = 2",
+      "\n$0"
+    ],
     "description": "A 2-way mixture model."
   },
   "3-way MIXTURE": {
     "prefix": ["$MIX"],
     "body": [
-			"\\$MIX",
-			"\tP(1) = THETA($0) ; This THETA constrained between 0 and 1",
-			"\tP(2) = (1 - P(1)) * THETA($1) ; This THETA also constrained between 0 and 1",
-			"\tP(3) = 1 - P(1) - P(2)",
-			"\tNSPOP = 3"
-		],
+      "\n",
+      "\\$MIX",
+      "\tP(1) = THETA($1) ; This THETA constrained between 0 and 1",
+      "\tP(2) = (1 - P(1)) * THETA($2) ; This THETA also constrained between 0 and 1",
+      "\tP(3) = 1 - P(1) - P(2)",
+      "\tNSPOP = 3",
+      "\n$0"
+    ],
     "description": "A 3-way mixture model."
   },
   "Baseline B1": {
     "prefix": ["baseline_b1"],
     "body": [
-			";-----Baseline model-----------",
-			"IBASE = THETA(X) * EXP(ETA(X)) ; individual baseline",
-			"A_0(X) = IBASE ; compartment initialization"
-		],
+      "\n",
+      ";-----Baseline model-----------",
+      "IBASE = THETA($1) * EXP(ETA($2)) ; individual baseline",
+      "A_0($3) = IBASE ; compartment initialization",
+      "\n$0"
+    ],
     "description": "Estimating baseline (B1)\nConsidered “Gold standard”\nVariability among individuals is accounted for.\nIIV is assumed to be normally distributed (after transformation)\nBaseline observations are treated as any other observation and included in the estimation of RUV.\n"
   },
   "Baseline B2": {
     "prefix": ["baseline_b2"],
     "body": [
-			"; A separate DV column is used where the first observation is set to 0.",
-			"; A separate MDV column is used where the first row (baseline of eachindividual is set to 1 (not an observation).",
-			";-----Baseline model-----------",
-			"IF (TIME == 0) THEN",
-			"\tOBASE = EXP(ODV) ; observed baseline response at time 0",
-			"ENDIF",
-			"IBASE = OBASE * EXP(ETA(X) * THETA(X)) ; observed baseline response, acknowledging the uncertainty with the same magnitude as RUV",
-			"A_0(X) = IBASE ; compartment initialization",
-			"\\$THETA (0, 0.3) ; RUV magnitude (sd)",
-			"\\$OMEGA 1 FIX ; IIV IBASE"
-		],
+      "; A separate DV column is used where the first observation is set to 0.",
+      "; A separate MDV column is used where the first row (baseline of eachindividual is set to 1 (not an observation).",
+      ";-----Baseline model-----------",
+      "IF (TIME == 0) THEN",
+      "\tOBASE = EXP(ODV) ; observed baseline response at time 0",
+      "ENDIF",
+      "IBASE = OBASE * EXP(ETA($1) * THETA($2)) ; observed baseline response, acknowledging the uncertainty with the same magnitude as RUV",
+      "A_0(X) = IBASE ; compartment initialization",
+      "\\$THETA (0, 0.3) ; RUV magnitude (sd)",
+      "\\$OMEGA 1 FIX ; IIV IBASE"
+    ],
     "description": "Incorporating baseline as a covariate\n(IIV>>RV; B2)\nSlightly inferior to B1/B3.\nBaseline observation is not included as an observation but as a covariate.\nThe “covariate” is assumed to have the same RUV as other observations.\n"
   },
   "Baseline B3": {
     "prefix": ["baseline_b3"],
     "body": [
-			"; The DV and MDV columns are the same as for B1",
-			";-----Baseline model-----------",
-			"BPOP = THETA(X) ; the population baseline response",
-			"IF (TIME == 0) OBASE = EXP(DV) ; observed baseline response",
-			"IIV = THETA(Y) ; IIV of baseline response",
-			"W = THETA(Z) ; residual variability model (see RUV snippets)",
-			"IIVW = IIV**2 / (IIV**2 + W**2)",
-			"RVW = RV**2 / (IIV**2 + W**2)",
-			"BRV = EXP(ETA(X) * W * IIVW)",
-			"IBASE = (BPOP * RVW + OBASE * IIVW) * BRV ; individual baseline",
-			"A_0(X) = IBASE ; compartment initialization",
-			"",
-			"; PUT BELOW IN \\$ERROR",
-			"IF (TIME == 0) THEN",
-			"\tIPRED = LOG(BPOP) + ETA(Y) * IIV ; individual predicted baseline included to get an estimate of BPOP which is then used in the eq for IBASE",
-			"ELSE",
-			"\tIPRED = LOG(A(1))",
-			"ENDIF"
-		],
+      "; The DV and MDV columns are the same as for B1",
+      ";-----Baseline model-----------",
+      "BPOP = THETA($1) ; the population baseline response",
+      "IF (TIME == 0) OBASE = EXP(DV) ; observed baseline response",
+      "IIV = THETA($2) ; IIV of baseline response",
+      "W = THETA($3) ; residual variability model (see RUV snippets)",
+      "IIVW = IIV**2 / (IIV**2 + W**2)",
+      "RVW = RV**2 / (IIV**2 + W**2)",
+      "BRV = EXP(ETA($4) * W * IIVW)",
+      "IBASE = (BPOP * RVW + OBASE * IIVW) * BRV ; individual baseline",
+      "A_0($5) = IBASE ; compartment initialization",
+      "$0",
+      "; PUT BELOW IN \\$ERROR",
+      "IF (TIME == 0) THEN",
+      "\tIPRED = LOG(BPOP) + ETA($6) * IIV ; individual predicted baseline included to get an estimate of BPOP which is then used in the eq for IBASE",
+      "ELSE",
+      "\tIPRED = LOG(A(1))",
+      "ENDIF"
+    ],
     "description": "Baseline as a covariate.\nSimilar to ”Gold standard” (B1).\nNo assumption about size of IIV vs RV (B3)\n"
   },
   "Baseline B4": {
     "prefix": ["baseline_b4"],
     "body": [
-			"; A separate DV column is used, in which all measurements subsequent to the",
-			"; baseline observation are normalized by the baseline observation.",
-			"; A separate MDV column is used where the first row (baseline of each individual) is set to 1 (not an observation).",
-			";-----Baseline model-----------",
-			"IF (TIME == 0) IBASE = EXP(DV) ; observed baseline response",
-			"A_0(X) = IBASE ; compartment initialization",
-			"",
-			"; PUT BELOW IN \\$ERROR",
-			"IPRED = LOG(A(1) / IBASE) ; the observations subsequent to the baseline observation are normalized by the baseline value."
-		],
+      "; A separate DV column is used, in which all measurements subsequent to the",
+      "; baseline observation are normalized by the baseline observation.",
+      "; A separate MDV column is used where the first row (baseline of each individual) is set to 1 (not an observation).",
+      ";-----Baseline model-----------",
+      "IF (TIME == 0) IBASE = EXP(DV) ; observed baseline response",
+      "A_0($1) = IBASE ; compartment initialization",
+      "$0",
+      "; PUT BELOW IN \\$ERROR",
+      "IPRED = LOG(A(1) / IBASE) ; the observations subsequent to the baseline observation are normalized by the baseline value."
+    ],
     "description": "Subtracting baseline (B4)\nLargest bias and imprecision.\nWith this method the baseline observation is subtracted from all subsequent measurements, alternatively all subsequent measurements are divided with the baseline observation.\nThe error in the baseline observations will be carried on to all subsequent observations.\nThe performance of this method will be better the smaller the residual error of the baseline observations\n"
   },
   "Emax model": {
     "prefix": ["Emax"],
     "body": [
-			"E = E0 + (Emax * C**Hill) / (EC50**Hill + C**Hill)"
-		],
+      "E = E0 + (Emax * C**Hill) / (EC50**Hill + C**Hill)"
+    ],
     "description": "Emax equation\n"
   },
   "Logit IIV": {
     "prefix": ["logit_iiv"],
     "body": [
-			"TVF1 = THETA($0) ; Constrained between 0 and 1",
-			"TMP = TVF1 / (1 - TVF1) ; Constrained between 0 and +Inf",
-			"LGT = LOG(TMP) ; Constrained between -Inf and +Inf",
-			"TRX = LGT + ETA($1)  ; Constrained between -Inf and +Inf",
-			"X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1"
-		],
+      "TVF1 = THETA($1) ; Constrained between 0 and 1",
+      "TMP = TVF1 / (1 - TVF1) ; Constrained between 0 and +Inf",
+      "LGT = LOG(TMP) ; Constrained between -Inf and +Inf",
+      "TRX = LGT + ETA($2)  ; Constrained between -Inf and +Inf",
+      "X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1"
+    ],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
   "BQL M3": {
     "prefix": ["M3_BQL"],
     "body": [
-			";\\$ERROR",
-			"DUM = (LLOQ - IPRED) / W ; Increase the lower the IPRED i.e. low IPRED -> high DUM",
-			";--- PHI(X) is the integral from -Inf to X of N(0,1) ---",
-			"DUM2 = PHI(DUM) ; Probability < LLOQ. Low IPRED -> high DUM2/probability",
-			";--- Likelihood for DV<LLOQ",
-			"IF (BQL == 1) THEN",
-			"\tF_FLAG = 1",
-			"\tY = DUM2",
-			"ENDIF",
-			";--- Prediction DV>=LLOQ ---",
-			"IRES = IPRED - DV",
-			"IWRES = IRES / W",
-			"IF(BQL == 0) THEN",
-			"\tF_FLAG = 0",
-			"\tY = IPRED + EPS(1) * W",
-			"ENDIF"
-		],
+      ";\\$ERROR",
+      "DUM = (LLOQ - IPRED) / W ; Increase the lower the IPRED i.e. low IPRED -> high DUM",
+      ";--- PHI(X) is the integral from -Inf to X of N(0,1) ---",
+      "DUM2 = PHI(DUM) ; Probability < LLOQ. Low IPRED -> high DUM2/probability",
+      ";--- Likelihood for DV<LLOQ",
+      "IF (BQL == 1) THEN",
+      "\tF_FLAG = 1",
+      "\tY = DUM2",
+      "ENDIF",
+      ";--- Prediction DV>=LLOQ ---",
+      "IRES = IPRED - DV",
+      "IWRES = IRES / W",
+      "IF(BQL == 0) THEN",
+      "\tF_FLAG = 0",
+      "\tY = IPRED + EPS(1) * W",
+      "ENDIF"
+    ],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
-  "RUV_add": {
+	"RUV_add": {
     "prefix": ["RUV_additive"],
     "body": [
-			"IPRED = F",
-			"IRES = DV - IPRED",
-			"W = THETA(additive) ; for additive RUV",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"\\$SIGMA 1 FIX"
-		],
+      "IPRED = F",
+      "IRES = DV - IPRED",
+      "W = THETA(${1:additive}) ; for additive RUV",
+      "IF (W == 0) W = 1",
+      "IWRES = IRES / W",
+      "Y = IPRED + W * EPS(1)",
+      "",
+      "\\$SIGMA 1 FIX"
+    ],
     "description": "Additive THETA-rized SIGMA"
   },
-  "RUV_prop": {
-    "prefix": ["RUV_proportional"],
-    "body": [
-			"IPRED = F",
-			"IRES = DV - IPRED",
-			"W = THETA(proportional) * IPRED ; for proportional RUV",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"$SIGMA 1 FIX"
-		],
-    "description": "Proportional THETA-rized SIGMA"
-  },
-  "RUV_addprop": {
+	"RUV_addprop": {
     "prefix": ["RUV_addprop"],
     "body": [
-			"IPRED = F",
-			"IRES = DV - IPRED",
-			"W = SQRT(THETA(additive)**2 + (THETA(proportional) * IPRED)**2) ; for additive+proportional RUV",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"\\$SIGMA 1 FIX"
-		],
+      "IPRED = F",
+      "IRES = DV - IPRED",
+      "W = SQRT(THETA(${1:additive})**2 + (THETA(${2:proportional}) * IPRED)**2) ; for additive+proportional RUV",
+      "IF (W == 0) W = 1",
+      "IWRES = IRES / W",
+      "Y = IPRED + W * EPS(1)",
+      "",
+      "\\$SIGMA 1 FIX"
+    ],
     "description": "Slope-intercept THETA-rized SIGMA"
   },
-  "RUV_add_log": {
-		"prefix": ["RUV_add_log"],
+	"RUV_add_log": {
+    "prefix": ["RUV_add_log"],
     "body": [
-			"IPRED = LOG(F) ; input DV must be log-transformed",
-			"IRES = DV - IPRED",
-			"W = THETA(additive) / F ; for additive RUV, on a log-scale",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"\\$SIGMA 1 FIX"
-		],
+      "IPRED = LOG(F) ; input DV must be log-transformed",
+      "IRES = DV - IPRED",
+      "W = THETA(${1:additive}) / F ; for additive RUV, on a log-scale",
+      "IF (W == 0) W = 1",
+      "IWRES = IRES / W",
+      "Y = IPRED + W * EPS(1)",
+      "",
+      "\\$SIGMA 1 FIX"
+    ],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
   },
-  "RUV_prop_log": {
-		"prefix": ["RUV_prop_log"],
+	"RUV_prop_log": {
+    "prefix": ["RUV_prop_log"],
     "body": [
-			"IPRED = LOG(F) ; input DV must be log-transformed",
-			"IRES = DV - IPRED",
-			"W = THETA(proportional) ; for proportional RUV, on a log-scale",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"\\$SIGMA 1 FIX"
-		],
+      "IPRED = LOG(F) ; input DV must be log-transformed",
+      "IRES = DV - IPRED",
+      "W = THETA(${1:proportional}) ; for proportional RUV, on a log-scale",
+      "IF (W == 0) W = 1",
+      "IWRES = IRES / W",
+      "Y = IPRED + W * EPS(1)",
+      "",
+      "\\$SIGMA 1 FIX"
+    ],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
   },
-  "RUV_addprop_log": {
-		"prefix": ["RUV_addprop_log"],
+	"RUV_addprop_log": {
+    "prefix": ["RUV_addprop_log"],
     "body": [
-			"IPRED = LOG(F) ; input DV must be log-transformed",
-			"IRES = DV - IPRED",
-			"W = SQRT(THETA(proportional)**2 + (THETA(additive) / F)**2) ; for additive+proportional RUV, on a log-scale",
-			"IF (W == 0) W = 1",
-			"IWRES = IRES / W",
-			"Y = IPRED + W * EPS(1)",
-			"",
-			"\\$SIGMA 1 FIX"
-		],
+      "\n",
+      "IPRED = LOG(F) ; input DV must be log-transformed",
+      "IRES = DV - IPRED",
+      "W = SQRT(THETA(${1:proportional})**2 + (THETA(${2:additive}) / F)**2) ; for additive+proportional RUV, on a log-scale",
+      "IF (W == 0) W = 1",
+      "IWRES = IRES / W",
+      "Y = IPRED + W * EPS(1)",
+      "",
+      "\\$SIGMA 1 FIX",
+      "\n$0"
+    ],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
   },
   "FOCEI": {
-		"prefix": ["$ESTIMATION"],
+    "prefix": ["$ESTIMATION"],
     "body": [
-			"\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVALS=99999 PRINT=1",
-			"\tNSIG=3 MCETA=0 RANMETHOD=4P SEED=14455 MSFO=$0.msf"
-		],
+      "\n",
+      "\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVALS=99999 PRINT=1",
+      "            NSIG=3 MCETA=0 RANMETHOD=4P SEED=1337 MSFO=$TM_FILENAME_BASE.msf",
+      "\n$0"
+    ],
     "description": "FOCEI with sane defaults"
   },
   "IMP_eval": {
-		"prefix": ["$ESTIMATION"],
+    "prefix": ["$ESTIMATION"],
     "body": [
-			"\\$ESTIMATION METHOD=IMP INTERACTION ISAMPLES=10000 NITER=10 PRINT=1",
-			"\tEONLY=1 RANMETHOD=3S2P SEED=14455"
-		],
+      "\n",
+      "\\$ESTIMATION METHOD=IMP INTERACTION ISAMPLES=10000 NITER=10 PRINT=1",
+      "            EONLY=1 RANMETHOD=3S2P SEED=1337",
+      "\n$0"
+    ],
     "description": "IMP for OFV evaluation"
   },
-	"Xpose TABLEs": {
+  "Xpose TABLEs": {
     "prefix": ["$TABLE"],
     "body": [
-			"; In addition to the requested TABLE-items, NONMEM adds by default: DV, PRED, RES, WRES",
-			"",
-			"\\$TABLE ID TIME EVID MDV IPRED IRES IWRES CWRES",
-			"NOPRINT ONEHEADER FILE=sdtab ; Standard table file",
-			"",
-			"\\$TABLE ID CL V ETAS(1:LAST)",
-			"NOPRINT ONEHEADER FILE=patab ; Model parameters - THETAs, ETAs and EPSes",
-			"",
-			"\\$TABLE ID WT AGE",
-      "NOPRINT ONEHEADER FILE=cotab ; Continuous covariates",
-			"",
-			"\\$TABLE ID SEX",
-			"NOPRINT ONEHEADER FILE=catab ; Categorical covariates"
-		],
+      "; In addition to the requested TABLE-items, NONMEM adds by default: DV, PRED, RES, WRES",
+      "",
+      "\\$TABLE ID TIME EVID MDV IPRED IRES IWRES CWRES",
+      "NOPRINT ONEHEADER FILE=sdtab$1 ; Standard table file",
+      "",
+      "\\$TABLE ID CL V ETAS(1:LAST)",
+      "NOPRINT ONEHEADER FILE=patab$2 ; Model parameters - THETAs, ETAs and EPSes",
+      "",
+      "\\$TABLE ID WT AGE",
+      "NOPRINT ONEHEADER FILE=cotab$3 ; Continuous covariates",
+      "",
+      "\\$TABLE ID SEX",
+      "NOPRINT ONEHEADER FILE=catab$4 ; Categorical covariates",
+      "\n$0"
+    ],
     "description": "Xpose-compatible TABLE records"
   },
-	"csv": {
+  "csv": {
     "prefix": ["format_csv"],
-    "body": [
-			"FORMAT=,1PE15.8"
-		],
+    "body": ["FORMAT=,1PE15.8$0"],
     "description": "Format the NONMEM output into a comma separated file\nThe default is s1PE12.5.\nFirst character specifies delimiter (, s for space, or t for tab)\n1PE15.8 means E field notation, 15 total characters allotted to number, 8 digits beyond decimal point, 1 digits before decimal point"
   }
 }
