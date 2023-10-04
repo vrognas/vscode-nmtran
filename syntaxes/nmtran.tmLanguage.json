@@ -1,133 +1,123 @@
 {
-	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "NMTRAN",
-	"patterns": [{
-			"include": "#comments"
-		},
-		{
-			"include": "#numericals"
-		},
-		{
-			"include": "#control records"
-		},
-		{
-			"include": "#control record options"
-		},
-		{
-			"include": "#parameters"
-		},
-		{
-			"include": "#operators"
-		}],
-	"repository": {
-		"comments": {
-			"patterns": [{
-				"name": "comment.line.source.nmtran",
-				"match": ";.*$"
-			}]
-		},
-		"numericals": {
-			"patterns": [{
-				"name": "constant.numeric.source.nmtran",
-				"match": "-?\\d+"
-			}]
-		},
-		"control records": {
-			"patterns": [{
-				"name": "string.source.nmtran",
-				"match": "(?i:\\$[\\w]+)"
-			}]
-		},
-		"control record options": {
-			"patterns": [{
-				"comment": "subroutines",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(ADVAN(\\=)?[\\d]+|TRANS(\\=)?\\d+)|((TN|NW)PRI))"
-			},
-			{
-				"comment": "Control record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(PROTECT)|(DATA|IGNORE|NULL|(NO)?(PRINT|WIDE|REWIND|ABORT|RESCALE|REPEAT|INTERACTION|LAPLACIAN|POSTHOC)|CHECKOUT|RECORDS|LRECL|SUBROUTINES|COM(RES|SAV)|DERIV2|NUMBERPOINTS|DIAGONAL\\(\\d+\\)|BLOCK(\\(\\d+\\))?|SAME|FIX(ED)?|NPOPETAS|NORMAL|UNIFORM|NEW|SUBPROBLEMS|ONLYSIM(ULATION)?|METH(OD)?|SIG((DIG)?ITS)?|MAXEVAL(S)?|MSFO|SPECIAL|MATRIX|(UN)?CONDITIONAL|(NO|ONE)HEADER|VS|BY|UNIT|FROM|(A|SS)?TO(L(ERANCE)?)?|(N)?COMP(ARTMENT(S)?)?|NEQUILIBRIUM|NPARAMETERS|LINK|LIKE(LIHOOD)?|SADDLE_RESET)\\b)"
-			},
-			{
-				"comment": "SIZES record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(LTH|LVR|LVR2|NO|MMX|LNP4|LSUPP|LIM7|LWS3|MAXIDS|LIM1|LIM2|LIM3|LIM4|LIM5|LIM6|LIM8|LIM11|LIM13|LIM15|LIM16|MAXRECID|PC|PCT|PIR|PD|PDT|PAL|MAXFCN|DIMTMP|DIMCNS|DIMNEW|DIMVRB|PL|NPOPMIXMAX|MAXOMEG|MAXPTHETA|MAXITER|ISAMPLEMAX|MAXSIDL|PNM_MAXNODES)\\b)"
-			},
-			{
-				"comment": "PRIOR record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(ITYP|NSAM|ISS|PLEV|CNT)|(NTHETA|NETA|NEPS|NTHP|NETP|NEPP|NPEXP)|(IFND|MODE|IVAR)(DISPLAY|ICMAX)\\b)"
-			},
-			{
-				"comment": "$ESTIMATION record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(-2LL|ATOL|AUTO|CALPHA|CENTERING|CINTERVAL|CITER|CNSAMP|(UN)?COND(ITIONAL)?|CONSTRAIN|CTYPE|DERCONT|DF(S)?|EONLY|ETA(BARCHECK|DER|SAMPLES|STYPE)|FILE|FNLETA|FORMAT|DELIM|FPARAFILE|GRD|GRDQ|GRID|HYBRID|IACCEPT(L)?|INTER(ACTION)?|IKAPPA|ISAMPEND|ISAMPLE(_M(1(A|B)?|2|3))?|ISCALE_(MAX|MIN)|KAPPA|LAPLACE|LEVWT|LIKE(LIHOOD)?|LNTWOPI|MADAPT|MAPCOV|MAPI(N)?TER|MASSRESET|MAXEVAL(S)?|MCETA|MSFO|MUM|N(BURN|ITER|SAMPLE)?|(NO)?(ABORT|(THETA|OMEGA|SIGMA)BOUNDTEST)|NO(COV|HABORT|LABEL|NINFETA|PRIOR(C)?|SUB|TITLE)|NSIG|SIGDIGITS|NUMDER|NUMERICAL|NUTS_(BASE|DELTA|EPARAM|GAMMA|INIT|MASS|MAXDEPTH|OPARAM|REG|SPARAM|STEPINTER|STEPITER|TERM|TEST|TRANSFORM)|OACCEPT|OLKJDF|OLNTWOPI|OMEGABOUNDTEST|OMITTED|OPTMAP|ORDER|OSAMPLE_(M1|M2)?|OVARF|PACCEPT|PARAFILE|PARAFPRINT|PHITYPE|POSTHOC|PREDICTION|PRINT|PSAMPLE_(M1|M2|M3|MAX|MIN)|RANMETHOD|REPEAT(1|2)?|SADDLE_(HESS|RESET)|SEED|SIGL(O)?|SLKJDF|FAST|SORT|STDOBJ|STIELTJES|SVARF|THIN|TTDF|ZERO)\\b)"
-			},
-			{
-				"comment": "$SIMULATION record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(NSUB)\\b)"
-			},
-			{
-				"comment": "$COVARIANCE record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(SIR(THBND|SAMPLE|DF|NITER|CENTER|PRINT))|((PRE|PF)?COND(S)?)|(FPOSDEF|RESUME|PRETYPE|COMPRESS)|(IACCEPT(L)?)\\b)"
-			},
-			{
-				"comment": "$TABLE record options",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(NOAPPEND)\\b)"
-			},
-			{
-				"comment": "OPTIONS, RED",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(OMITTED|CHOLROFF|KNUTHSUMOFF)\\b|ETAS)"
-			},
-			{
-				"comment": "Control record option arguments",
-				"name": "support.type.source.nmtran",
-				"match": "(?i:\\b(INITIALOFF|NOOFF|NODOSE|EQUILIBRIUM|EXCLUDE|DEFOBSERVATION|DEFDOSE|DEFDOS|CENT|CENTRAL|DEFOBS|DEPOT|INITIAL|FINAL|PRIOR|NO|NOCOMMON|FULL|COMPACT|ZERO|HYBRID|SS(1|2|3|4|5|6|7|8|9|10|11|12))\\b)"
-			}]
-		},
-		"parameters": {
-			"patterns": [{
-				"name": "variable.parameter.source.nmtran",
-				"match": "(?i:(A\\([\\d]+\\)|ALAG[\\d]+|F[\\d]+|THETA\\([\\d]+\\)|ETA\\([\\d]+\\)|DADT\\([\\d]+\\)|EPS\\([\\d]+\\)))"
-			}]
-		},
-		"operators" : {
-			"patterns": [{
-				"comment": "operators",
-				"name": "keyword.operator.source.nmtran",
-				"match": "(?i:\\b((\\s)?(\\+|-{1}|(\\*){1}|/|\\.((N)?EQ|EQN|GE|GT|LE|LT|NE(N)?|OR|AND)\\.)(\\s)?)\\b)"
-			},
-			{
-				"comment": "assignment operator",
-				"name": "markup.bold.source.nmtran",
-				"match": "="
-			},
-			{
-				"comment": "FORTRAN 95 operators",
-				"name": "keyword.operator.source.nmtran",
-				"match": "\\b((\\s)?(\\=\\=|\\/\\=|\\>(\\=)?|\\<(\\=)?)(\\s)?)\\b"
-			},
-			{
-				"comment": "invalid operator",
-				"name": "invalid.source.nmtran",
-				"match": "(?i:\\b((\\s)?((\\.NEQN\\.)|(\\=\\/))(\\s)?)\\b)"
-			},
-			{
-				"comment": "Abbreviated code, FORTRAN 77 Code and NON-generic FORTAN 77 CODE",
-				"name": "keyword.operator.source.nmtran",
-				"match": "(?i:\\b(CALL(FL)?|DO|(ELSE)?IF|ELSE|ENDIF|TRUE|FALSE|EXIT|MODE|PASS|RANDOM|RETURN|SIMEPS|SIMETA|SQRT|SUPP|THEN|WHILE|ABS|ACOS|AIMAG|AINT|ALOG|ALOG10|AMAX0|AMAX1|AMIN0|AMIN1|AMOD|AND|ANINT|ASIN|ATAN|ATAN2|BACKSPACE|BLOCK|CABS|CCOS|CHAR|CHARACTER|CLOG|CLOSE|CMPLX|COMMON|COMPLEX|CONJG|CONTINUE|COS|COSH|CSIN|CSQRT|DABS|DACOS|DASIN|DATA(N(2)?)?|DBLE|DCOS|DCOSH|DDIM|DIM|DIMENSION|DINT|DLOG|DMAX1|DMIN1|DMOD|DNINT|DO|DOUBLE|DPROD|DSIGN|DSIN|DSINH|DSQRT|DTAN|DTANH|ELSE|ELSEIF|END|ENDFILE|ENTRY|EQ|EQUIVALENCE|ERR|(C|D)?EXP|EXTERNAL|FALSE|FILE|FLOAT|FORMAT|FUNCTION|GE|GOTO|GT|IABS|ICHAR|IDIM|IDINT|IDNINT|IF|IFIX|IMPLICIT|INDEX|INQUIRE|INTEGER|INTRINSIC|IOSTAT|ISIGN|LE|LEN|LGE|LGT|LLE|LLT|LOG|LOG10|LOGICAL|LT|MAX(0|1)?|MIN(0|1)?|MOD|NE|NINT|NOT|OPEN|OR|PARAMETER|PAUSE|PRECISION|PROGRAM|READ|REAL|REAL|RETURN|REWIND|SAVE|SIGN|SIN|SINH|SNGL|SQRT|STATUS|STOP|SUBROUTINE|TAN(H)?|THEN|TRUE|UNIT|WRITE|BTEST|CDABS|CDCOS|CDEXP|CDLOG|CDSIN|CDSQRT|COTAN|DCMPLX|DCONJG|DCOTAN|DIMAG|DREAL|EOF|ETDAT|GETDAT|GETTIM|HFIX|IAND|IBCHNG|IBCLR|IBSET|IEOR|IMAG|INT|INT1|INT2|INT4|INTC|INTERFACE|IOR|ISHA|ISHC|ISHFT|ISHL|JFIX|LACFAR|LOC|LOCKING|LOCNEAR|NOT|SETTIM)\\b)"
-			},
-			{
-				"comment": "exponentiation operator",
-				"name": "keyword.operator.source.nmtran",
-				"match": "(?i:(?<=[\\d])(E|(\\*\\*))|(\\&)$)"
-			}]
-		}
-	},
-	"scopeName": "source.nmtran"
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "NMTRAN",
+  "scopeName": "source.nmtran",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#numericals" },
+    { "include": "#control-records" },
+    { "include": "#control-record-options" },
+    { "include": "#parameters" },
+    { "include": "#operators" }
+	],
+  "repository": {
+    "comments": {
+      "patterns": [{
+        "name": "comment.line.source.nmtran",
+        "match": ";.*$"
+      }]
+    },
+    "numericals": {
+      "patterns": [{
+        "name": "constant.numeric.source.nmtran",
+        "match": "-?\\d+"
+      }]
+    },
+    "control-records": {
+      "patterns": [{
+        "name": "string.source.nmtran",
+        "match": "(?i:\\$[\\w]+)"
+      }]
+    },
+    "control-record-options": {
+      "patterns": [{
+        "comment": "subroutines",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(ADVAN(\\=)?[\\d]+|TRANS(\\=)?\\d+)|((TN|NW)PRI))"
+      },
+      {
+        "comment": "Control record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(PROTECT)|(DATA|IGNORE|NULL|(NO)?(PRINT|WIDE|REWIND|ABORT|RESCALE|REPEAT|INTERACTION|LAPLACIAN|POSTHOC)|CHECKOUT|RECORDS|LRECL|SUBROUTINES|COM(RES|SAV)|DERIV2|NUMBERPOINTS|DIAGONAL\\(\\d+\\)|BLOCK(\\(\\d+\\))?|SAME|FIX(ED)?|NPOPETAS|NORMAL|UNIFORM|NEW|SUBPROBLEMS|ONLYSIM(ULATION)?|METH(OD)?|SIG((DIG)?ITS)?|MAXEVAL(S)?|MSFO|SPECIAL|MATRIX|(UN)?CONDITIONAL|(NO|ONE)HEADER|VS|BY|UNIT|FROM|(A|SS)?TO(L(ERANCE)?)?|(N)?COMP(ARTMENT(S)?)?|NEQUILIBRIUM|NPARAMETERS|LINK|LIKE(LIHOOD)?|SADDLE_RESET)\\b)"
+      },
+      {
+        "comment": "SIZES record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(LTH|LVR|LVR2|NO|MMX|LNP4|LSUPP|LIM7|LWS3|MAXIDS|LIM1|LIM2|LIM3|LIM4|LIM5|LIM6|LIM8|LIM11|LIM13|LIM15|LIM16|MAXRECID|PC|PCT|PIR|PD|PDT|PAL|MAXFCN|DIMTMP|DIMCNS|DIMNEW|DIMVRB|PL|NPOPMIXMAX|MAXOMEG|MAXPTHETA|MAXITER|ISAMPLEMAX|MAXSIDL|PNM_MAXNODES)\\b)"
+      },
+      {
+        "comment": "PRIOR record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(ITYP|NSAM|ISS|PLEV|CNT)|(NTHETA|NETA|NEPS|NTHP|NETP|NEPP|NPEXP)|(IFND|MODE|IVAR)(DISPLAY|ICMAX)\\b)"
+      },
+      {
+        "comment": "$ESTIMATION record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(-2LL|ATOL|AUTO|CALPHA|CENTERING|CINTERVAL|CITER|CNSAMP|(UN)?COND(ITIONAL)?|CONSTRAIN|CTYPE|DERCONT|DF(S)?|EONLY|ETA(BARCHECK|DER|SAMPLES|STYPE)|FILE|FNLETA|FORMAT|DELIM|FPARAFILE|GRD|GRDQ|GRID|HYBRID|IACCEPT(L)?|INTER(ACTION)?|IKAPPA|ISAMPEND|ISAMPLE(_M(1(A|B)?|2|3))?|ISCALE_(MAX|MIN)|KAPPA|LAPLACE|LEVWT|LIKE(LIHOOD)?|LNTWOPI|MADAPT|MAPCOV|MAPI(N)?TER|MASSRESET|MAXEVAL(S)?|MCETA|MSFO|MUM|N(BURN|ITER|SAMPLE)?|(NO)?(ABORT|(THETA|OMEGA|SIGMA)BOUNDTEST)|NO(COV|HABORT|LABEL|NINFETA|PRIOR(C)?|SUB|TITLE)|NSIG|SIGDIGITS|NUMDER|NUMERICAL|NUTS_(BASE|DELTA|EPARAM|GAMMA|INIT|MASS|MAXDEPTH|OPARAM|REG|SPARAM|STEPINTER|STEPITER|TERM|TEST|TRANSFORM)|OACCEPT|OLKJDF|OLNTWOPI|OMEGABOUNDTEST|OMITTED|OPTMAP|ORDER|OSAMPLE_(M1|M2)?|OVARF|PACCEPT|PARAFILE|PARAFPRINT|PHITYPE|POSTHOC|PREDICTION|PRINT|PSAMPLE_(M1|M2|M3|MAX|MIN)|RANMETHOD|REPEAT(1|2)?|SADDLE_(HESS|RESET)|SEED|SIGL(O)?|SLKJDF|FAST|SORT|STDOBJ|STIELTJES|SVARF|THIN|TTDF|ZERO)\\b)"
+      },
+      {
+        "comment": "$SIMULATION record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(NSUB)\\b)"
+      },
+      {
+        "comment": "$COVARIANCE record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(SIR(THBND|SAMPLE|DF|NITER|CENTER|PRINT))|((PRE|PF)?COND(S)?)|(FPOSDEF|RESUME|PRETYPE|COMPRESS)|(IACCEPT(L)?)\\b)"
+      },
+      {
+        "comment": "$TABLE record options",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(NOAPPEND)\\b)"
+      },
+      {
+        "comment": "OPTIONS, RED",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(OMITTED|CHOLROFF|KNUTHSUMOFF)\\b|ETAS)"
+      },
+      {
+        "comment": "Control record option arguments",
+        "name": "support.type.source.nmtran",
+        "match": "(?i:\\b(INITIALOFF|NOOFF|NODOSE|EQUILIBRIUM|EXCLUDE|DEFOBSERVATION|DEFDOSE|DEFDOS|CENT|CENTRAL|DEFOBS|DEPOT|INITIAL|FINAL|PRIOR|NO|NOCOMMON|FULL|COMPACT|ZERO|HYBRID|SS(1|2|3|4|5|6|7|8|9|10|11|12))\\b)"
+      }]
+    },
+    "parameters": {
+      "patterns": [{
+        "name": "variable.parameter.source.nmtran",
+        "match": "(?i:(A\\([\\d]+\\)|ALAG[\\d]+|F[\\d]+|THETA\\([\\d]+\\)|ETA\\([\\d]+\\)|DADT\\([\\d]+\\)|EPS\\([\\d]+\\)))"
+      }]
+    },
+    "operators" : {
+      "patterns": [{
+        "comment": "operators",
+        "name": "keyword.operator.source.nmtran",
+        "match": "(?i:\\b((\\s)?(\\+|-{1}|(\\*){1}|/|\\.((N)?EQ|EQN|GE|GT|LE|LT|NE(N)?|OR|AND)\\.)(\\s)?)\\b)"
+      },
+      {
+        "comment": "assignment operator",
+        "name": "markup.bold.source.nmtran",
+        "match": "="
+      },
+      {
+        "comment": "FORTRAN 95 operators",
+        "name": "keyword.operator.source.nmtran",
+        "match": "\\b((\\s)?(\\=\\=|\\/\\=|\\>(\\=)?|\\<(\\=)?)(\\s)?)\\b"
+      },
+      {
+        "comment": "invalid operator",
+        "name": "invalid.source.nmtran",
+        "match": "(?i:\\b((\\s)?((\\.NEQN\\.)|(\\=\\/))(\\s)?)\\b)"
+      },
+      {
+        "comment": "Abbreviated code, FORTRAN 77 Code and NON-generic FORTAN 77 CODE",
+        "name": "keyword.operator.source.nmtran",
+        "match": "(?i:\\b(CALL(FL)?|DO|(ELSE)?IF|ELSE|ENDIF|TRUE|FALSE|EXIT|MODE|PASS|RANDOM|RETURN|SIMEPS|SIMETA|SQRT|SUPP|THEN|WHILE|ABS|ACOS|AIMAG|AINT|ALOG|ALOG10|AMAX0|AMAX1|AMIN0|AMIN1|AMOD|AND|ANINT|ASIN|ATAN|ATAN2|BACKSPACE|BLOCK|CABS|CCOS|CHAR|CHARACTER|CLOG|CLOSE|CMPLX|COMMON|COMPLEX|CONJG|CONTINUE|COS|COSH|CSIN|CSQRT|DABS|DACOS|DASIN|DATA(N(2)?)?|DBLE|DCOS|DCOSH|DDIM|DIM|DIMENSION|DINT|DLOG|DMAX1|DMIN1|DMOD|DNINT|DO|DOUBLE|DPROD|DSIGN|DSIN|DSINH|DSQRT|DTAN|DTANH|ELSE|ELSEIF|END|ENDFILE|ENTRY|EQ|EQUIVALENCE|ERR|(C|D)?EXP|EXTERNAL|FALSE|FILE|FLOAT|FORMAT|FUNCTION|GE|GOTO|GT|IABS|ICHAR|IDIM|IDINT|IDNINT|IF|IFIX|IMPLICIT|INDEX|INQUIRE|INTEGER|INTRINSIC|IOSTAT|ISIGN|LE|LEN|LGE|LGT|LLE|LLT|LOG|LOG10|LOGICAL|LT|MAX(0|1)?|MIN(0|1)?|MOD|NE|NINT|NOT|OPEN|OR|PARAMETER|PAUSE|PRECISION|PROGRAM|READ|REAL|REAL|RETURN|REWIND|SAVE|SIGN|SIN|SINH|SNGL|SQRT|STATUS|STOP|SUBROUTINE|TAN(H)?|THEN|TRUE|UNIT|WRITE|BTEST|CDABS|CDCOS|CDEXP|CDLOG|CDSIN|CDSQRT|COTAN|DCMPLX|DCONJG|DCOTAN|DIMAG|DREAL|EOF|ETDAT|GETDAT|GETTIM|HFIX|IAND|IBCHNG|IBCLR|IBSET|IEOR|IMAG|INT|INT1|INT2|INT4|INTC|INTERFACE|IOR|ISHA|ISHC|ISHFT|ISHL|JFIX|LACFAR|LOC|LOCKING|LOCNEAR|NOT|SETTIM)\\b)"
+      },
+      {
+        "comment": "exponentiation operator",
+        "name": "keyword.operator.source.nmtran",
+        "match": "(?i:(?<=[\\d])(E|(\\*\\*))|(\\&)$)"
+      }]
+    }
+  }
 }
