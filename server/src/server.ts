@@ -32,6 +32,37 @@ connection.onInitialize((params: InitializeParams) => {
   return result;
 });
 
-documents.listen(connection);
-connection.listen();
+let pattern = /\$[A-Z]+\b/g;
 
+documents.onDidChangeContent(async (change) => {
+  let textDocument = change.document;
+
+  let text = textDocument.getText();
+  let pattern = /\$[A-Z]+\b/g;  // Regular expression to match NMTRAN control records.
+  let m: RegExpExecArray | null;
+
+  let diagnostics: Diagnostic[] = [];
+  while ((m = pattern.exec(text))) {  
+    let diagnostic: Diagnostic = {
+      severity: DiagnosticSeverity.Information,  // Using Information severity for now
+      range: {
+        start: textDocument.positionAt(m.index),
+        end: textDocument.positionAt(m.index + m[0].length)
+      },
+      message: `Found NMTRAN control record: ${m[0]}.`,
+      source: 'nmtran-ls'
+    };
+    diagnostics.push(diagnostic);
+  }
+
+  // Send the computed diagnostics to VS Code.
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+});
+
+
+// Make the text document manager listen on the connection
+// for open, change and close text document events
+documents.listen(connection);
+
+// Listen on the connection
+connection.listen();
