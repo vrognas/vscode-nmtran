@@ -3,12 +3,15 @@
     "target": "es2020",
     "lib": ["es2020"],
     "module": "commonjs",
-    "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
     "outDir": "out",
     "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["node_modules", ".vscode-test"]
+  "exclude": ["node_modules", ".vscode-test"],
+  "references": [
+    { "path": "./client" },
+    { "path": "./server" }
+  ]
 }
