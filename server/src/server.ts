@@ -38,7 +38,7 @@ async function validateNMTRANDocument(textDocument: TextDocument): Promise<void>
         end: textDocument.positionAt(m.index + m[0].length)
       },
       message: `Control record: ${m[0]}`,
-      source: 'nmtran-ls'
+      source: 'NMTRAN Language Server'
     };
     diagnostics.push(diagnostic);
   }
