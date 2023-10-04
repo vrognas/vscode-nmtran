@@ -1,65 +1,58 @@
 import {
   createConnection,
+  TextDocuments,
+  Diagnostic,
+  DiagnosticSeverity,
   ProposedFeatures,
   InitializeParams,
   InitializeResult,
-  TextDocuments,
-  TextDocumentSyncKind,
-  Diagnostic,
-  DiagnosticSeverity,
+  TextDocumentSyncKind
 } from 'vscode-languageserver/node';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import {
-  TextDocument
-} from 'vscode-languageserver-textdocument';
-
-
-// Create a connection for the server.
+// Create the connection and the text document manager
 let connection = createConnection(ProposedFeatures.all);
-
-// Create a manager for open text documents.
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // Initialize the server
-connection.onInitialize((params: InitializeParams) => {
-
-  const result: InitializeResult = {
+connection.onInitialize((params: InitializeParams): InitializeResult => {
+  return {
     capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Incremental
+      textDocumentSync: TextDocumentSyncKind.Full
     }
   };
-
-  return result;
 });
 
-documents.onDidChangeContent(async (change) => {
-  let textDocument = change.document;
-
-  let text = textDocument.getText();
-  let pattern = /\$[A-Z]+\b/g;  // Regular expression to match NMTRAN control records.
+// Validate an NMTRAN document
+async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
+  const text = textDocument.getText();
+  const controlRecordPattern = /\$[A-Z]+\b/g;
   let m: RegExpExecArray | null;
+  const diagnostics: Diagnostic[] = [];
 
-  let diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text))) {  
-    let diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Information,  // Using Information severity for now
+  while ((m = controlRecordPattern.exec(text)) !== null) {
+    const diagnostic: Diagnostic = {
+      severity: DiagnosticSeverity.Information,
       range: {
         start: textDocument.positionAt(m.index),
         end: textDocument.positionAt(m.index + m[0].length)
       },
-      message: `Found NMTRAN control record: ${m[0]}.`,
+      message: `Control record: ${m[0]}`,
       source: 'nmtran-ls'
     };
     diagnostics.push(diagnostic);
   }
 
-  // Send the computed diagnostics to VS Code.
+  // Send diagnostics to the client
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+}
+
+// Listen for changes in the document
+documents.onDidChangeContent(async (change) => {
+  validateNMTRANDocument(change.document);
 });
 
-
 // Make the text document manager listen on the connection
-// for open, change and close text document events
 documents.listen(connection);
 
 // Listen on the connection
