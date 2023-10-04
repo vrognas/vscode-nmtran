@@ -1,0 +1,22 @@
+{
+  "name": "vscode-nmtran-client",
+  "version": "0.1.0",
+  "main": "out/extension.js",
+  "author": "Viktor Rognås",
+  "publisher": "vrognas",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vrognas/vscode-nmtran.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@vscode/test-electron": "^2.2.3"
+  }
+}
