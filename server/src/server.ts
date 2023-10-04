@@ -32,8 +32,6 @@ connection.onInitialize((params: InitializeParams) => {
   return result;
 });
 
-let pattern = /\$[A-Z]+\b/g;
-
 documents.onDidChangeContent(async (change) => {
   let textDocument = change.document;
 
