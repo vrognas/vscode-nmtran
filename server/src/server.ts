@@ -8,13 +8,16 @@ import {
   InitializeResult,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
+
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-// Create the connection and the text document manager
+// Create the connection for the server
 let connection = createConnection(ProposedFeatures.all);
+
+// Create a manager for text documents
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// Initialize the server
+// Initialize the server capabilities
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   return {
     capabilities: {
@@ -23,7 +26,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   };
 });
 
-// Validate an NMTRAN document
+// Function to validate an NMTRAN document
 async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
   const text = textDocument.getText();
   const controlRecordPattern = /\$[A-Z]+\b/g;
@@ -43,17 +46,18 @@ async function validateNMTRANDocument(textDocument: TextDocument): Promise<void>
     diagnostics.push(diagnostic);
   }
 
-  // Send diagnostics to the client
+  // Send the diagnostics to the client
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
-// Listen for changes in the document
+// Listen for content changes in text documents
 documents.onDidChangeContent(async (change) => {
-  validateNMTRANDocument(change.document);
+  // Wait for validation to complete before proceeding
+  await validateNMTRANDocument(change.document);
 });
 
-// Make the text document manager listen on the connection
+// Make the text document manager listen to the connection for changes
 documents.listen(connection);
 
-// Listen on the connection
+// Start listening on the connection
 connection.listen();
