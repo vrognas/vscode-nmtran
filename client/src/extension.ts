@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
   let serverModule = context.asAbsolutePath(
     path.join('server', 'out', 'server.js')
   );
+
   let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
   let serverOptions: ServerOptions = {
