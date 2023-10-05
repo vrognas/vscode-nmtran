@@ -15,26 +15,39 @@ let client: LanguageClient; // Declare client at the top level
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext){
 
-  let disposable = vscode.languages.registerFoldingRangeProvider('nmtran',
-  {
-    provideFoldingRanges(document, context, token) {
-      // console.log('folding range invoked'); // comes here on every character edit
-      let sectionStart = 0, FR = [], re = /^\$/;  // regex to detect start of region
-
-      for (let i = 0; i < document.lineCount; i++) {
-    
-        if (re.test(document.lineAt(i).text)) {
-          if (sectionStart >= 0) {
-            FR.push(new vscode.FoldingRange(sectionStart, i - 1, vscode.FoldingRangeKind.Region));
+  let disposable = vscode.languages.registerFoldingRangeProvider(
+    { language: 'nmtran', scheme: 'file' },
+    {
+      provideFoldingRanges(document, context, token) {
+        // Regex to detect the start of a region
+        const re = /^\$/;
+        
+        let sectionStart = 0;
+        let foldingRanges = [];
+  
+        for (let i = 0; i < document.lineCount; i++) {
+          if (re.test(document.lineAt(i).text)) {
+            if (sectionStart >= 0) {
+              const newFoldingRange = new vscode.FoldingRange(
+                sectionStart, i - 1, vscode.FoldingRangeKind.Region
+              );
+              foldingRanges.push(newFoldingRange);
+            }
+            sectionStart = i;
           }
-          sectionStart = i;
         }
+  
+        if (sectionStart > 0) {
+          const newFoldingRange = new vscode.FoldingRange(
+            sectionStart, document.lineCount - 1, vscode.FoldingRangeKind.Region
+          );
+          foldingRanges.push(newFoldingRange);
+        }
+  
+        return foldingRanges;
       }
-      if (sectionStart > 0) { FR.push(new vscode.FoldingRange(sectionStart, document.lineCount - 1, vscode.FoldingRangeKind.Region)); }
-    
-      return FR;
     }
-  });
+  );
 
   // Adding Language Client Setup
   let serverModule = context.asAbsolutePath(
