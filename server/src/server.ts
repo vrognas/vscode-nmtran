@@ -78,6 +78,8 @@ connection.onHover(({ textDocument, position }) => {
 // Function to return hover information for a given control record
 function getHoverInfoForControlRecord(controlRecord: string): string {
   switch (controlRecord) {
+    case '$ABBR':
+      return 'Provides instructions about abbreviated code';
     case '$ABBREVIATED':
       return 'Provides instructions about abbreviated code';
     case '$AES':
@@ -92,6 +94,8 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Supplies initial estimates for an entire problem';
     case '$CONTR':
       return 'Defines values for certain user-supplied routines';
+    case '$COV':
+      return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix.';
     case '$COVARIANCE':
       return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix.';
     case '$COVR':
@@ -106,6 +110,8 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Instructions for Clinical Trial Design Evaluation and Optimization';
     case '$ERROR':
       return 'Used to calculate the model result and intra-individual error in observed values.';
+    case '$EST':
+      return 'Obtains parameter estimate.';
     case '$ESTIMATION':
       return 'Obtains parameter estimate.';
     case '$ESTM':
@@ -154,6 +160,8 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Used to model values for the DV data items. It is NOT used with PREDPP.';
     case '$PRIOR':
       return 'Optional. Specifies the use of the PRIOR feature of NONMEM. Note that `$PRIOR` is a control record, not a block of abbreviated code. Therefore, only those options that are listed here may be used. E.g., verbatim code may not be used. Options and arguments may be in any order, and may be on more than one line.';
+    case '$PROB':
+      return 'Required. Identifies the start of a NONMEM problem specification. The text becomes a heading for the NONMEM printout.';
     case '$PROBLEM':
       return 'Required. Identifies the start of a NONMEM problem specification. The text becomes a heading for the NONMEM printout.';
     case '$RCOV':
@@ -168,6 +176,8 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Gives prior information for elements of the SIGMA matrix';
     case '$SIGMAPD':
       return 'Gives degrees of freedom (also called the dispersion factor) for SIGMA priors';
+    case '$SIM':
+      return 'Optional. Requests that the NONMEM Simulation Step be implemented.';
     case '$SIMULATION':
       return 'Optional. Requests that the NONMEM Simulation Step be implemented.';
     case '$SIMULATE':
