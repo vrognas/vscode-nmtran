@@ -1,5 +1,4 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+// Import the required modules
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {
@@ -9,47 +8,49 @@ import {
   TransportKind
 } from 'vscode-languageclient/node';
 
-let client: LanguageClient; // Declare client at the top level
+// Declare the LanguageClient at the top level
+let client: LanguageClient;
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext){
-
+// This method is called when your extension is activated
+export function activate(context: vscode.ExtensionContext) {
+  // Register a Folding Range Provider for the 'nmtran' language
   let disposable = vscode.languages.registerFoldingRangeProvider(
     { language: 'nmtran', scheme: 'file' },
     {
       provideFoldingRanges(document, context, token) {
-        // Regex to detect the start of a region
-        const re = /^\$/;
-        
+        const re = /^\$/;  // Regex to detect start of a region
         let sectionStart = 0;
         let foldingRanges = [];
-  
+
         for (let i = 0; i < document.lineCount; i++) {
           if (re.test(document.lineAt(i).text)) {
             if (sectionStart >= 0) {
               const newFoldingRange = new vscode.FoldingRange(
-                sectionStart, i - 1, vscode.FoldingRangeKind.Region
+                sectionStart,
+                i - 1,
+                vscode.FoldingRangeKind.Region
               );
               foldingRanges.push(newFoldingRange);
             }
             sectionStart = i;
           }
         }
-  
+
         if (sectionStart > 0) {
           const newFoldingRange = new vscode.FoldingRange(
-            sectionStart, document.lineCount - 1, vscode.FoldingRangeKind.Region
+            sectionStart,
+            document.lineCount - 1,
+            vscode.FoldingRangeKind.Region
           );
           foldingRanges.push(newFoldingRange);
         }
-  
+
         return foldingRanges;
       }
     }
   );
 
-  // Adding Language Client Setup
+  // Language Client Setup
   let serverModule = context.asAbsolutePath(
     path.join('server', 'out', 'server.js')
   );
@@ -71,6 +72,7 @@ export function activate(context: vscode.ExtensionContext){
     }
   };
 
+  // Initialize the Language Client
   client = new LanguageClient(
     'NMTRANLanguageServer',
     'NMTRAN Language Server',
@@ -80,10 +82,11 @@ export function activate(context: vscode.ExtensionContext){
 
   client.start();
 
-  // Register the folding range provider
+  // Register the folding range provider to the extension's subscriptions
   context.subscriptions.push(disposable);
 }
 
+// This method is called when your extension is deactivated
 export function deactivate(): Thenable<void> | undefined {
   if (!client) {
     return undefined;
