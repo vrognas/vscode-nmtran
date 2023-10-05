@@ -380,5 +380,29 @@
     "prefix": ["format_csv"],
     "body": ["FORMAT=,1PE15.8$0"],
     "description": "Format the NONMEM output into a comma separated file\nThe default is s1PE12.5.\nFirst character specifies delimiter (, s for space, or t for tab)\n1PE15.8 means E field notation, 15 total characters allotted to number, 8 digits beyond decimal point, 1 digits before decimal point"
+  },
+  "theta": {
+    "prefix": ["$THETA"],
+    "body": [
+      "\\$THETA (${1:-Inf}, ${2:0}, ${3:Inf}) ${4:FIX }; TV ${5:Description}",
+      "$0"
+    ],
+    "description": "New THETA record"
+  },
+  "omega": {
+    "prefix": ["$OMEGA"],
+    "body": [
+      "\\$OMEGA (${1:-Inf}, ${2:0}, ${3:Inf}) ${4:FIX }; IIV ${5:Description}",
+      "$0"
+    ],
+    "description": "New OMEGA record"
+  },
+  "sigma": {
+    "prefix": ["$SIGMA"],
+    "body": [
+      "\\$SIGMA (${1:-Inf}, ${2:0}, ${3:Inf}) ${4:FIX }; RUV ${5:Description}",
+      "$0"
+    ],
+    "description": "New SIGMA record"
   }
 }
