@@ -1,5 +1,7 @@
 import {
   createConnection,
+  CodeAction,
+  CodeActionKind,
   TextDocuments,
   Diagnostic,
   DiagnosticSeverity,
@@ -37,7 +39,8 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
-      hoverProvider: true
+      hoverProvider: true,
+      codeActionProvider: true
     }
   };
 });
@@ -85,6 +88,11 @@ function findControlRecordsInText(text: string): RegExpExecArray[] {
   const matches: RegExpExecArray[] = [];
   let match: RegExpExecArray | null;
 
+  // Remove lines that start with a semicolon (comments)
+  const filteredText = text.split('\n')
+                            .filter(line => !line.trim().startsWith(';'))
+                            .join('\n');
+
   while ((match = controlRecordPattern.exec(text)) !== null) {
     matches.push(match);
   }
@@ -105,6 +113,7 @@ function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: 
           end: textDocument.positionAt(match.index + match[0].length)
         },
         message: `Did you mean ${closestMatch}?`,
+        code: "replace-abbreviation",
         source: 'NMTRAN Language Server'
       };
     }
@@ -128,7 +137,7 @@ function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: 
 
 // ------------ Main Functionalities -------------
 
-// Implement hover logic
+// Implement Hover logic
 connection.onHover(({ textDocument, position }) => {
   const uri = textDocument.uri;
   const document = documents.get(uri);
@@ -162,6 +171,44 @@ connection.onHover(({ textDocument, position }) => {
   }
 
   return null;
+});
+
+// Implement CodeAction logic
+connection.onCodeAction(({ textDocument, range, context }) => {
+  const uri = textDocument.uri;
+  const document = documents.get(uri);
+  if (!document) {
+    return null;
+  }
+
+  const codeActions: CodeAction[] = [];
+  
+  for (const diagnostic of context.diagnostics) {
+    // Check if the diagnostic is related to an abbreviation
+    if (diagnostic.message.startsWith("Did you mean")) {
+      const fullControlRecord = diagnostic.message.replace("Did you mean ", "").replace("?", "");
+      
+      const replaceAbbreviationAction: CodeAction = {
+        title: `Replace with ${fullControlRecord}`,
+        kind: CodeActionKind.QuickFix,
+        diagnostics: [diagnostic],
+        edit: {
+          changes: {
+            [uri]: [
+              {
+                range: diagnostic.range,
+                newText: fullControlRecord
+              }
+            ]
+          }
+        }
+      };
+
+      codeActions.push(replaceAbbreviationAction);
+    }
+  }
+
+  return codeActions;
 });
 
 async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
