@@ -29,6 +29,7 @@ export const validControlRecords = [
   '$MSFI',
   '$NONPARAMETRIC',
   '$OLKJDF',
+  '$OMEGA',
   '$OMEGAP',
   '$OMEGAPD',
   '$OMIT',
