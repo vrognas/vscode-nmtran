@@ -2,15 +2,15 @@ import {
   createConnection,
   CodeAction,
   CodeActionKind,
-  TextDocuments,
   Diagnostic,
   DiagnosticSeverity,
   Hover,
+  InitializeParams,
+  InitializeResult,
   MarkupContent,
   MarkupKind,
   ProposedFeatures,
-  InitializeParams,
-  InitializeResult,
+  TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
