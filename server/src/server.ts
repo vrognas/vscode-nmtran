@@ -2,15 +2,18 @@ import {
   createConnection,
   CodeAction,
   CodeActionKind,
-  TextDocuments,
   Diagnostic,
   DiagnosticSeverity,
+  DocumentSymbolParams,
   Hover,
+  InitializeParams,
+  InitializeResult,
   MarkupContent,
   MarkupKind,
   ProposedFeatures,
-  InitializeParams,
-  InitializeResult,
+  SymbolInformation,
+  SymbolKind,
+  TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -40,7 +43,8 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
       hoverProvider: true,
-      codeActionProvider: true
+      codeActionProvider: true,
+      documentSymbolProvider: true
     }
   };
 });
@@ -209,6 +213,38 @@ connection.onCodeAction(({ textDocument, range, context }) => {
   }
 
   return codeActions;
+});
+
+// Implement Document Symbol logic
+connection.onDocumentSymbol((params: DocumentSymbolParams) => {
+  const uri = params.textDocument.uri;
+  const document = documents.get(uri);
+  if (!document) {
+    return null;
+  }
+
+  const text = document.getText();
+  const controlRecords = findControlRecordsInText(text);
+  const symbols: SymbolInformation[] = [];
+
+  for (const match of controlRecords) {
+    const fullControlRecord = getFullControlRecord(match[0]);
+    const symbolInfo: SymbolInformation = {
+      name: fullControlRecord,
+      kind: SymbolKind.Module,
+      location: {
+        uri: uri,
+        range: {
+          start: document.positionAt(match.index),
+          end: document.positionAt(match.index + match[0].length)
+        }
+      }
+    };
+
+    symbols.push(symbolInfo);
+  }
+
+  return symbols;
 });
 
 async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
