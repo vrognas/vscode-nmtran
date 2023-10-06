@@ -11,14 +11,84 @@ import {
   InitializeResult,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
-
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-// Create the connection for the server
-let connection = createConnection(ProposedFeatures.all);
+// ------------ Initial Setup -------------
 
-// Create a manager for text documents
-let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+const connection = createConnection(ProposedFeatures.all);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+
+// ------------ Constants -------------
+
+// Function to validate an NMTRAN document
+// List of valid control records. Add more as you need
+const validControlRecords = [
+  '$ABBREVIATED',
+  '$AES',
+  '$AESINITIAL',
+  '$ANNEAL',
+  '$BIND',
+  '$CHAIN',
+  '$CONTR',
+  '$COVARIANCE',
+  '$COVR',
+  '$DATA',
+  '$DEFAULT',
+  '$DES',
+  '$DESIGN',
+  '$ERROR',
+  '$ESTIMATION',
+  '$ESTIMATE',
+  '$ESTM',
+  '$ETAS',
+  '$PHIS',
+  '$FORMAT',
+  '$INDEX',
+  '$INDXS',
+  '$INFN',
+  '$INPUT',
+  '$LEVEL',
+  '$MIX',
+  '$MODEL',
+  '$MSFI',
+  '$NONPARAMETRIC',
+  '$OLKJDF',
+  '$OMEGAP',
+  '$OMEGAPD',
+  '$OMIT',
+  '$OVARF',
+  '$PK',
+  '$PRED',
+  '$PRIOR',
+  '$PROBLEM',
+  '$RCOV',
+  '$RCOVI',
+  '$SCATTERPLOT',
+  '$SIGMA',
+  '$SIGMAP',
+  '$SIGMAPD',
+  '$SIMULATION',
+  '$SIMULATE',
+  '$SIML',
+  '$SIZES',
+  '$SLKJDF',
+  '$SUBROUTINES',
+  '$SUPER',
+  '$SVARF',
+  '$TABLE',
+  '$THETA',
+  '$THI',
+  '$THETAI',
+  '$THETAP',
+  '$THETAPV',
+  '$THETAR',
+  '$THR',
+  '$TOL',
+  '$TTDF',
+  '$WARNINGS'
+];
+
+// ------------ Settings -------------
 
 // Define interface for settings
 interface NMTRANSettings {
@@ -29,57 +99,36 @@ interface NMTRANSettings {
 const defaultSettings: NMTRANSettings = { maxNumberOfProblems: 100 };
 let globalSettings: NMTRANSettings = defaultSettings;
 
-// Initialize the server capabilities
+// ------------ Server Capabilities -------------
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
-      // Indicate that the server provides hover support
       hoverProvider: true
     }
   };
 });
 
-// Implement hover logic
-connection.onHover(({ textDocument, position }) => {
-  const uri = textDocument.uri;
-  const document = documents.get(uri);
-  if (!document) {
-    return null;
-  }
+// ------------ Helper Functions -------------
 
-  const text = document.getText();
-  const offset = document.offsetAt(position);
-  const controlRecordPattern = /\$[A-Z]+\b/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = controlRecordPattern.exec(text)) !== null) {
-    const start = match.index;
-    const end = match.index + match[0].length;
-    if (start <= offset && offset <= end) {
-      const hoverInfo: MarkupContent = {
-        kind: MarkupKind.Markdown,
-        value: getHoverInfoForControlRecord(match[0])
-      };
-
-      return {
-        contents: hoverInfo,
-        range: {
-          start: document.positionAt(start),
-          end: document.positionAt(end)
-        }
-      } as Hover;
+// Function to get the full form of a control record
+function getFullControlRecord(record: string): string {
+  for (const validRecord of validControlRecords) {
+    if (validRecord.startsWith(record)) {
+      return validRecord; // Return the full form if a match is found
     }
   }
-
-  return null;
-});
+  return record; // Return the original string if no match is found
+}
 
 // Function to return hover information for a given control record
-function getHoverInfoForControlRecord(controlRecord: string): string {
+function getHoverInfoForControlRecord(controlRecord: string, fullControlRecord: string): string {
+  // If an abbreviation is used, return the hover info for the full control record
+  if (controlRecord !== fullControlRecord) {
+    controlRecord = fullControlRecord;
+  }
+
   switch (controlRecord) {
-    case '$ABBR':
-      return 'Provides instructions about abbreviated code';
     case '$ABBREVIATED':
       return 'Provides instructions about abbreviated code';
     case '$AES':
@@ -94,8 +143,6 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Supplies initial estimates for an entire problem';
     case '$CONTR':
       return 'Defines values for certain user-supplied routines';
-    case '$COV':
-      return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix.';
     case '$COVARIANCE':
       return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix.';
     case '$COVR':
@@ -110,8 +157,6 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Instructions for Clinical Trial Design Evaluation and Optimization';
     case '$ERROR':
       return 'Used to calculate the model result and intra-individual error in observed values.';
-    case '$EST':
-      return 'Obtains parameter estimate.';
     case '$ESTIMATION':
       return 'Obtains parameter estimate.';
     case '$ESTM':
@@ -160,8 +205,6 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Used to model values for the DV data items. It is NOT used with PREDPP.';
     case '$PRIOR':
       return 'Optional. Specifies the use of the PRIOR feature of NONMEM. Note that `$PRIOR` is a control record, not a block of abbreviated code. Therefore, only those options that are listed here may be used. E.g., verbatim code may not be used. Options and arguments may be in any order, and may be on more than one line.';
-    case '$PROB':
-      return 'Required. Identifies the start of a NONMEM problem specification. The text becomes a heading for the NONMEM printout.';
     case '$PROBLEM':
       return 'Required. Identifies the start of a NONMEM problem specification. The text becomes a heading for the NONMEM printout.';
     case '$RCOV':
@@ -176,8 +219,6 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
       return 'Gives prior information for elements of the SIGMA matrix';
     case '$SIGMAPD':
       return 'Gives degrees of freedom (also called the dispersion factor) for SIGMA priors';
-    case '$SIM':
-      return 'Optional. Requests that the NONMEM Simulation Step be implemented.';
     case '$SIMULATION':
       return 'Optional. Requests that the NONMEM Simulation Step be implemented.';
     case '$SIMULATE':
@@ -213,125 +254,150 @@ function getHoverInfoForControlRecord(controlRecord: string): string {
     case '$THR':
       return 'Gives Instructions for Transforming Final Thetas. More commonly coded as `$THETAR`.';
     case '$TOL':
-      return 'Used to specify compartment-speciﬁc NRD values. It is used with PREDPP’s general non-linear models (ADVAN6, ADVAN8, ADVAN9, ADVAN13, ADVAN14, ADVAN15, ADVAN16, ADVAN17, ADVAN18, and SS6 and SS9). NRD stands for "Number of Required Digits," although the precise meaning depends on the particular ADVAN or SS routine that uses it.';
+      return 'Used to specify compartment-specific NRD values. It is used with PREDPP’s general non-linear models (ADVAN6, ADVAN8, ADVAN9, ADVAN13, ADVAN14, ADVAN15, ADVAN16, ADVAN17, ADVAN18, and SS6 and SS9). NRD stands for "Number of Required Digits," although the precise meaning depends on the particular ADVAN or SS routine that uses it.';
     case '$TTDF':
-      return 'Speciﬁes t-distribution degrees of freedom for theta';
+      return 'Specifies t-distribution degrees of freedom for theta';
     case '$WARNINGS':
-      return 'Control Display of NM-TRAN Warning, Data Warning and Data Error messages';
+      return 'Control Display of NMTRAN Warning, Data Warning and Data Error messages';
     default:
       return `${controlRecord} not recognized`;
   }
 }
 
-// Function to validate an NMTRAN document
-// List of valid control records. Add more as you need
-const validControlRecords = [
-  '$ABBREVIATED',
-  '$AES',
-  '$AESINITIAL',
-  '$ANNEAL',
-  '$BIND',
-  '$CHAIN',
-  '$CONTR',
-  '$COVARIANCE',
-  '$DATA',
-  '$DEFAULT',
-  '$DES',
-  '$DESIGN',
-  '$ERROR',
-  '$ESTIMATION',
-  '$ETAS',
-  '$PHIS',
-  '$FORMAT',
-  '$INDEX',
-  '$INDXS',
-  '$INFN',
-  '$INPUT',
-  '$LEVEL',
-  '$MIX',
-  '$MODEL',
-  '$MSFI',
-  '$NONPARAMETRIC',
-  '$OLKJDF',
-  '$OMEGAP',
-  '$OMEGAPD',
-  '$OMIT',
-  '$OVARF',
-  '$PK',
-  '$PRED',
-  '$PRIOR',
-  '$PROBLEM',
-  '$RCOV',
-  '$RCOVI',
-  '$SCATTERPLOT',
-  '$SIGMA',
-  '$SIGMAP',
-  '$SIGMAPD',
-  '$SIMULATION',
-  '$SIZES',
-  '$SLKJDF',
-  '$SUBROUTINES',
-  '$SUPER',
-  '$SVARF',
-  '$TABLE',
-  '$THETA',
-  '$THETAI',
-  '$THETAP',
-  '$THETAPV',
-  '$THETAR',
-  '$TOL',
-  '$TTDF',
-  '$WARNINGS'
-];
+// Function to check validity of a control record, if it's an abbreviation, and find the closest valid match
+function checkControlRecordValidity(record: string): { isValid: boolean, isAbbreviation: boolean, closestMatch?: string } {
+  let closestMatch: string | undefined;
+  let isAbbreviation = false;
 
-// Function to validate an NMTRAN document
-async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
-  const text = textDocument.getText();
+  for (const validRecord of validControlRecords) {
+    if (validRecord === record) {
+      return { isValid: true, isAbbreviation: false };
+    }
+
+    if (validRecord.startsWith(record)) {
+      isAbbreviation = true;
+      closestMatch = validRecord;
+      return { isValid: true, isAbbreviation, closestMatch };
+    }
+
+    // Logic to find the closest match
+    if (!closestMatch && validRecord.startsWith(record.substring(0, 3))) {
+      closestMatch = validRecord;
+    }
+  }
+
+  return { isValid: false, isAbbreviation: false, closestMatch };
+}
+
+// This function just extracts control records from a text
+function findControlRecordsInText(text: string): RegExpExecArray[] {
   const controlRecordPattern = /\$[A-Z]+\b/g;
-  let m: RegExpExecArray | null;
-  const diagnostics: Diagnostic[] = [];
-  let problems = 0;
+  const matches: RegExpExecArray[] = [];
+  let match: RegExpExecArray | null;
 
-  while ((m = controlRecordPattern.exec(text)) !== null && problems < globalSettings.maxNumberOfProblems) {
-    problems++;
-    
-    // Check if it's a valid control record
-    const isValid = isValidControlRecord(m[0]);
-    
-    // If the control record is invalid, send a diagnostic message
-    if (!isValid) {
-      const diagnostic: Diagnostic = {
-        severity: DiagnosticSeverity.Error,  // Setting severity to Error
+  while ((match = controlRecordPattern.exec(text)) !== null) {
+    matches.push(match);
+  }
+
+  return matches;
+}
+
+// This function will validate individual control records and return a diagnostic
+function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: TextDocument): Diagnostic | null {
+  const { isValid, isAbbreviation, closestMatch } = checkControlRecordValidity(match[0]);
+
+  if (isValid) {
+    if (isAbbreviation) {
+      return {
+        severity: DiagnosticSeverity.Information,
         range: {
-          start: textDocument.positionAt(m.index),
-          end: textDocument.positionAt(m.index + m[0].length)
+          start: textDocument.positionAt(match.index),
+          end: textDocument.positionAt(match.index + match[0].length)
         },
-        message: `Invalid control record: ${m[0]}`,
+        message: `Did you mean ${closestMatch}?`,
         source: 'NMTRAN Language Server'
       };
+    }
+    return null;  // It's a fully spelled out valid control record, so return null
+  } else {
+    let message = `Invalid control record: ${match[0]}`;
+    if (closestMatch) {
+      message += `. Did you mean ${closestMatch}?`;
+    }
+    return {
+      severity: DiagnosticSeverity.Error,
+      range: {
+        start: textDocument.positionAt(match.index),
+        end: textDocument.positionAt(match.index + match[0].length)
+      },
+      message,
+      source: 'NMTRAN Language Server'
+    };
+  }
+}
+
+// ------------ Main Functionalities -------------
+
+// Implement hover logic
+connection.onHover(({ textDocument, position }) => {
+  const uri = textDocument.uri;
+  const document = documents.get(uri);
+  if (!document) {
+    return null;
+  }
+
+  const text = document.getText();
+  const offset = document.offsetAt(position);
+  const controlRecordPattern = /\$[A-Z]+\b/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = controlRecordPattern.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (start <= offset && offset <= end) {
+      const fullControlRecord = getFullControlRecord(match[0]);  // Assuming you have this function
+      const hoverInfo: MarkupContent = {
+        kind: MarkupKind.Markdown,
+        value: getHoverInfoForControlRecord(match[0], fullControlRecord)
+      };
+
+      return {
+        contents: hoverInfo,
+        range: {
+          start: document.positionAt(start),
+          end: document.positionAt(end)
+        }
+      } as Hover;
+    }
+  }
+
+  return null;
+});
+
+async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
+  const text = textDocument.getText();
+  const controlRecords = findControlRecordsInText(text);
+  const diagnostics: Diagnostic[] = [];
+
+  for (const match of controlRecords) {
+    const diagnostic = createDiagnosticForControlRecord(match, textDocument);
+    if (diagnostic) {
       diagnostics.push(diagnostic);
     }
   }
 
-  // Send the diagnostics to the client
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
-// Function to check if a string is a valid control record
-function isValidControlRecord(record: string): boolean {
-  for (const validRecord of validControlRecords) {
-    if (validRecord.startsWith(record)) {
-      return true;
-    }
-  }
-  return false;
-}
+// ------------ Event Listeners -------------
 
 // Listen for content changes in text documents
 documents.onDidChangeContent(async (change) => {
   // Wait for validation to complete before proceeding
   await validateNMTRANDocument(change.document);
 });
+
+// ------------ Start Server -------------
 
 // Make the text document manager listen to the connection for changes
 documents.listen(connection);
