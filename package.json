@@ -77,8 +77,8 @@
   "semanticHighlighting": true,
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
+    "compile": "tsc --build",
+    "watch": "tsc --build --watch",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
     "gen-parser": "nearleyc ./server/src/parser/nmtran.grammar -o ./server/out/parser/nmtran.js"
