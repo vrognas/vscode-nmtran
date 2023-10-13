@@ -82,7 +82,7 @@
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
     "gen-parser": "nearleyc ./server/src/parser/nmtran-grammar.ne -o ./server/out/parser/nmtran-grammar.js"
-    },
+  },
   "devDependencies": {
     "@types/node": "^20.8.0",
     "@types/vscode": "^1.80.0",
@@ -93,6 +93,7 @@
     "vscode-languageserver-textdocument": "^1.0.11"
   },
   "dependencies": {
+    "moo": "^0.5.2",
     "nearley": "^2.20.1"
   }
 }
