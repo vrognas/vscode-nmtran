@@ -93,6 +93,8 @@
     "vscode-languageserver-textdocument": "^1.0.11"
   },
   "dependencies": {
+    "@types/moo": "^0.5.7",
+    "@types/nearley": "^2.11.3",
     "moo": "^0.5.2",
     "nearley": "^2.20.1"
   }
