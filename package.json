@@ -81,7 +81,7 @@
     "watch": "tsc --build --watch",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "gen-parser": "nearleyc ./server/src/parser/nmtran.ne -o ./server/out/parser/nmtran.js"
+    "gen-parser": "nearleyc ./server/src/parser/nmtran-grammar.ne -o ./server/out/parser/nmtran-grammar.js"
     },
   "devDependencies": {
     "@types/node": "^20.8.0",

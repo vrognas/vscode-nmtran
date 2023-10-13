@@ -1,5 +1,5 @@
 const nearley = require("nearley");
-const grammar = require("./nmtran.js");
+const grammar = require("./nmtran-grammar.js");
 
 const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
 
