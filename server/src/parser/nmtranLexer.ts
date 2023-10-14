@@ -1,6 +1,9 @@
 import * as moo from "moo";
 import * as fs from "fs/promises";
-import { validControlRecords } from "../constants";
+import {
+  validControlRecords,
+  validSizesOptions
+} from "../constants";
 
 const mainRules: moo.Rules = {
   WS: /[ \t]+/,
@@ -27,12 +30,15 @@ const mainRules: moo.Rules = {
 };
 
 // Dynamically generate control records and switch lexical states
-const controlRecords: moo.Rules = Object.fromEntries(
-  validControlRecords.map(record => [
-    record.slice(1), // Remove the '$' for the key
-    { match: new RegExp(`\\${record}`), next: record.slice(1) } // Escape the '$' for the regex
-  ])
-);
+const controlRecords: moo.Rules = {
+  ...Object.fromEntries(
+    validControlRecords.map(record => [
+      record.slice(1), // Remove the '$' for the key
+      { match: new RegExp(`\\${record}`), next: record.slice(1) } // Escape the '$' for the regex
+    ])
+  ),
+  invalidControlRecord: { match: /\$[a-zA-Z]+/, next: 'main' }
+};
 
 const customRules: { [key: string]: moo.Rules } = {
   ABBREVIATED: {
@@ -113,7 +119,7 @@ const customRules: { [key: string]: moo.Rules } = {
   },
   PROBLEM: {
     problem_text: {
-      match: /[^\n]{1,72}/,  // Captures up to 72 characters that are not a newline
+      match: /(?<=\s)[^\n]{1,72}/,  // Captures up to 72 characters that are not a newline
       lineBreaks: false,     // We don't want to capture line breaks
     }
   },
@@ -136,6 +142,17 @@ const customRules: { [key: string]: moo.Rules } = {
   SIML: {
   },
   SIZES: {
+    sizes_constant: {
+      match: /[a-zA-Z_][a-zA-Z0-9_]*/,
+      type: moo.keywords({
+        'sizes_constant': validSizesOptions,
+      })
+    },
+
+    sizes_value: {
+      match: /-?\d+/, // Values (positive, zero, or negative)
+      value: (str: any) => Number(str),
+    } as any,
   },
   SLKJDF: {
   },
@@ -172,17 +189,17 @@ const customRules: { [key: string]: moo.Rules } = {
 // Initialize the lexer
 const nmtranLexer = moo.states({
   main: {
-    ...mainRules,
-    ...controlRecords
+    ...controlRecords,
+    ...mainRules
   },
   // Dynamically generate states for each control record
   ...Object.fromEntries(
     validControlRecords.map(record => [
       record.slice(1), // State name
       {
+        ...controlRecords,
         ...customRules[record.slice(1)],
-        ...mainRules,
-        ...controlRecords
+        ...mainRules
       }
     ])
   )
