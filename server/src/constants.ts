@@ -110,3 +110,28 @@ export const validSizesOptions = [
   'MAXNRDS',
   'PAST_SIZE',
 ];
+
+export const reservedDataItemLabels = [
+  'ID',
+  'L1',
+  'L2',
+  'DV',
+  'MDV',
+  'TIME',
+  'DATE',
+  'DAT1',
+  'DAT2',
+  'DAT3',
+  'DROP',
+  'SKIP',
+  'EVID',
+  'AMT',
+  'RATE',
+  'SS',
+  'II',
+  'ADDL',
+  'RAW_',
+  'MRG_',
+  'RPT_',
+  'REPL_'
+];
