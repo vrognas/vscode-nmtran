@@ -58,8 +58,8 @@ export const validControlRecords = [
   '$THETAI',
   '$THETAP',
   '$THETAPV',
-  '$THETAR',
   '$THR',
+  '$THETAR',
   '$TOL',
   '$TTDF',
   '$WARNINGS'
