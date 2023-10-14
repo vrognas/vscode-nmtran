@@ -96,6 +96,7 @@
   "dependencies": {
     "@types/moo": "^0.5.7",
     "@types/nearley": "^2.11.3",
+    "fs": "^0.0.1-security",
     "moo": "^0.5.2",
     "mz": "^2.7.0",
     "nearley": "^2.20.1"
