@@ -2,3 +2,5 @@
 */out/
 node_modules/
 *.vsix
+test/parser/test.ast
+test/lexer-log.json
