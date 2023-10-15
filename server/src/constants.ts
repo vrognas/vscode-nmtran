@@ -1,14 +1,14 @@
 export const uniqueControlRecords = [
-  'AES',
   'AESINITIAL',
+  'AES',
   'ANNEAL',
   'BIND',
   'CHAIN',
   'CONTR',
   'DATA',
   'DEFAULT',
-  'DES',
   'DESIGN',
+  'DES',
   'ETAS',
   'PHIS',
   'FORMAT',
@@ -21,29 +21,28 @@ export const uniqueControlRecords = [
   'MSFI',
   'NONPARAMETRIC',
   'OLKJDF',
-  'OMEGA',
-  'OMEGAP',
   'OMEGAPD',
+  'OMEGAP',
+  'OMEGA',
   'OMIT',
   'OVARF',
   'PK',
   'PRED',
   'PRIOR',
-  'RCOV',
   'RCOVI',
-  'SIGMA',
-  'SIGMAP',
+  'RCOV',
   'SIGMAPD',
+  'SIGMAP',
+  'SIGMA',
   'SIZES',
   'SLKJDF',
   'SUPER',
   'SVARF',
-  'TABLE',
-  'THETA',
-  'THETAI',
-  'THETAP',
   'THETAPV',
+  'THETAP',
+  'THETAI',
   'THETAR',
+  'THETA',
   'TOL',
   'TTDF',
   'WARNINGS'
@@ -57,10 +56,11 @@ export const abbreviatableControlRecords = [
   'PROBLEM',
   'SCATTERPLOT',
   'SIMULATION',
-  'SUBROUTINES'
+  'SUBROUTINES',
+  'TABLE'
 ];
 
-export const aliasControlRecords: Record<string, string> = {
+export const aliasControlRecords: Record<string, string> = { // Type hack
   'COVR': 'COVARIANCE',
   'ESTIMATE': 'ESTIMATION',
   'ESTM': 'ESTIMATION',
@@ -154,6 +154,9 @@ export const statementKeywords = {
   'nonmem_protect': ['PLOG10', 'PLOG', 'PEXP', 'PSQRT', 'PDZ', 'PNP', 'PHE', 'PNG', 'PTAN', 'PASIN', 'PACOS', 'PATAN'],
   'nonmem_builtin': ['PHI', 'GAMLN', 'DLOG', 'DEXP', 'DSQRT'],
   'fortran_builtin': ['LOG10', 'LOG', 'EXP', 'SQRT', 'SIN', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ABS', 'INT', 'MIN', 'MAX', 'MOD'],
+  'theta': 'THETA',
+  'eta': 'ETA',
+  'epsilon': ['EPS', 'ERR'],
 };
 
 export const validControlRecords = [
