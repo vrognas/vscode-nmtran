@@ -318,6 +318,6 @@ async function main(inputFile: string, outputFile: string) {
 }
 
 main(
-  './test/minimal.mod',
+  './test/test.mod',
   './test/lexer-log.json'
 );
