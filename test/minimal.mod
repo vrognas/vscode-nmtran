@@ -1,4 +1,3 @@
-$SIZES SD=20
 $PROBLEM base model
 $INPUT ID DV TIME
 $DATA file.csv IGNORE=@
