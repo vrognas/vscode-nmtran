@@ -5,7 +5,8 @@ import {
   abbreviatableControlRecords,
   aliasControlRecords,
   validSizesOptions,
-  reservedDataItemLabels
+  reservedDataItemLabels,
+  statementKeywords
 } from "../constants";
 
 const mainRules: moo.Rules = {
@@ -14,18 +15,11 @@ const mainRules: moo.Rules = {
   math_op: ['*', '/', '+', '-', '**'],
   logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
   assign: '=',
-  digit:  { match: /[0-9]+/, value: str => Number(str) as any },
-  identifier: {
-    match: /[a-zA-Z][a-zA-Z0-9_]*/,
-    type: moo.keywords({
-      'keyword-if': ['IF', 'THEN', 'ELSE', 'ELSEIF', 'ENDIF'],
-      'keyword-while': ['DO WHILE', 'ENDDO'],
-      'keyword-other': ['CALL', 'WRITE', 'PRINT', 'RETURN', 'OPEN', 'CLOSE', 'REWIND', 'EXIT'],
-      'fortran_builtin': ['LOG10', 'LOG', 'EXP', 'SQRT', 'SIN', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ABS', 'INT', 'MIN', 'MAX', 'MOD'],
-      'nonmem_protected': ['PLOG', 'PEXP'],
-      'nonmem_builtin': ['PHI', 'GAMLN'],
-    })
+  number:  {
+    match: /-?(?:\d+\.?\d*|\.\d+)(?:E(?:-)?\d+)?/,
+    value: str => parseFloat(str) as any
   },
+  word: /[a-zA-Z][a-zA-Z0-9_]*/,
   lparen: '(',
   rparen: ')',
   NL: { match: /\n/, lineBreaks: true },
@@ -55,12 +49,27 @@ const controlRecords: moo.Rules = {
   invalidControlRecord: { match: /\$[a-zA-Z]+/, next: 'main' }
 };
 
+const abbreviatedCodeRules: moo.Rules = {
+  identifier: {
+    match: /[a-zA-Z][a-zA-Z0-9_]*/,
+    type: (x) => {
+      const upperX = x.toUpperCase();
+      const keywordType = moo.keywords(statementKeywords)(upperX);
+      return keywordType;
+    }
+  },
+  subroutine_call: /CALL\s+[a-zA-Z_][a-zA-Z0-9_]*/,
+  continuation: /&\s*$/
+};
+
 const customRules: { [key: string]: moo.Rules } = {
   ABBREVIATED: {
   },
   AES: {
+    ...abbreviatedCodeRules
   },
   AESINITIAL: {
+    ...abbreviatedCodeRules
   },
   ANNEAL: {
   },
@@ -127,10 +136,12 @@ const customRules: { [key: string]: moo.Rules } = {
   DEFAULT: {
   },
   DES: {
+    ...abbreviatedCodeRules
   },
   DESIGN: {
   },
   ERROR: {
+    ...abbreviatedCodeRules
   },
   ESTIMATION: {
   },
@@ -149,6 +160,7 @@ const customRules: { [key: string]: moo.Rules } = {
   INDXS: {
   },
   INFN: {
+    ...abbreviatedCodeRules
   },
   INPUT: {
     inputDataItemLabelDropped: {
@@ -170,6 +182,7 @@ const customRules: { [key: string]: moo.Rules } = {
   LEVEL: {
   },
   MIX: {
+    ...abbreviatedCodeRules
   },
   MODEL: {
   },
@@ -190,8 +203,10 @@ const customRules: { [key: string]: moo.Rules } = {
   OVARF: {
   },
   PK: {
+    ...abbreviatedCodeRules
   },
   PRED: {
+    ...abbreviatedCodeRules
   },
   PRIOR: {
   },
@@ -262,6 +277,7 @@ const customRules: { [key: string]: moo.Rules } = {
   THR: {
   },
   TOL: {
+    ...abbreviatedCodeRules
   },
   TTDF: {
   },
