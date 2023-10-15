@@ -1,7 +1,9 @@
 import * as moo from "moo";
 import * as fs from "fs/promises";
 import {
-  validControlRecords,
+  uniqueControlRecords,
+  abbreviatableControlRecords,
+  aliasControlRecords,
   validSizesOptions,
   reservedDataItemLabels
 } from "../constants";
@@ -33,9 +35,21 @@ const mainRules: moo.Rules = {
 // Dynamically generate control records and switch lexical states
 const controlRecords: moo.Rules = {
   ...Object.fromEntries(
-    validControlRecords.map(record => [
-      record.slice(1), // Remove the '$' for the key
-      { match: new RegExp(`\\${record}`), next: record.slice(1) } // Escape the '$' for the regex
+    uniqueControlRecords.map(record => [
+      record, 
+      { match: new RegExp(`\\$${record}`), next: record }
+    ])
+  ),
+  ...Object.fromEntries(
+    abbreviatableControlRecords.map(record => [
+      record, 
+      { match: new RegExp(`\\$${record.substring(0, 3)}\\w*`), next: record }
+    ])
+  ),
+  ...Object.fromEntries(
+    Object.keys(aliasControlRecords).map(alias => [
+      alias, 
+      { match: new RegExp(`\\$${alias}`), next: aliasControlRecords[alias] }
     ])
   ),
   invalidControlRecord: { match: /\$[a-zA-Z]+/, next: 'main' }
@@ -185,7 +199,13 @@ const customRules: { [key: string]: moo.Rules } = {
     problem_text: {
       match: /(?<=\s)[^\n]{1,72}/,  // Captures up to 72 characters that are not a newline
       lineBreaks: false,     // We don't want to capture line breaks
-    }
+      next: 'main'           // Return to the main state after capturing the problem text
+    },
+    NL: {
+      match: /\n/,
+      lineBreaks: true ,
+      next: 'main'
+    },
   },
   RCOV: {
   },
@@ -257,16 +277,21 @@ const nmtranLexer = moo.states({
   },
   // Dynamically generate states for each control record
   ...Object.fromEntries(
-    validControlRecords.map(record => [
-      record.slice(1), // State name
+    // Combine all types of control records into a single array for state generation
+    [
+      ...uniqueControlRecords,
+      ...abbreviatableControlRecords,
+      ...Object.values(aliasControlRecords)
+    ].map(record => [
+      record, // State name
       {
         ...controlRecords,
-        ...customRules[record.slice(1)],
+        ...customRules[record],
         ...mainRules
       }
     ])
   )
-})
+});
 
 // const nmtranLexer: moo.Lexer = moo.compile(lexerRules);
 
