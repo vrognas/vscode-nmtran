@@ -19,9 +19,12 @@ const mainRules: moo.Rules = {
     match: /-?(?:\d+\.?\d*|\.\d+)(?:E(?:-)?\d+)?/,
     value: str => parseFloat(str) as any
   },
-  word: /[a-zA-Z][a-zA-Z0-9_]*/,
   lparen: '(',
   rparen: ')',
+  comma: ',',
+  dot: '.',
+  colon: ':',
+  word: /[a-zA-Z][a-zA-Z0-9_]*/,
   NL: { match: /\n/, lineBreaks: true },
   myError: moo.error,
 };
@@ -55,7 +58,15 @@ const abbreviatedCodeRules: moo.Rules = {
     type: (x) => {
       const upperX = x.toUpperCase();
       const keywordType = moo.keywords(statementKeywords)(upperX);
-      return keywordType;
+      if (keywordType) {
+        return keywordType;
+      }
+      // Check if it's a reserved data item label
+      if (reservedDataItemLabels.includes(upperX)) {
+        return 'reservedDataItemLabel';
+      }
+      // Default to 'identifier' if it's neither
+      return 'identifier';
     }
   },
   subroutine_call: /CALL\s+[a-zA-Z_][a-zA-Z0-9_]*/,
