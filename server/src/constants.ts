@@ -146,6 +146,16 @@ export const reservedDataItemLabels = [
   'REPL_'
 ];
 
+export const statementKeywords = {
+  'statement-if': ['IF', 'THEN', 'ELSE', 'ELSEIF', 'ENDIF'],
+  'statement-while': ['DO WHILE', 'ENDDO'],
+  'statement-other': ['CALL', 'WRITE', 'PRINT', 'RETURN', 'OPEN', 'CLOSE', 'REWIND'],
+  'statement-exit': 'EXIT',
+  'nonmem_protect': ['PLOG10', 'PLOG', 'PEXP', 'PSQRT', 'PDZ', 'PNP', 'PHE', 'PNG', 'PTAN', 'PASIN', 'PACOS', 'PATAN'],
+  'nonmem_builtin': ['PHI', 'GAMLN', 'DLOG', 'DEXP', 'DSQRT'],
+  'fortran_builtin': ['LOG10', 'LOG', 'EXP', 'SQRT', 'SIN', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ABS', 'INT', 'MIN', 'MAX', 'MOD'],
+};
+
 export const validControlRecords = [
   '$ABBREVIATED',
   '$AES',
