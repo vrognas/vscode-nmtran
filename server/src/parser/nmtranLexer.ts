@@ -46,7 +46,13 @@ const controlRecords: moo.Rules = {
   ...Object.fromEntries(
     Object.keys(aliasControlRecords).map(alias => [
       alias, 
-      { match: new RegExp(`\\$${alias}`), next: aliasControlRecords[alias] }
+      {
+        match: new RegExp(`\\$${alias}`),
+        type: (x) => {
+          return aliasControlRecords[alias] || alias;
+        },
+        next: aliasControlRecords[alias]
+      }
     ])
   ),
   invalidControlRecord: { match: /\$[a-zA-Z]+/, next: 'main' }
@@ -91,8 +97,6 @@ const customRules: { [key: string]: moo.Rules } = {
   CONTR: {
   },
   COVARIANCE: {
-  },
-  COVR: {
   },
   DATA: {
     // For single character IGNORE or IGN like IGNORE=c, IGN=c, IGNORE='c' or IGNORE="c"
@@ -156,10 +160,6 @@ const customRules: { [key: string]: moo.Rules } = {
   },
   ESTIMATION: {
   },
-  ESTIMATE: {
-  },
-  ESTM: {
-  },
   ETAS: {
   },
   PHIS: {
@@ -167,8 +167,6 @@ const customRules: { [key: string]: moo.Rules } = {
   FORMAT: {
   },
   INDEX: {
-  },
-  INDXS: {
   },
   INFN: {
     ...abbreviatedCodeRules
@@ -247,10 +245,6 @@ const customRules: { [key: string]: moo.Rules } = {
   },
   SIMULATION: {
   },
-  SIMULATE: {
-  },
-  SIML: {
-  },
   SIZES: {
     sizes_constant: {
       match: /[a-zA-Z_][a-zA-Z0-9_]*/,
@@ -275,8 +269,6 @@ const customRules: { [key: string]: moo.Rules } = {
   },
   THETA: {
   },
-  THI: {
-  },
   THETAI: {
   },
   THETAP: {
@@ -284,8 +276,6 @@ const customRules: { [key: string]: moo.Rules } = {
   THETAPV: {
   },
   THETAR: {
-  },
-  THR: {
   },
   TOL: {
     ...abbreviatedCodeRules
