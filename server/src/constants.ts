@@ -132,8 +132,6 @@ export const reservedDataItemLabels = [
   'DAT1',
   'DAT2',
   'DAT3',
-  'DROP',
-  'SKIP',
   'EVID',
   'AMT',
   'RATE',
