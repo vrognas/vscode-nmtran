@@ -11,7 +11,7 @@ import {
 
 const mainRules: moo.Rules = {
   WS: /[ \t]+/,
-  comment: /;.*?$/,
+  comment: /;[^\n]*/,
   math_op: ['*', '/', '+', '-', '**'],
   logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
   assign: '=',
@@ -26,6 +26,7 @@ const mainRules: moo.Rules = {
   colon: ':',
   word: /[a-zA-Z][a-zA-Z0-9_]*/,
   NL: { match: /\n/, lineBreaks: true },
+  unknown_char: /./,
   myError: moo.error,
 };
 
@@ -49,7 +50,8 @@ const controlRecords: moo.Rules = {
       {
         match: new RegExp(`\\$${alias}`),
         type: (x) => {
-          return aliasControlRecords[alias] || alias;
+          const upperX = x.slice(1).toUpperCase(); // Remove $ and convert to uppercase
+          return aliasControlRecords[upperX] || upperX;
         },
         next: aliasControlRecords[alias]
       }
@@ -176,6 +178,12 @@ const customRules: { [key: string]: moo.Rules } = {
       match: /[a-zA-Z_][a-zA-Z0-9_]{0,19}(?=\s*=\s*(?:DROP|SKIP))/,
       type: "inputDataItemLabelDropped"
     } as unknown as moo.Rule, // Hack to avoid TypeScript error
+    drop: {
+      match: /DROP|SKIP/,
+      type: moo.keywords({
+        'DROP': ['DROP', 'SKIP']
+      })
+    },
     inputDataItemLabel: {
       match: /[a-zA-Z_][a-zA-Z0-9_]{0,19}/, // Up to 20 characters, starts with a letter
       type: moo.keywords({
