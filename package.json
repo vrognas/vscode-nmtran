@@ -30,7 +30,11 @@
         "id": "nmtran",
         "aliases": [
           "NMTRAN",
-          "nmtran"
+          "nmtran",
+          "NM-TRAN",
+          "nm-tran",
+          "NONMEM",
+          "nonmem"
         ],
         "extensions": [
           ".mod",
