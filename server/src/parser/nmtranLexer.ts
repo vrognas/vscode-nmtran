@@ -17,7 +17,7 @@ const mainRules: moo.Rules = {
   logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
   assign: '=',
   number:  {
-    match: /-?(?:\d+\.?\d*|\.\d+)(?:E(?:-)?\d+)?/,
+    match: /(?:\d+\.?\d*|\.\d+)/,
     value: str => parseFloat(str) as any
   },
   lparen: '(',
