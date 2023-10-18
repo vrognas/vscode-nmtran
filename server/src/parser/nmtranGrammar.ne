@@ -276,7 +276,7 @@ controlStream ->
   | %NL controlStream
   | %NL {% id %}
 
-# ------------------------ Control record contents -----------------------------
+# ------------------------- Control record contents ----------------------------
 
 controlRecord ->
   sizesRecord {% id %}
@@ -298,7 +298,7 @@ controlRecord ->
   | etasRecord {% id %}
   | tableRecord {% id %}
 
-# ------------------------ Abbreviated Code Rules ------------------------------
+# -------------------------- Abbreviated Code Rules ----------------------------
 
 # Important that leading whitespace is consumed by the "_" rule
 abbreviatedCode ->
@@ -316,7 +316,7 @@ statement ->
   # | exitStatement
   # | specialStatement
 
-## --------------------------------- Assignment --------------------------------
+## ---- Assignment -------------------------------------------------------------
 
 assignmentStatement ->
   assignmentLHS _ "=" _ assignmentRHS {%
@@ -429,7 +429,7 @@ function_name
   | %nonmem_builtin
   | %fortran_builtin
 
-## ------------------------- Conditional (IF) statements -----------------------
+## ---- Conditional (IF) statements --------------------------------------------
 
 conditionalStatement ->
   simpleIfStatement
@@ -463,29 +463,29 @@ logical_term ->
   | number
   | reservedDataItemLabel
 
-## --------------------------- DO WHILE statements -----------------------------
+## ---- DO WHILE statements ----------------------------------------------------
 
   # dowhileStatement ->
 
-## ----------------------------- EXIT statements -------------------------------
+## ---- EXIT statements --------------------------------------------------------
 
   # exitStatement ->
 
-## ----------------------------- Special statements ----------------------------
+## ---- Special statements -----------------------------------------------------
 
   # specialStatement ->
 
 
 
-# ----------------------- Custom rules for Control Records ---------------------
+# --------------------- Custom rules for Control Records -----------------------
 
-# $SIZES
+## ---- $SIZES -----------------------------------------------------------------
 sizesRecord -> %SIZES _ optNL
 
-# $PROBLEM
+## ---- $PROBLEM ---------------------------------------------------------------
 problemRecord -> %PROBLEM __ %problem_text NL
 
-# $INPUT
+## ---- $INPUT -----------------------------------------------------------------
 inputRecord -> %INPUT separator inputItems
 
 inputItems ->
@@ -504,6 +504,7 @@ inputDataItemLabel -> %inputDataItemLabel {% id %}
 inputDataItemLabelDropped -> %inputDataItemLabelDropped {% id %}
 reservedDataItemLabel -> %reservedDataItemLabel {% id %}
 
+## ---- $DATA ------------------------------------------------------------------
 dataRecord -> %DATA separator %data_filename separator filterList
 
 filterList ->
@@ -519,34 +520,47 @@ filter ->
   | %data_ignore_accept_list {% id %}
 
 subroutinesRecord -> %SUBROUTINES _ optNL
+# ---- $SUBROUTINES ------------------------------------------------------------
 
+# ---- $MODEL ------------------------------------------------------------------
 modelRecord -> %MODEL _ optNL
 
+# ---- $ABBREVIATED ------------------------------------------------------------
 abbreviatedRecord -> %ABBREVIATED _ optNL
 
 pkRecord -> %PK _ optNL
+## ---- $PK --------------------------------------------------------------------
 
 predRecord -> %PRED _ optNL abbreviatedCode
 
 desRecord -> %DES _ optNL
+## ---- $DES -------------------------------------------------------------------
 
 errorRecord -> %ERROR _ optNL
+## ---- $ERROR -----------------------------------------------------------------
 
+## ---- $THETA -----------------------------------------------------------------
 thetaRecord -> %THETA _ optNL
 
+## ---- $OMEGA -----------------------------------------------------------------
 omegaRecord -> %OMEGA _ optNL
 
+## ---- $SIGMA -----------------------------------------------------------------
 sigmaRecord -> %SIGMA _ optNL
 
+## ---- $ESTIMATION ------------------------------------------------------------
 estimationRecord -> %ESTIMATION _ optNL
 
+## ---- $COVARIANCE ------------------------------------------------------------
 covarianceRecord -> %COVARIANCE _ optNL
 
+## ---- $ETAS ------------------------------------------------------------------
 etasRecord -> %ETAS _ optNL
 
+## ---- $TABLE -----------------------------------------------------------------
 tableRecord -> %TABLE _ optNL
 
-# Terminal symbols
+# ---------------------------- Terminal symbols --------------------------------
 
 theta -> %theta "(" [0-9]:+ ")" {%
   data => {
