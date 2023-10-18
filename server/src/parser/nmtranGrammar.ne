@@ -520,8 +520,8 @@ filter ->
     %data_ignore_char {% id %}
   | %data_ignore_accept_list {% id %}
 
-subroutinesRecord -> %SUBROUTINES _ optNL
 # ---- $SUBROUTINES ------------------------------------------------------------
+subroutinesRecord -> %SUBROUTINES _ "ADVAN" %number optNL
 
 # ---- $MODEL ------------------------------------------------------------------
 modelRecord -> %MODEL _ optNL
@@ -529,16 +529,17 @@ modelRecord -> %MODEL _ optNL
 # ---- $ABBREVIATED ------------------------------------------------------------
 abbreviatedRecord -> %ABBREVIATED _ optNL
 
-pkRecord -> %PK _ optNL
 ## ---- $PK --------------------------------------------------------------------
+pkRecord -> %PK _ optNL abbreviatedCode
 
+## ---- $PRED -----------------------------------------------------------------
 predRecord -> %PRED _ optNL abbreviatedCode
 
-desRecord -> %DES _ optNL
 ## ---- $DES -------------------------------------------------------------------
+desRecord -> %DES _ optNL abbreviatedCode
 
-errorRecord -> %ERROR _ optNL
 ## ---- $ERROR -----------------------------------------------------------------
+errorRecord -> %ERROR _ optNL abbreviatedCode
 
 ## ---- $THETA -----------------------------------------------------------------
 thetaRecord -> %THETA _ optNL
