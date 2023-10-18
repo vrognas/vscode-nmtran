@@ -273,8 +273,8 @@ controlStream ->
   | controlRecord {% id %}
   | _ comment controlStream
   | _ comment {% id %}
-  | %NL controlStream
-  | %NL {% id %}
+  | NL controlStream
+  | NL {% id %}
 
 # ------------------------- Control record contents ----------------------------
 
@@ -490,9 +490,10 @@ inputRecord -> %INPUT separator inputItems
 
 inputItems ->
   _ inputItem separator inputItems
-  | inputItem {% id %}
-  | %NL inputItems
-  | %NL {% id %}
+  | _ inputItem {% id %}
+  | _ inputItem _ comment
+  | NL _ inputItems
+  | NL {% id %}
 
 inputItem -> 
     inputDataItemLabel {% id %}
