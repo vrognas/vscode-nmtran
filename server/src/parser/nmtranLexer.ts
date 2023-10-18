@@ -12,7 +12,8 @@ import {
 const mainRules: moo.Rules = {
   WS: /[ \t]+/,
   comment: /;[^\n]*/,
-  math_op: ['*', '/', '+', '-', '**'],
+  exponent_op: '**',
+  arithmetic_op: ['*', '/', '+', '-'],
   logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
   assign: '=',
   number:  {
