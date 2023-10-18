@@ -62,6 +62,7 @@ const controlRecords: moo.Rules = {
 };
 
 const abbreviatedCodeRules: moo.Rules = {
+  scientificNotation: /[eEdD](?=[\(\+\-\d])/,
   identifier: {
     match: /[a-zA-Z][a-zA-Z0-9_]*/,
     type: (x) => {
