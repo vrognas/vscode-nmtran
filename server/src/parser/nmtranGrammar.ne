@@ -624,8 +624,8 @@ comment -> %comment {% id %}
 
 separator -> __ | NL
 
-_ -> %WS:* {% id %} # optional whitespace
-__ -> %WS:+ {% id %} # required whitespace
+_ -> %WS:* {% d => { return null } %} # optional whitespace
+__ -> %WS:+ {% d => { return null } %} # required whitespace
 
-optNL -> %NL:* {% id %} # optional newlines
-NL -> %NL:+ {% id %} # required newline
+optNL -> %NL:* {% d => { return null } %} # optional newlines
+NL -> %NL:+ {% d => { return null } %} # required newline
