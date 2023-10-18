@@ -313,7 +313,7 @@ statement ->
   assignmentStatement
   | conditionalStatement
   # | dowhileStatement
-  # | exitStatement
+  | exitStatement
   # | specialStatement
 
 ## ---- Assignment -------------------------------------------------------------
@@ -469,7 +469,7 @@ logical_term ->
 
 ## ---- EXIT statements --------------------------------------------------------
 
-  # exitStatement ->
+  exitStatement -> "EXIT" _ [02]:? _ [0-999]:? _ NL
 
 ## ---- Special statements -----------------------------------------------------
 
