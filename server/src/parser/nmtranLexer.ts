@@ -15,7 +15,7 @@ const mainRules: moo.Rules = {
   exponent_op: '**',
   arithmetic_op: ['*', '/', '+', '-'],
   logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
-  assign: '=',
+  equals: '=',
   number:  {
     match: /(?:\d+\.?\d*|\.\d+)/,
     value: str => parseFloat(str) as any
@@ -79,7 +79,8 @@ const abbreviatedCodeRules: moo.Rules = {
     }
   },
   subroutine_call: /CALL\s+[a-zA-Z_][a-zA-Z0-9_]*/,
-  continuation: /&\s*$/
+  continuation: /&\s*$/,
+  assign: '=',
 };
 
 const customRules: { [key: string]: moo.Rules } = {
