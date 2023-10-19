@@ -2,7 +2,9 @@ $SIZES SD=20
 
 $PROBLEM MAXIMAL PPRED MODEL
 
-$DATA pheno.dta IGNORE=@
+$DATA data1.csv
+      IGNORE=#
+      IGN=(DOSE.GT.0) ;only placebo data are used
 
 $INPUT ID TIME AMT WGT APGR DV
   EVID HT=DROP MDV
@@ -24,7 +26,7 @@ $EST
 $ESTIMATE METHOD=FO
 
 $SUBROUTINE ADVAN
-//#region
+
 $ABBREVIATED PROTECT
 
 $MIX
@@ -40,7 +42,7 @@ X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1
 
 $PK
 ; comment
-//#endregion
+
 A = 10E4 
 B = 10E-4
 C = 10**4
@@ -58,13 +60,13 @@ ELSEIF (A .LT. B) THEN
   C = B
 ELSEIF (A .EQ. B) THEN
   C = B
-ELSEIF (A .NEQ. B) THEN
+; ELSEIF (A .NEQ. B) THEN
   C = B
 ELSEIF (A .EQN. B) THEN
   C = B
 ELSEIF (A .NEN. B) THEN
   C = B
-ELSEIF (A .NEQN. B) THEN
+; ELSEIF (A .NEQN. B) THEN
   C = B
 ELSEIF (A > B) THEN
   C = B
