@@ -13,9 +13,10 @@ const mainRules: moo.Rules = {
   WS: /[ \t]+/,
   comment: /;[^\n]*/,
   exponent_op: '**',
+  logical_op: ['.NOT.', '.AND.', '.OR.'],
+  compare_op: ['.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
   arithmetic_op: ['*', '/', '+', '-'],
-  logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
-  equals: '=',
+  assign: '=',
   number:  {
     match: /(?:\d+\.?\d*|\.\d+)/,
     value: str => parseFloat(str) as any
@@ -81,7 +82,6 @@ const abbreviatedCodeRules: moo.Rules = {
   },
   subroutine_call: /CALL\s+[a-zA-Z_][a-zA-Z0-9_]*/,
   continuation: /&\s*$/,
-  assign: '=',
 };
 
 const customRules: { [key: string]: moo.Rules } = {
@@ -333,6 +333,10 @@ async function main(inputFile: string, outputFile: string) {
       if (!token) {
         break;
       }
+      // // Skip whitespace tokens
+      // if (token.type === 'WS') {
+      //   continue;
+      // }
       logText += JSON.stringify(token) + '\n';
     }
     await fs.writeFile(outputFile, logText);
