@@ -8,9 +8,10 @@
       WS: /[ \t]+/,
       comment: /;[^\n]*/,
       exponent_op: '**',
+      logical_op: ['.NOT.', '.AND.', '.OR.'],
+      compare_op: ['.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
       arithmetic_op: ['*', '/', '+', '-'],
-      logical_op: ['.NOT.', '.AND.', '.OR.', '.EQ.', '.NE.', '.EQN.', '.NEN.', '.LT.', '.LE.', '.GT.', '.GE.', '==', '/=', '<', '<=', '>', '>='],
-      equals: '=',
+      assign: '=',
       number: {
           match: /(?:\d+\.?\d*|\.\d+)/,
           value: str => parseFloat(str)
@@ -68,7 +69,6 @@
       },
       subroutine_call: /CALL\s+[a-zA-Z_][a-zA-Z0-9_]*/,
       continuation: /&\s*$/,
-      assign: '=',
   };
   const customRules = {
       ABBREVIATED: {},
@@ -268,13 +268,25 @@
 
 # -------------------- Entire model file (control stream) ----------------------
 
-controlStream ->
-  controlRecord controlStream
-  | controlRecord {% id %}
-  | _ comment controlStream
-  | _ comment {% id %}
-  | NL controlStream
-  | NL {% id %}
+controlStream -> controlStreamPart:* {%
+    data => {
+        // 'controlStreamPart' will be an array; flatten it
+        return data[0].flat(Infinity).filter(item => item !== null);;
+    }
+%}
+  # controlRecord controlStream
+  # | controlRecord {% id %}
+  # | _ comment controlStream
+  # | _ comment
+  # | __ controlStream
+  # | __
+  # | NL controlStream
+  # | NL
+
+controlStreamPart ->
+  controlRecord
+  | comment
+  | separator
 
 # ------------------------- Control record contents ----------------------------
 
@@ -286,6 +298,7 @@ controlRecord ->
   | subroutinesRecord {% id %}
   | modelRecord {% id %}
   | abbreviatedRecord {% id %}
+  | infnRecord {% id %}
   | predRecord {% id %}
   | pkRecord {% id %}
   | desRecord {% id %}
@@ -305,14 +318,12 @@ abbreviatedCode ->
   _ statement abbreviatedCode
   | _ statement
   | _ comment abbreviatedCode
-  | _ comment
   | _ NL abbreviatedCode
-  | _ NL
 
 statement ->
   assignmentStatement
   | conditionalStatement
-  # | dowhileStatement
+  | dowhileStatement
   | exitStatement
   # | specialStatement
 
@@ -330,20 +341,24 @@ assignmentStatement ->
   %}
 
 assignmentLHS -> identifier {% id %}
+  | inputDataItemLabel {% id %}
+  | reservedDataItemLabel {% id %}
+  | inital_condition {% id %}
+  | dadt {% id %}
+
 
 assignmentRHS -> expression {% id %}
 
-expression
-  -> additive_expression {% id %}
+expression -> additive_expression {% id %}
 
 additive_expression
   -> multiplicative_expression {% id %}
   | additive_expression _ "+" _ multiplicative_expression {%
       data => {
         return {
-          type: "binary_expression",
-          operator: '+',
+          type: "additive_expression",
           left: data[0],
+          operator: '+',
           right: data[4]
         };
       }
@@ -351,9 +366,9 @@ additive_expression
   | additive_expression _ "-" _ multiplicative_expression {%
       data => {
         return {
-          type: "binary_expression",
-          operator: '-',
+          type: "subtractive_expression",
           left: data[0],
+          operator: '-',
           right: data[4]
         };
       }
@@ -364,9 +379,9 @@ multiplicative_expression
   | multiplicative_expression _ "*" _ exponentiation_expression {%
       data => {
         return {
-          type: "binary_expression",
-          operator: '*',
+          type: "multiplicative_expression",
           left: data[0],
+          operator: '*',
           right: data[4]
         };
       }
@@ -374,9 +389,9 @@ multiplicative_expression
   | multiplicative_expression _ "/" _ exponentiation_expression {%
       data => {
         return {
-          type: "binary_expression",
-          operator: '/',
+          type: "division_expression",
           left: data[0],
+          operator: '/',
           right: data[4]
         };
       }
@@ -387,9 +402,9 @@ exponentiation_expression
   | unary_expression _ "**" _ exponentiation_expression {%
       data => {
         return {
-          type: "binary_expression",
-          operator: '**',
+          type: "exponentiation_expression",
           left: data[0],
+          operator: '**',
           right: data[4]
         };
       }
@@ -398,7 +413,9 @@ exponentiation_expression
 unary_expression -> primary_expression {% id %}
 
 primary_expression
-  -> number {% id %}
+  -> assignmentLHS {% id %}
+  | compartment_amt {% id %}
+  | number {% id %}
   | theta {% id %}
   | eta {% id %}
   | epsilon {% id %}
@@ -442,30 +459,52 @@ complexIfStatement -> "IF" _ "(" _ logical_expression _ ")" _ "THEN" NL _ abbrev
 
 elseIfBlock ->
   "ELSEIF" _ "(" _ logical_expression _ ")" _ "THEN" NL abbreviatedCode
+  | "ELSE" _ "IF" _ "(" _ logical_expression _ ")" _ "THEN" NL abbreviatedCode
 
 elseBlock ->
   "ELSE" NL abbreviatedCode
 
 logical_expression ->
-  logical_term _ %logical_op _ logical_term {%
+  compare_binary_expression
+  | compare_binary_expression _ %logical_op _ logical_expression {%
     data => {
       return {
-        type: "binary_expression",
-        operator: data[2],
+        type: "logical_expression",
         left: data[0],
+        operator: data[2],
         right: data[4]
       };
     }
 %}
 
-logical_term ->
+compare_binary_expression ->
+  compare_term _ %compare_op _ compare_term {%
+    data => {
+      return {
+        type: "compare_binary_expression",
+        left: data[0],
+        operator: data[2],
+        right: data[4]
+      };
+    }
+%}
+
+compare_term ->
   identifier
   | number
   | reservedDataItemLabel
+  | inputDataItemLabel
+  | inputDataItemLabelDropped
 
 ## ---- DO WHILE statements ----------------------------------------------------
 
-  # dowhileStatement ->
+dowhileStatement ->
+  "DO" _ "WHILE" _ "(" _ logical_expression_while _ ")" _ NL _ abbreviatedCode:? NL _ "END" _ "DO"
+  | "DOWHILE" _ "(" _ logical_expression_while _ ")" _ NL _ abbreviatedCode:? NL _ "END" _ "DO"
+  | "DO" _ "WHILE" _ "(" _ logical_expression_while _ ")" _ NL _ abbreviatedCode:? NL _ "ENDDO"
+  | "DOWHILE" _ "(" _ logical_expression_while _ ")" _ NL _ abbreviatedCode:? NL _ "ENDDO"
+
+logical_expression_while -> logical_expression | "DATA" {% id %}
 
 ## ---- EXIT statements --------------------------------------------------------
 
@@ -474,8 +513,6 @@ logical_term ->
 ## ---- Special statements -----------------------------------------------------
 
   # specialStatement ->
-
-
 
 # --------------------- Custom rules for Control Records -----------------------
 
@@ -486,14 +523,17 @@ sizesRecord -> %SIZES _ optNL
 problemRecord -> %PROBLEM __ %problem_text NL
 
 ## ---- $INPUT -----------------------------------------------------------------
+
 inputRecord -> %INPUT separator inputItems
 
 inputItems ->
-  _ inputItem separator inputItems
-  | _ inputItem {% id %}
+  _ inputItem inputItems
+  | _ inputItem
   | _ inputItem _ comment
-  | NL _ inputItems
-  | NL {% id %}
+  | _ comment inputItems
+  | _ comment
+  | _ NL inputItems
+  | _ NL
 
 inputItem -> 
     inputDataItemLabel {% id %}
@@ -516,18 +556,21 @@ filterList ->
   | NL filterList
   | NL {% id %}
 
-filter -> 
+filter ->
     %data_ignore_char {% id %}
   | %data_ignore_accept_list {% id %}
 
 # ---- $SUBROUTINES ------------------------------------------------------------
-subroutinesRecord -> %SUBROUTINES _ "ADVAN" %number optNL
+subroutinesRecord -> %SUBROUTINES _ "ADVAN13" __ %word "=" %number NL
 
 # ---- $MODEL ------------------------------------------------------------------
 modelRecord -> %MODEL _ optNL
 
+## ---- $INFN ------------------------------------------------------------------
+infnRecord -> %INFN _ optNL abbreviatedCode
+
 # ---- $ABBREVIATED ------------------------------------------------------------
-abbreviatedRecord -> %ABBREVIATED _ optNL
+abbreviatedRecord -> %ABBREVIATED _ ("PROTECT"):? optNL
 
 ## ---- $PK --------------------------------------------------------------------
 pkRecord -> %PK _ optNL abbreviatedCode
@@ -536,13 +579,57 @@ pkRecord -> %PK _ optNL abbreviatedCode
 predRecord -> %PRED _ optNL abbreviatedCode
 
 ## ---- $DES -------------------------------------------------------------------
-desRecord -> %DES _ optNL abbreviatedCode
+desRecord -> %DES separator abbreviatedCode
 
 ## ---- $ERROR -----------------------------------------------------------------
 errorRecord -> %ERROR _ optNL abbreviatedCode
 
 ## ---- $THETA -----------------------------------------------------------------
-thetaRecord -> %THETA _ optNL
+thetaRecord -> %THETA separator initalTheta_format:*
+
+initalTheta_format -> _ (%THETA __ ):? initalTheta _ ("FIX" _):? (comment):? NL
+
+initalTheta ->
+  number {%
+    data => {
+      return {
+        type: "theta-init",
+        init: data[0]
+      };
+    }
+  %}
+  | "(" _ number _ "," _ number _ ")" {%
+    data => {
+      return {
+        type: "theta-init",
+        init: data[6]
+      };
+    }
+  %}
+  | "(" _ "," _ number _ "," _ number _ ")" {%
+    data => {
+      return {
+        type: "theta-init",
+        init: data[4]
+      };
+    }
+  %}
+  | "(" _ number _ "," _ "," _ number _ ")" {%
+    data => {
+      return {
+        type: "theta-init",
+        init: null
+      };
+    }
+  %}
+  | "(" _ number _ "," _ number _ "," _ number _ ")" {%
+    data => {
+      return {
+        type: "theta-init",
+        init: data[6]
+      };
+    }
+  %}
 
 ## ---- $OMEGA -----------------------------------------------------------------
 omegaRecord -> %OMEGA _ optNL
@@ -560,7 +647,7 @@ covarianceRecord -> %COVARIANCE _ optNL
 etasRecord -> %ETAS _ optNL
 
 ## ---- $TABLE -----------------------------------------------------------------
-tableRecord -> %TABLE _ optNL
+tableRecord -> %TABLE separator
 
 # ---------------------------- Terminal symbols --------------------------------
 
@@ -593,35 +680,97 @@ epsilon -> %epsilon "(" [0-9]:+ ")" {%
 
 operator
   -> %logical_op
+  | %compare_op
   | %arithmetic_op
   | %exponent_op
 
-identifier -> %identifier {% id %}
+identifier ->
+  %identifier {% id %}
+  | "+" _ %identifier
+  | "-" _ %identifier
+  
+dadt -> "DADT" "(" [0-9]:+ ")" {%
+  data => {
+    // Combine the array of digits into a single integer
+    const compartmentNumber = parseInt(data[2].map(d => d.text).join(''), 10);
+
+    // Update the existing object for the number token
+    data[2][0].value = compartmentNumber;
+
+    return {
+      type: "dadt",
+      compartment: data[2][0] // This now holds the integer and original lexer metadata
+    };
+  }
+%}
+
+compartment_amt -> "A" "(" [0-9]:+ ")" {%
+  data => {
+    // Combine the array of digits into a single integer
+    const compartmentNumber = parseInt(data[2].map(d => d.text).join(''), 10);
+
+    // Update the existing object for the number token
+    data[2][0].value = compartmentNumber;
+
+    return {
+      type: "compartment_amt",
+      compartment: data[2][0] // This now holds the integer and original lexer metadata
+    };
+  }
+%}
+
+inital_condition -> "A_0" "(" [0-9]:+ ")" {%
+  data => {
+    // Combine the array of digits into a single integer
+    const compartmentNumber = parseInt(data[2].map(d => d.text).join(''), 10);
+
+    // Update the existing object for the number token
+    data[2][0].value = compartmentNumber;
+
+    return {
+      type: "initial_condition",
+      compartment: data[2][0] // This now holds the integer and original lexer metadata
+    };
+  }
+%}
 
 number ->
-  %number {% id %}
-  | "+" %number {% (d) => d[1] %}
-  | "-" %number {% (d) => -d[1] %}
-  | %number %scientificNotation %number {% (d) => d[0] * 10 ** d[2] %}
-  | %number %scientificNotation "+" %number {% (d) => d[0] * 10 ** d[3] %}
-  | %number %scientificNotation "-" %number {% (d) => d[0] * 10 ** -d[3] %}
-  | %number %scientificNotation "(" %number ")" {% (d) => d[0] * 10 ** d[3] %}
-  | %number %scientificNotation "(" "+" %number ")" {% (d) => d[0] * 10 ** d[4] %}
-  | %number %scientificNotation "(" "-" %number ")" {% (d) => d[0] * 10 ** -d[4] %}
-  | "+" %number %scientificNotation %number {% (d) => d[1] * 10 ** d[3] %}
-  | "-" %number %scientificNotation %number {% (d) => -d[1] * 10 ** d[3] %}
-  | "+" %number %scientificNotation "+" %number {% (d) => d[1] * 10 ** d[4] %}
-  | "-" %number %scientificNotation "+" %number {% (d) => -d[1] * 10 ** d[4] %}
-  | "+" %number %scientificNotation "-" %number {% (d) => d[1] * 10 ** -d[4] %}
-  | "-" %number %scientificNotation "-" %number {% (d) => -d[1] * 10 ** -d[4] %}
-  | "+" %number %scientificNotation "(" %number ")" {% (d) => d[1] * 10 ** d[3] %}
-  | "-" %number %scientificNotation "(" %number ")" {% (d) => -d[1] * 10 ** d[3] %}
-  | "+" %number %scientificNotation "(" "+" %number ")" {% (d) => d[1] * 10 ** d[4] %}
-  | "-" %number %scientificNotation "(" "+" %number ")" {% (d) => -d[1] * 10 ** d[4] %}
-  | "+" %number %scientificNotation "(" "-" %number ")" {% (d) => d[1] * 10 ** -d[4] %}
-  | "-" %number %scientificNotation "(" "-" %number ")" {% (d) => -d[1] * 10 ** -d[4] %}
+  baseNumber exponentPart {%
+    (data) => {
+      const [base, exponent] = data;
+      return base * 10 ** exponent;
+    }
+  %}
+  | baseNumber {%
+    (data) => data[0].value
+  %}
+  | "+" _ baseNumber {%
+    (data) => data[2].value
+  %}
+  | "-" _ baseNumber {%
+    (data) => -data[2]
+  %}
 
-comment -> %comment {% id %}
+baseNumber -> %number {% id %}
+
+exponentPart ->
+  %scientificNotation signedNumber {%
+    (data) => data[1]
+  %}
+  | %scientificNotation "(" _ signedNumber _ ")" {%
+    (data) => data[3]
+  %}
+
+signedNumber -> 
+  %number {% id %}
+  | "+" _ %number {%
+    (data) => data[2]
+  %}
+  | "-" _ %number {%
+    (data) => -data[2]
+  %}
+
+comment -> %comment {% d => { return null } %}
 
 separator -> __ | NL
 
