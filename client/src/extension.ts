@@ -11,7 +11,7 @@ import {
 // Declare the LanguageClient at the top level
 let client: LanguageClient;
 
-// This method is called when your extension is activated
+// This function is executed when the registered Activation Event happens
 export function activate(context: vscode.ExtensionContext) {
   // Register a Folding Range Provider for the 'nmtran' language
   let disposable = vscode.languages.registerFoldingRangeProvider(
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+// Clean up before the extension becomes deactivated
 export function deactivate(): Thenable<void> | undefined {
   if (!client) {
     return undefined;
