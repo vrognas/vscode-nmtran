@@ -4,6 +4,9 @@
   "license": "MIT",
   "displayName": "NMTRAN",
   "publisher": "vrognas",
+  "sponsor": {
+  "url": "https://www.paypal.me/vrognas"
+  },
   "description": "Language extension for NMTRAN (NONMEM) files",
   "icon": "images/nonmem.png",
   "galleryBanner": {
