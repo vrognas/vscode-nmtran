@@ -6,6 +6,10 @@
   "publisher": "vrognas",
   "description": "Language extension for NMTRAN (NONMEM) files",
   "icon": "images/nonmem.png",
+  "galleryBanner": {
+    "color": "#028777",
+    "theme": "dark"
+  },
   "categories": [
     "Programming Languages",
     "Snippets"
