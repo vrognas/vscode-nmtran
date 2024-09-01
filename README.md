@@ -1,5 +1,6 @@
-# VSCode extension for NMTRAN (NONMEM) ![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran) ![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/vrognas.nmtran)
+# VSCode extension for NMTRAN (NONMEM)
 
+![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran) ![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/vrognas.nmtran)
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with support for the NMTRAN language used in [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/) control streams.
 
 ## Installation
