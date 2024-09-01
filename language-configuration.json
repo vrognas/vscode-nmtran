@@ -1,7 +1,8 @@
 {
     "comments": {
-        // symbol used for single line comment. Remove this entry if your language does not support line comments
+        // symbol used for single line comment
         "lineComment": ";"
+        // NMTRAN doesn't support block comments
     },
     // symbols used as brackets
     "brackets": [
