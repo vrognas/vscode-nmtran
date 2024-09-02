@@ -97,7 +97,7 @@ function findControlRecordsInText(text: string): RegExpExecArray[] {
                             .filter(line => !line.trim().startsWith(';'))
                             .join('\n');
 
-  while ((match = controlRecordPattern.exec(text)) !== null) {
+  while ((match = controlRecordPattern.exec(filteredText)) !== null) {
     matches.push(match);
   }
 
@@ -143,38 +143,42 @@ function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: 
 
 // Implement Hover logic
 connection.onHover(({ textDocument, position }) => {
-  const uri = textDocument.uri;
-  const document = documents.get(uri);
-  if (!document) {
+  try {
+    const uri = textDocument.uri;
+    const document = documents.get(uri);
+    if (!document) {
+      connection.console.error(`Document not found: ${uri}`);
+      return null;
+    }
+  
+    const text = document.getText();
+    const offset = document.offsetAt(position);
+    const controlRecordPattern = /\$[A-Z]+\b/g;
+    let match: RegExpExecArray | null;
+  
+    while ((match = controlRecordPattern.exec(text)) !== null) {
+      const start = match.index;
+      const end = match.index + match[0].length;
+      if (start <= offset && offset <= end) {
+        const fullControlRecord = getFullControlRecord(match[0]);  // Assuming you have this function
+        const hoverInfo: MarkupContent = {
+          kind: MarkupKind.Markdown,
+          value: getHoverInfoForControlRecord(match[0], fullControlRecord)
+        };
+  
+        return {
+          contents: hoverInfo,
+          range: {
+            start: document.positionAt(start),
+            end: document.positionAt(end)
+          }
+        } as Hover;
+      }
+    }
+  } catch (error) {
+    connection.console.error(`Error during onHover: ${(error as Error).message}`);
     return null;
   }
-
-  const text = document.getText();
-  const offset = document.offsetAt(position);
-  const controlRecordPattern = /\$[A-Z]+\b/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = controlRecordPattern.exec(text)) !== null) {
-    const start = match.index;
-    const end = match.index + match[0].length;
-    if (start <= offset && offset <= end) {
-      const fullControlRecord = getFullControlRecord(match[0]);  // Assuming you have this function
-      const hoverInfo: MarkupContent = {
-        kind: MarkupKind.Markdown,
-        value: getHoverInfoForControlRecord(match[0], fullControlRecord)
-      };
-
-      return {
-        contents: hoverInfo,
-        range: {
-          start: document.positionAt(start),
-          end: document.positionAt(end)
-        }
-      } as Hover;
-    }
-  }
-
-  return null;
 });
 
 // Implement CodeAction logic
