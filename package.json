@@ -1,15 +1,26 @@
 {
   "name": "nmtran",
-  "displayName": "NMTRAN",
-  "description": "Language extension for NMTRAN (NONMEM) files",
-  "version": "0.1.5",
-  "publisher": "vrognas",
+  "version": "0.1.6",
   "license": "MIT",
+  "displayName": "NMTRAN",
+  "publisher": "vrognas",
+  "sponsor": {
+  "url": "https://www.paypal.me/vrognas"
+  },
+  "description": "Language extension for NMTRAN (NONMEM) files",
+  "icon": "images/nonmem.png",
+  "galleryBanner": {
+    "color": "#028777",
+    "theme": "dark"
+  },
   "categories": [
     "Programming Languages",
     "Snippets"
   ],
-  "icon": "images/nonmem.png",
+  "keywords": [
+    "nonmem",
+    "pharmacometrics"
+  ],
   "homepage": "https://github.com/vrognas/vscode-nmtran",
   "bugs": {
     "url": "https://github.com/vrognas/vscode-nmtran/issues",
