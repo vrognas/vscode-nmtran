@@ -8,7 +8,7 @@
   "url": "https://www.paypal.me/vrognas"
   },
   "description": "Language extension for NMTRAN (NONMEM) files",
-  "icon": "images/nonmem.png",
+  "icon": "images/nmtran.png",
   "galleryBanner": {
     "color": "#028777",
     "theme": "dark"
