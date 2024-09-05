@@ -73,7 +73,7 @@
       {
         "comment": "Specific $PRIOR record options",
         "name": "storage.modifier.controlrecord.options.prior.nmtran",
-        "match": "(?i:\\b(ITYP|NSAM|ISS|PLEV|CNT)|(NTHETA|NETA|NEPS|NTHP|NETP|NEPP|NPEXP)|(IFND|MODE|IVAR)(DISPLAY|ICMAX)\\b)"
+        "match": "(?i:\\b(ITYP|NSAM|ISS|PLEV|CNT|NTHETA|NETA|NEPS|NTHP|NETP|NEPP|NPEXP|IFND|MODE|IVAR|DISPLAY|ICMAX)\\b)"
       },
       {
         "comment": "Specific $DATA record options",
