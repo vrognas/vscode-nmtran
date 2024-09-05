@@ -264,6 +264,13 @@
     ],
     "description": "Emax equation\n"
   },
+  "Imax model": {
+    "prefix": ["Imax"],
+    "body": [
+      "I = I0 - (Imax * C**Hill) / (IC50**Hill + C**Hill)"
+    ],
+    "description": "Imax equation\n"
+  },
   "Logit IIV": {
     "prefix": ["logit_iiv"],
     "body": [
