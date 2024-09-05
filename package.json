@@ -9,10 +9,6 @@
   },
   "description": "Language extension for NMTRAN (NONMEM) files",
   "icon": "images/nmtran.png",
-  "galleryBanner": {
-    "color": "#028777",
-    "theme": "dark"
-  },
   "categories": [
     "Programming Languages",
     "Snippets"
