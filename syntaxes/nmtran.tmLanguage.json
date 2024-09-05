@@ -216,12 +216,12 @@
       {
         "comment": "protected functions",
         "name": "entity.name.function.protected.nmtran",
-        "match": "(?i:\\bP(LOG(10?)|SQRT|EXP|DZ|ZR|NP|HE|NG|TAN|A(COS|SIN|TAN))\\b)"
+        "match": "(?i:\\bP(LOG(10)?|SQRT|EXP|DZ|ZR|NP|HE|NG|TAN|A(COS|SIN|TAN))\\b)"
       },
       {
         "comment": "functions",
         "name": "entity.name.function.nmtran",
-        "match": "(?i:\\b(SQRT|EXP|ABS|A?(COS|SIN|TAN)|ATAN2|SIGN|SIN|SINH|TAN|TANH|COTAN|INT|MOD|MIN|MAXLOG|LOG10|RANDOM|GAMLN|REAL|PASS|SUPP)\\b)"
+        "match": "(?i:\\b(LOG(10)?|SQRT|EXP|ABS|A?(COS|SIN|TAN)|ATAN2|SIGN|SIN|SINH|TAN|TANH|COTAN|INT|MOD|MIN|MAXLOG|LOG10|RANDOM|GAMLN|REAL|PASS|SUPP)(?=\\())"
       },
       {
         "comment": "arithmetic operators",
