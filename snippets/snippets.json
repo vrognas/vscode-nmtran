@@ -271,6 +271,20 @@
     ],
     "description": "Imax equation\n"
   },
+  "Diurnal cos-rythm": {
+    "prefix": ["diurnal"],
+    "body": [
+      "x = THETA(base_x) * (1 + THETA(amplitude) * COS((TIME - THETA(peak_time)) * 2 * PI / period))"
+    ],
+    "description": "Diurnal cos-rythm\n"
+  },
+  "Surge model": {
+    "prefix": ["surge"],
+    "body": [
+      "x = THETA(amplitude) / (((TIME - THETA(peak_time)) * THETA(peak_width))**SHAPE + 1)"
+    ],
+    "description": "Surge model\n"
+  },
   "Logit IIV": {
     "prefix": ["logit_iiv"],
     "body": [
