@@ -1,4 +1,27 @@
 {
+  "Runrecord": {
+    "prefix": "runrecord",
+    "body": [
+      ";; 1. Based on: runno of parent model",
+      ";; 2. Description:",
+      ";; Brief desciption of the run",
+      ";; 3. Label:",
+      ";; Model stage (eg base model) or version",
+      ";; 4. Structural model:",
+      ";; eg One compartment linear model",
+      ";; 5. Covariate model:",
+      ";; eg No covariates",
+      ";; 6. Interindividual variability:",
+      ";; eg CL, V and KA. BLOCK(2) for CL and V",
+      ";; 7. Interoccasion variability:",
+      ";; 8. Residual variability:",
+      ";; eg Proportional",
+      ";; 9. Estimation:",
+      ";; FOCEI",
+      ""
+    ],
+    "description": "Structured information about the run for PsN runrecord"
+  },
   "1CMT-IV-RATES": {
     "prefix": "ADVAN1 TRANS1",
     "body": "ADVAN1 TRANS1$0",
