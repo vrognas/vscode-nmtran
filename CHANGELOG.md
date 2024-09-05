@@ -1,3 +1,10 @@
+## [0.2.0] - 5 Sep, 2024
+
+- Syntax-highlighting overhaul
+- Added test and demo model code
+- Updates to documentation
+- New logo
+
 ## [0.1.6] - 1 Sep, 2024
 
 - Minor patch
