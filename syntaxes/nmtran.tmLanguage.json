@@ -47,63 +47,68 @@
     "control-record-syntax": {
       "patterns": [{
         "comment": "subroutines",
-        "name": "support.type.subroutines.nmtran",
+        "name": "storage.modifier.subroutines.nmtran",
         "match": "(?i:\\b(ADVAN(\\=)?[\\d]+|TRANS(\\=)?\\d+)|((TN|NW)PRI))"
       },
       {
         "comment": "General control record options",
-        "name": "support.type.controlrecord.options.nmtran",
+        "name": "storage.modifier.controlrecord.options.nmtran",
         "match": "(?i:\\b((DIAGONAL|BLOCK)\\(\\d+\\)))"
       },
       {
         "comment": "General control record options",
-        "name": "support.type.controlrecord.options.nmtran",
-        "match": "(?i:\\b(PROTECT|DATA|IGNORE|(NO)?(PRINT|WIDE|REWIND|ABORT|RESCALE|REPEAT|INTERACTION|LAPLACIAN|POSTHOC)|CHECKOUT|OMITTED|RECORDS|LRECL|SUBROUTINES|DERIV2|NUMBERPOINTS|SAME|NPOPETAS|NORMAL|UNIFORM|NEW|SUBPROBLEMS|ONLYSIM(ULATION)?|METH(OD)?|SIG((DIG)?ITS)?|MAXEVAL(S)?|MSFO|SPECIAL|MATRIX|(UN)?CONDITIONAL|(NO|ONE)HEADER|VS|BY|UNIT|FROM|(A)?TOL|(N)?COMP(ARTMENT(S)?)?|NEQUILIBRIUM|NPARAMETERS|LINK|LIKE(LIHOOD)?)\\b)"
+        "name": "storage.modifier.controlrecord.options.nmtran",
+        "match": "(?i:\\b(PROTECT|DATA|IGN(ORE)?|(NO)?(PRINT|WIDE|REWIND|ABORT|RESCALE|REPEAT|INTERACTION|LAPLACIAN|POSTHOC)|CHECKOUT|OMITTED|RECORDS|LRECL|SUBROUTINES|DERIV2|NUMBERPOINTS|SAME|NPOPETAS|NORMAL|UNIFORM|NEW|SUBPROBLEMS|ONLYSIM(ULATION)?|METH(OD)?|SIG((DIG)?ITS)?|MAXEVAL(S)?|MSFO|SPECIAL|MATRIX|(UN)?CONDITIONAL|(NO|ONE)HEADER|VS|BY|UNIT|FROM|(A)?TOL|(N)?COMP(ARTMENT(S)?)?|NEQUILIBRIUM|NPARAMETERS|LINK|LIKE(LIHOOD)?)\\b)"
       },
       {
         "comment": "$PROBLEM syntax",
-        "name": "string.quoted.problem.specification.nmtran",
+        "name": "meta.problem.specification.nmtran",
         "match": "(?i:(?<=\\$PROB(LEM)?\\b).*)"
       },
       {
         "comment": "Specific $SIZES record options",
-        "name": "support.type.controlrecord.options.sizes.nmtran",
+        "name": "storage.modifier.controlrecord.options.sizes.nmtran",
         "match": "(?i:\\b(LTH|LVR|LVR2|NO|MMX|LNP4|LSUPP|LIM7|LWS3|MAXIDS|LIM1|LIM2|LIM3|LIM4|LIM5|LIM6|LIM8|LIM11|LIM13|LIM15|LIM16|MAXRECID|PC|PCT|PIR|PD|PDT|PAL|MAXFCN|DIMTMP|DIMCNS|DIMNEW|DIMVRB|PL|NPOPMIXMAX|MAXOMEG|MAXPTHETA|MAXITER|ISAMPLEMAX|MAXSIDL|PNM_MAXNODES)\\b)"
       },
       {
         "comment": "Specific $PRIOR record options",
-        "name": "support.type.controlrecord.options.prior.nmtran",
+        "name": "storage.modifier.controlrecord.options.prior.nmtran",
         "match": "(?i:\\b(ITYP|NSAM|ISS|PLEV|CNT)|(NTHETA|NETA|NEPS|NTHP|NETP|NEPP|NPEXP)|(IFND|MODE|IVAR)(DISPLAY|ICMAX)\\b)"
       },
       {
+        "comment": "Specific $DATA record options",
+        "name": "invalid.drop.data.nmtran",
+        "match": "(?i:\\b(DROP|SKIP)\\b)"
+      },
+      {
         "comment": "Specific $ESTIMATION record options",
-        "name": "support.type.controlrecord.options.estimation.nmtran",
+        "name": "storage.modifier.controlrecord.options.estimation.nmtran",
         "match": "(?i:\\b(-2LL|AUTO|CALPHA|CENTERING|CINTERVAL|CITER|CNSAMP|(UN)?COND(ITIONAL)?|CONSTRAIN|CTYPE|DERCONT|DF(S)?|EONLY|ETA(BARCHECK|DER|SAMPLES|STYPE)|FILE|FNLETA|FORMAT|DELIM|FPARAFILE|GRD|GRDQ|GRID|HYBRID|IACCEPT(L)?|INTER(ACTION)?|IKAPPA|ISAMPEND|ISAMPLE(_M(1(A|B)?|2|3))?|ISCALE_(MAX|MIN)|KAPPA|LAPLACE|LEVWT|LIKE(LIHOOD)?|LNTWOPI|MADAPT|MAPCOV|MAPI(N)?TER|MASSRESET|MAXEVAL(S)?|MCETA|MSFO|MUM|N(BURN|ITER|SAMPLE)|(NO)?(ABORT|(THETA|OMEGA|SIGMA)BOUNDTEST)|NO(COV|HABORT|LABEL|NINFETA|PRIOR(C)?|SUB|TITLE)|NSIG|SIGDIGITS|NUMDER|NUMERICAL|NUTS_(BASE|DELTA|EPARAM|GAMMA|INIT|MASS|MAXDEPTH|OPARAM|REG|SPARAM|STEPINTER|STEPITER|TERM|TEST|TRANSFORM)|OACCEPT|OLKJDF|OLNTWOPI|OMEGABOUNDTEST|OPTMAP|ORDER|OSAMPLE_(M1|M2)?|OVARF|PACCEPT|PARAFILE|PARAFPRINT|PHITYPE|POSTHOC|PREDICTION|PRINT|PSAMPLE_(M1|M2|M3|MAX|MIN)|RANMETHOD|REPEAT(1|2)?|SADDLE_(HESS|RESET)|SEED|SIGL(O)?|SLKJDF|FAST|SORT|STDOBJ|STIELTJES|SVARF|THIN|TTDF|ZERO)\\b)"
       },
       {
         "comment": "Specific $SIMULATION record options",
-        "name": "support.type.controlrecord.options.simulation.nmtran",
+        "name": "storage.modifier.controlrecord.options.simulation.nmtran",
         "match": "(?i:\\b(NSUB)\\b)"
       },
       {
         "comment": "Specific $COVARIANCE record options",
-        "name": "support.type.controlrecord.options.covariance.nmtran",
+        "name": "storage.modifier.controlrecord.options.covariance.nmtran",
         "match": "(?i:\\b(SPECIAL|MATRIX|SIR(THBND|SAMPLE|DF|NITER|CENTER))|((PRE|PF)?COND(S)?)|(FPOSDEF|RESUME|PRETYPE|COMPRESS|NOFCOV)|(IACCEPT(L)?)\\b)"
       },
       {
         "comment": "Specific $TABLE record options",
-        "name": "support.type.controlrecord.options.table.nmtran",
+        "name": "storage.modifier.controlrecord.options.table.nmtran",
         "match": "(?i:\\b(NOAPPEND)\\b)"
       },
       {
         "comment": "OPTIONS, RED",
-        "name": "support.type.nmtran",
+        "name": "storage.modifier.nmtran",
         "match": "(?i:\\b(OMITTED|CHOLROFF|KNUTHSUMOFF)\\b|ETAS)"
       },
       {
         "comment": "Control record option arguments",
-        "name": "support.type.nmtran",
-        "match": "(?i:\\b(INITIALOFF|NOOFF|NODOSE|EQUILIBRIUM|EXCLUDE|DEFOBSERVATION|DEFDOSE|DEFDOS|CENT|CENTRAL|DEFOBS|DEPOT|INITIAL|FINAL|PRIOR|NO|NOCOMMON|FULL|COMPACT|ZERO|HYBRID|SS(1|2|3|4|5|6|7|8|9|10|11|12))?=\\b)"
+        "name": "storage.modifier.nmtran",
+        "match": "(?i:\\b((INITIALOFF|NOOFF|NODOSE|EQUILIBRIUM|EXCLUDE|DEFOBSERVATION|DEFDOSE|DEFDOS|CENT|CENTRAL|DEFOBS|DEPOT|INITIAL|FINAL|PRIOR|NO|NOCOMMON|FULL|COMPACT|ZERO|HYBRID)\\b)|SS(1|2|3|4|5|6|7|8|9|10|11|12))"
       }]
     },
     "parameters": {
@@ -113,62 +118,62 @@
       },
       {
         "name": "variable.parameter.mu.nmtran",
-        "match": "(?i:\\b(MU_[\\d]))"
+        "match": "(?i:\\b(MU_[\\d]+))"
       }]
     },
     "reserved" : {
       "patterns": [{
-        "name": "storage.type.reserved.nmtran",
+        "name": "support.variable.reserved.nmtran",
         "match":"(?i:\\b((A(_0|_U)?\\([\\d]+\\))|(DADT\\([\\d]+\\))|((T|X)+SCALE)))"
       },
       {
-        "name": "variable.global.reserved.nmtran",
+        "name": "support.variable.global.reserved.nmtran",
         "match": "(?i:\\b((CORRL2|MTIME|MNEXT|MPAST)\\([\\d]+\\)))"
       },
       {
-        "name": "variable.global.reserved.nmtran",
+        "name": "support.variable.global.reserved.nmtran",
         "match": "(?i:\\b(CIWRES(I)?|DES_DER|MIXNUM|MIXEST|MTDIFF|MNOW|NPD(E?)|NPDE_MODE|DV_LOQ|DV_LAQ|CDF_L(A)?|T)\\b)"
       },
       {
-        "name": "storage.type.reserved.nmprd4.nmtran",
+        "name": "support.variable.reserved.nmprd4.nmtran",
         "match": "(?i:\\b(COM\\([\\d]+\\)|COM(ACT|RES|SAV)?))"
       },
       {
-        "name": "storage.type.reserved.other.nmtran",
+        "name": "support.variable.reserved.other.nmtran",
         "match": "(?i:\\b(ETASXI\\([\\d]+\\)|HINIT|HMIN|HMAX|STOP_TIME|ITASK|PASTZERO))"
       },
       {
-        "name": "storage.type.reserved.nmtran",
+        "name": "support.variable.reserved.nmtran",
         "match": "(?i:\\b((ALAG|F|S|D)[\\d]+)\\b)"
       },
       {
         "comment": "reserved data item labels that may be needed by NONMEM or PREDPP",
-        "name": "storage.type.reserved.labels.nmtran",
-        "match": "(?i:\\b(ID|L(1|2)|MDV(I1|I2|I3)?|DV|TIME|DATE|DAT(1|2|3)|DROP|SKIP|EVID|AMT|RATE|SS|II|ADDL(_ACTUAL|_TIME|_TIMEDIFF)?|RAW_|MRG_|RPT_)\\b)"
+        "name": "support.variable.reserved.labels.nmtran",
+        "match": "(?i:\\b(ID|L(1|2)|MDV(I1|I2|I3)?|DV|TIME|DATE|DAT(1|2|3)|EVID|AMT|RATE|SS|II|ADDL(_ACTUAL|_TIME|_TIMEDIFF)?|RAW_|MRG_|RPT_)\\b)"
       },
       {
         "comment": "semi-reserved labels, have reserved meanings if used in $INPUT, but can be user-deﬁned in abbreviated code, in which case they have no reserved meaning",
-        "name": "storage.type.reserved.semi.nmtran",
+        "name": "support.variable.reserved.semi.nmtran",
         "match": "(?i:\\b(XVID(1|2|3|4|5)|REPL_)\\b)"
       },
       {
         "comment": "NONMEM_RESERVED_GENERAL",
-        "name": "storage.type.reserved.nonmem.nmtran",
+        "name": "support.variable.reserved.nonmem.nmtran",
         "match": "(?i:\\b(ITER_REPORT|BAYES_EXTRA_REQUEST|BAYES_EXTRA|RANDMT(U)?)\\b)"
       },
       {
         "comment": "Record counters (read-only)",
-        "name": "storage.type.reserved.counter.nmtran",
+        "name": "support.variable.reserved.counter.nmtran",
         "match": "(?i:\\b(NDREC|NIREC|FIRSTREC|LASTREC|FIRSTOBS|LASTOBS|FIRSTDOS|LASTDOS|EFIRSTREC|ELASTREC|EFIRSTOBS|ELASTOBS|EFIRSTDOS|ELASTDOS|IRECIDX)\\b)"
       },
       {
         "comment": "Record counters (read-only)",
-        "name": "storage.type.nmtran",
+        "name": "support.variable.nmtran",
         "match": "(?i:\\b(INTEGER|REAL)\\b)"
       },
       {
         "comment": "reserved variables used internally by NMTRAN",
-        "name": "storage.type.reserved.internal.nmtran",
+        "name": "support.variable.reserved.internal.nmtran",
         "match": "(?i:\\b(CALL|CMT|PCMT|CONT|NTHETA|NTHP|NPROB|IPROB|MODE|R|PRED_IGNORE_DATA_TEST|PRED_IGNORE_DATA|VECTR[A-Z]{1,3}|FUNC[A-Z]{1,3}|GETETA|SIMETA|SIMEPS|NWIND|ETEXT|IERPRD|IERPRDU|MSEC|MFIRST|NETEXT|(A|B|C|D|E|F|P|Q)\\d{5}|M(C|E|G|T)\\d{4}|MXSTEP)\\b)"
       }]
     },
@@ -189,23 +194,23 @@
         "match": "(?i:(?<=(\\d|\\)))(E|(\\*\\*)))"
       },
       {
+        "comment": "invalid operator",
+        "name": "invalid.illegal.nmtran",
+        "match": "(?i:(\\.NEQN\\.))|\\=\\/"
+      },
+      {
         "comment": "assignment operator =",
         "name": "keyword.operator.assignment.nmtran",
         "match": "(?<!\\=|\\/|\\<|\\>)\\=(?!\\=)"
       },
       {
-        "comment": "invalid operator",
-        "name": "invalid.illegal.nmtran",
-        "match": "(?i:(\\.NEQN\\.|\\=\\/))"
-      },
-      {
         "comment": "Abbreviated code, FORTRAN 77 Code and NON-generic FORTAN 77 CODE",
-        "name": "keyword.other.abbreviatedcode.nmtran",
+        "name": "entity.other.abbreviatedcode.nmtran",
         "match": "(?i:\\b(AIMAG|AINT|ALOG|ALOG10|AMAX0|AMAX1|AMIN0|AMIN1|AMOD|ANINT|BACKSPACE|BLOCK|CHAR|CHARACTER|CMPLX|COMMON|COMPLEX|CONJG|COSH|DATA(N(2)?)?|DBLE|DCOS|DCOSH|DDIM|DIM|DIMENSION|DINT|DMAX1|DMIN1|DMOD|DNINT|DOUBLE|DPROD|DSIGN|ENTRY|EQUIVALENCE|EXTERNAL|FILE|FLOAT|FORMAT|FUNCTION|GOTO|IABS|ICHAR|IDIM|IDINT|IDNINT|IFIX|IMPLICIT|INDEX|INQUIRE|INTRINSIC|IOSTAT|ISIGN|LLE|LLT|LOGICAL|MAX(0|1)?|MIN(0|1)?)\\b)"
       },
       {
         "comment": "mainly related to flow control like if, else, do, while, etc.",
-        "name": "keyword.control.nmtran",
+        "name": "string.interpolated.control.nmtran",
         "match": "(?i:\\b(CALL(FL)?|DO(\\s)?WHILE|(ELSE)?IF|THEN|ELSE|END(DO|IF)?|EXIT|MODE|RETURN|PROGRAM|READ|WRITE|REWIND|SAVE|SNGL|STATUS|STOP|CONTINUE|SUBROUTINE|OPEN|CLOSE|FIX(ED)?)\\b)"
       },
       {
