@@ -20,7 +20,7 @@
       ";; FOCEI",
       ""
     ],
-    "description": "Structured information about the run for PsN runrecord"
+    "description": "Structured information about the run for PsN runrecord\n"
   },
   "Section": {
     "prefix": "section",
@@ -30,7 +30,7 @@
       ";; -----------------------------------------------------------------------------",
       ""
     ],
-    "description": "Section header for control stream"
+    "description": "Section header for control stream\n"
   },
   "1CMT-IV-RATES": {
     "prefix": "ADVAN1 TRANS1",
