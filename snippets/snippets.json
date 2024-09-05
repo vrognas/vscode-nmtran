@@ -22,6 +22,16 @@
     ],
     "description": "Structured information about the run for PsN runrecord"
   },
+  "Section": {
+    "prefix": "section",
+    "body": [
+      "; ------------------------------------------------------------------------------",
+      "; ${1:Section name}",
+      "; ------------------------------------------------------------------------------",
+      ""
+    ],
+    "description": "Section header for control stream"
+  },
   "1CMT-IV-RATES": {
     "prefix": "ADVAN1 TRANS1",
     "body": "ADVAN1 TRANS1$0",
