@@ -5,9 +5,19 @@
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with support for the NMTRAN language used in [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/) control streams.
 
+## Requirements
+
+VSCode v1.80.0+
+
 ## Installation
 
 To install the extension, open the Extensions view, search for `nonmem` to filter results and select the NMTRAN extension.
+
+## Programmatic Language Features
+
+* Diagnostics
+* Code completion proposals
+* Hover info
 
 ## Declarative Language Features
 
@@ -42,16 +52,6 @@ By tokenization according to [TextMate 1.5.1 naming conventions](https://macroma
 * Including IIV on a parameter that is bound between 0 and 1 (type logit_iiv).
 * Baseline modeling (B1, B2, B3, B4) [Dansirikul et al., 2008](https://doi.org/10.1007/s10928-008-9088-2)
 * BQL modeling (M3) [Beal, 2001](https://doi.org/10.1023/a:1012299115260)
-
-## Programmatic Language Features
-
-* Diagnostics
-* Code completion proposals
-* Hover info
-
-## Requirements
-
-VSCode v1.80.0
 
 ## Contributing
 
