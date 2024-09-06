@@ -399,6 +399,21 @@
     ],
     "description": "Concentration derivative"
   },
+	"Binary simulation": {
+    "prefix": ["simulation_binary"],
+    "body": [
+      "\n",
+      "PROB = THETA($1) ; Probability of DV=1",
+      "IF (ICALL == 4) THEN",
+      "  CALL RANDOM(2,R)",
+      "  DV = 1",
+      "  IF (R > PROB) DV = 0",
+      "ENDIF",
+      "",
+      "\\$SIMULATION (12345) (678910 UNIFORM)",
+      "\n$0"
+    ],
+    "description": "Simulation from binary models"
   },
   "FOCEI": {
     "prefix": ["$ESTIMATION"],
