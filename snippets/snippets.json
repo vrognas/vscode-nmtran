@@ -389,6 +389,15 @@
       "\n$0"
     ],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+	"Concentration derivative": {
+    "prefix": ["CDER"],
+    "body": [
+      "\n",
+      "CDER = (KA * A(1) - K * A(2)) / V ; In \\$ERROR",
+      "\n$0"
+    ],
+    "description": "Concentration derivative"
+  },
   },
   "FOCEI": {
     "prefix": ["$ESTIMATION"],
