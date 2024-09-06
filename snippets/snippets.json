@@ -191,6 +191,16 @@
     ],
     "description": "A 3-way mixture model."
   },
+  "MU referencing": {
+    "prefix": ["mu_reference"],
+    "body": [
+      "\n",
+      "MU_$1 = THETA($2) ; use theta on log-scale, not log(thetha)",
+      "TV$3 = MU_$4 + ETA($5)",
+      "\n$0"
+    ],
+    "description": "MU referencing\n"
+  },
   "Baseline B1": {
     "prefix": ["baseline_b1"],
     "body": [
