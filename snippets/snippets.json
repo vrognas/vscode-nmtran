@@ -274,14 +274,14 @@
   "Diurnal cos-rythm": {
     "prefix": ["diurnal"],
     "body": [
-      "x = THETA(base_x) * (1 + THETA(amplitude) * COS((TIME - THETA(peak_time)) * 2 * PI / period))"
+      "x = THETA(${1:base_x}) * (1 + THETA(${2:amplitude}) * COS((TIME - THETA(${3:peak_time})) * 2 * PI / period))"
     ],
     "description": "Diurnal cos-rythm\n"
   },
   "Surge model": {
     "prefix": ["surge"],
     "body": [
-      "x = THETA(amplitude) / (((TIME - THETA(peak_time)) * THETA(peak_width))**SHAPE + 1)"
+      "x = THETA(${1:amplitude}) / (((TIME - THETA(${2:peak_time})) * THETA({$3:peak_width}))**SHAPE + 1)"
     ],
     "description": "Surge model\n"
   },
