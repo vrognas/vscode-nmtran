@@ -389,6 +389,7 @@
       "\n$0"
     ],
     "description": "Slope-intercept THETA-rized SIGMA (log-scale)"
+  },
 	"Concentration derivative": {
     "prefix": ["CDER"],
     "body": [
