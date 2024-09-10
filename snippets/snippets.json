@@ -306,6 +306,39 @@
     ],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
+  "Boc-Cox transformation": {
+    "prefix": ["boxcox"],
+    "body": [
+      "BXPAR = THETA(2) ; Shape parameter",
+      "PHI = EXP(ETA(2)) ; Exponential transformation",
+      "ETATR = (PHI**BXPAR-1)/BXPAR ; Transformed eta",
+      "CL = TVCL*EXP(ETATR) ; Individual parameter"
+    ],
+    "description": "Box-Cox transformation"
+  },
+  "t-distribution transformation": {
+    "prefix": ["tdist"],
+    "body": [
+      "DF = THETA(2) ; Degrees of freedom, t-distribution",
+      "; t-distribution transformed ETA",
+      "ETATR = ETA(1) * (1 + ((ETA(1)**2 + 1) / (4 * DF)) + &",
+      "((5 * ETA(1)**4 + 16 * ETA(1)**2 + 3) / (96 * DF**2)) + &",
+      "((3 * ETA(1)**6 + 19 * ETA(1)**4 + 17 * ETA(1)**2 - 15)/(384 * DF**3)))",
+      "CL = TVCL * EXP(ETATR) ; Individual parameter"
+    ],
+    "description": "t-distribution transformation"
+  },
+  "uniform-distribution transformation": {
+    "prefix": ["uniformdist"],
+    "body": [
+      "; A uniform parameter distribution between estimated values x and x+y",
+      "P_UNIF=THETA(1)+THETA(2)*PHI(ETA(1))",
+      "$THETA x ; 1",
+      "$THETA (0, y) ; 2",
+      "$OMEGA 1 FIX ; 1"
+    ],
+    "description": "uniform-distribution transformation"
+  },
   "Hazard Exponential": {
     "prefix": ["hazard_exponential"],
     "body": [
