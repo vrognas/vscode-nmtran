@@ -306,6 +306,49 @@
     ],
     "description": "Logit transform model for adding iiv to parameters constrained between 0 and 1"
   },
+  "Hazard Exponential": {
+    "prefix": ["hazard_exponential"],
+    "body": [
+      "DADT($1) = SCALE",
+      "SUR = EXP(-A($2))"
+    ],
+    "description": "Exponential hazard function\n"
+  },
+  "Hazard Weibull": {
+    "prefix": ["hazard_weibull"],
+    "body": [
+      "DEL = 1E-12",
+      "TIM = T + DEL",
+      "DADT($1) = SCALE * SHAPE * (SCALE * TIM)**(SHAPE - 1)",
+      "SUR = EXP(-A($2))"
+    ],
+    "description": "Weibull hazard function\n"
+  },
+  "Hazard Gompertz": {
+    "prefix": ["hazard_gompertz"],
+    "body": [
+      "DEL = 1E-12",
+      "TIM = T + DEL",
+      "DADT($1) = SCALE * EXP(SHAPE * TIM)",
+      "SUR = EXP(-A($2))"
+    ],
+    "description": "Gompertz hazard function\n"
+  },
+  "Hazard Log-normal": {
+    "prefix": ["hazard_lognormal"],
+    "body": [
+      "MU = THETA($1) ; Mean of log-norm dist",
+      "SIGM = THETA($2) ; SD of log-norm dist.",
+      "DEL = 1E-12",
+      "TIM = T + DEL",
+      "LNT = LOG(TIM)",
+      "X1 = (LNT - MU) / SIGM",
+      "PDF = EXP(-0.5 * (X1**2)) / SQRT(2 * PI)",
+      "DADT($3)=1 / (TIM * SIGM) * PDF / (1 - PHI(X1))",
+      "SUR = EXP(-A($4))"
+    ],
+    "description": "Log-normal hazard function\n"
+  },
   "BQL M3": {
     "prefix": ["M3_BQL"],
     "body": [
