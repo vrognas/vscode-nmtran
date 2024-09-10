@@ -521,6 +521,84 @@
     ],
     "description": "IMP for OFV evaluation"
   },
+  "DIRECT_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=DIRECT INTERACTION",
+      "            ISAMPLE=1000 CTYPE=3 NITER=500 STDOBJ=10",
+      "            ISAMPEND=10000 NOPRIOR=1 CITER=10 CINTERVAL=0",
+      "            CALPHA=0.05 EONLY=0",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for DIRECT"
+  },
+  "BAYES_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=BAYES INTERACTION",
+      "            CTYPE=3 NITER=10000 NBURN=4000",
+      "            NOPRIOR=0 CITER=10 CINTERVAL=0 CALPHA=0.05",
+      "            IACCEPT=0.4 ISCALE_MIN=1.0E-06 ISCALE_MAX=1.0E+06",
+      "            PACCEPT=0.5 PSCALE_MIN=0.01 PSCALE_MAX=1000",
+      "            PSAMPLE_M1=1 PSAMPLE_M2=-1 PSAMPLE_M3=1 OSAMPLE_M1=-1",
+      "            OSAMPLE_M2=-1 OACCEPT=0.5 ISAMPLE_M1=2 ISAMPLE_M1A=0",
+      "            ISAMPLE_M2=2 ISAMPLE_M3=3 ISAMPLE_M1B=2 MCETA=0",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for BAYES"
+  },
+  "SAEM_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=SAEM INTERACTION",
+      "            ISAMPEND=10 NOPRIOR=1 CITER=10 CINTERVAL=0 CALPHA=0.05",
+      "            IACCEPT=0.4 ISCALE_MIN=1.0E-06 ISCALE_MAX=1.0E+06",
+      "            ISAMPLE_M1=2 ISAMPLE_M1A=0 ISAMPLE_M1B=2 ISAMPLE_M2=2",
+      "            ISAMPLE_M3=2 CONSTRAIN=1 EONLY=0 ISAMPLE=2 MCETA=0",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for SAEM"
+  },
+  "ITS_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=ITS INTERACTION",
+      "            CTYPE=3 NITER=500",
+      "            NOPRIOR=1 CITER=10 CINTERVAL=1 CALPHA=0.05",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for ITS"
+  },
+  "IMP_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=IMP INTERACTION",
+      "            CTYPE=3 NITER=500 ISAMPLE=300 STDOBJ=10",
+      "            ISAMPEND=10000 NOPRIOR=1 CITER=10 CINTERVAL=1 CALPHA=0.05",
+      "            IACCEPT=0.0 ISCALE_MIN=0.1 ISCALE_MAX=10 DF=0 MCETA=3",
+      "            EONLY=0 MAPITER=1 MAPINTER=-1",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for IMP"
+  },
+  "IMPMAP_auto_1": {
+    "prefix": ["$ESTIMATION"],
+    "body": [
+      "\n",
+      "\\$ESTIMATION METHOD=IMPMAP INTERACTION",
+      "            CTYPE=3 NITER=500 ISAMPLE=300 STDOBJ=10",
+      "            ISAMPEND=10000 NOPRIOR=1 CITER=10 CINTERVAL=1 CALPHA=0.05",
+      "            IACCEPT=0.0 ISCALE_MIN=0.1 ISCALE_MAX=10 DF=0 MCETA=3",
+      "            EONLY=0",
+      "\n$0"
+    ],
+    "description": "Options when setting AUTO=1 for IMPMAP"
+  },
   "Xpose TABLEs": {
     "prefix": ["$TABLE"],
     "body": [
