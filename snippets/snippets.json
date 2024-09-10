@@ -448,7 +448,8 @@
   "Xpose TABLEs": {
     "prefix": ["$TABLE"],
     "body": [
-      "; In addition to the requested TABLE-items, NONMEM adds by default: DV, PRED, RES, WRES",
+      "; In addition to the requested items, NONMEM adds by default: DV, PRED, RES, WRES",
+      "If you do not want these additional items, add NOAPPEND to the $TABLE record.",
       "",
       "\\$TABLE ID TIME EVID MDV IPRED IRES IWRES CWRES",
       "NOPRINT ONEHEADER FILE=sdtab$1 ; Standard table file",
