@@ -98,7 +98,7 @@
       {
         "comment": "Specific $TABLE record options",
         "name": "storage.modifier.controlrecord.options.table.nmtran",
-        "match": "(?i:\\b(NOAPPEND)\\b)"
+        "match": "(?i:\\b(NOAPPEND|VARCALC)\\b)"
       },
       {
         "comment": "OPTIONS, RED",
