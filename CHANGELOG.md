@@ -1,3 +1,8 @@
+## [0.2.1] - 10 Oct, 2024
+
+- More snippets
+- Highlighting for `VARCALC` option in `$TABLE`
+
 ## [0.2.0] - 5 Sep, 2024
 
 - Syntax-highlighting overhaul
