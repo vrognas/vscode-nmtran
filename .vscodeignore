@@ -2,8 +2,13 @@
 .vscode-test/**
 typings/**
 out/
-src/
-node_modules
+# Exclude source files
+client/src/**
+server/src/**
+
+# Exclude node_modules folders
+**/node_modules/**
+
 test/**
 **/*.map
 .gitignore
