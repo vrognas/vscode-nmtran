@@ -1,3 +1,7 @@
+## [0.2.2] - 10 Oct, 2024
+
+- Performance updates
+
 ## [0.2.1] - 10 Oct, 2024
 
 - More snippets
