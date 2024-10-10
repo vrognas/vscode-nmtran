@@ -2,6 +2,14 @@
 .vscode-test/**
 typings/**
 out/
+# Exclude source files
+client/src/**
+server/src/**
+
+# Exclude node_modules folders
+**/node_modules/**
+
+test/**
 **/*.map
 .gitignore
 vsc-extension-quickstart.md
@@ -11,7 +19,7 @@ client/src/**
 server/src/**
 
 # Exclude node_modules folders
-**/node_modules/**
+'**/node_modules/**
 
 # Exclude test files
 test/**
