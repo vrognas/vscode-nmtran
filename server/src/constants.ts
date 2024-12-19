@@ -1,4 +1,4 @@
-export const validControlRecords = [
+export const allowedControlRecords = [
   '$ABBREVIATED',
   '$AES',
   '$AESINITIAL',

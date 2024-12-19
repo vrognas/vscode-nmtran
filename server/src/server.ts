@@ -12,30 +12,42 @@ import {
   ProposedFeatures,
   SymbolInformation,
   SymbolKind,
-  TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { validControlRecords } from './constants';
-import { getHoverInfoForControlRecord } from './hoverInfo';
+import { allowedControlRecords } from './constants';
+import { explainControlRecordHover } from './hoverInfo';
 import {
-  findControlRecordsInText,
-  createDiagnosticForControlRecord,
-  getFullControlRecord
+  locateControlRecordsInText,
+  generateDiagnosticForControlRecord,
+  getFullControlRecordName
 } from './utils/validateControlRecords';
 
-// ------------ Initial Setup -------------
-const connection = createConnection(ProposedFeatures.all);
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+// This server uses the Language Server Protocol to provide IntelliSense, diagnostics,
+// and other language features for NMTRAN files. It listens on stdin/stdout for messages
+// from the client, and responds with code actions, hovers, and diagnostics.
+//
+// Why:
+// By keeping the server logic simple and distinct, we enhance maintainability. The code is structured
+// so that logic for hover, diagnostics, and code actions is divided into small functions in separate files.
 
-// ------------ Settings -------------
+const connection = createConnection(ProposedFeatures.all);
+const documents = new (class extends Map<string, TextDocument> {
+  get(uri: string) {
+    return super.get(uri);
+  }
+  setDocument(document: TextDocument) {
+    this.set(document.uri, document);
+  }
+})();
+
+// Default settings for NMTRAN extension
 interface NMTRANSettings {
   maxNumberOfProblems: number;
 }
 const defaultSettings: NMTRANSettings = { maxNumberOfProblems: 100 };
 let globalSettings: NMTRANSettings = defaultSettings;
 
-// ------------ Server Capabilities -------------
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   return {
     capabilities: {
@@ -47,71 +59,67 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   };
 });
 
-// ------------ Hover Logic -------------
+// Provide hover info by matching control records under the cursor
 connection.onHover(({ textDocument, position }) => {
-  try {
-    const uri = textDocument.uri;
-    const document = documents.get(uri);
-    if (!document) {
-      connection.console.error(`Document not found: ${uri}`);
-      return null;
-    }
-
-    const text = document.getText();
-    const offset = document.offsetAt(position);
-    const controlRecordPattern = /\$[A-Z]+\b/g;
-    let match: RegExpExecArray | null;
-
-    while ((match = controlRecordPattern.exec(text)) !== null) {
-      const start = match.index;
-      const end = match.index + match[0].length;
-      if (start <= offset && offset <= end) {
-        const fullControlRecord = getFullControlRecord(match[0]);
-        const hoverInfo: MarkupContent = {
-          kind: MarkupKind.Markdown,
-          value: getHoverInfoForControlRecord(match[0], fullControlRecord)
-        };
-
-        return {
-          contents: hoverInfo,
-          range: {
-            start: document.positionAt(start),
-            end: document.positionAt(end)
-          }
-        } as Hover;
-      }
-    }
-  } catch (error) {
-    connection.console.error(`Error during onHover: ${(error as Error).message}`);
+  const uri = textDocument.uri;
+  const doc = documents.get(uri);
+  if (!doc) {
+    connection.console.error(`Document not found: ${uri}`);
     return null;
   }
+
+  const text = doc.getText();
+  const offset = doc.offsetAt(position);
+  const controlRecordRegex = /\$[A-Z]+\b/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = controlRecordRegex.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (start <= offset && offset <= end) {
+      const fullControlRecord = getFullControlRecordName(match[0]);
+      const hoverInfo: MarkupContent = {
+        kind: MarkupKind.Markdown,
+        value: explainControlRecordHover(match[0], fullControlRecord)
+      };
+
+      return {
+        contents: hoverInfo,
+        range: {
+          start: doc.positionAt(start),
+          end: doc.positionAt(end)
+        }
+      } as Hover;
+    }
+  }
+
+  return null;
 });
 
-// ------------ Code Action Logic -------------
+// Provide code actions for replacing abbreviated control records
 connection.onCodeAction(({ textDocument, range, context }) => {
   const uri = textDocument.uri;
-  const document = documents.get(uri);
-  if (!document) {
+  const doc = documents.get(uri);
+  if (!doc) {
     return null;
   }
 
   const codeActions: CodeAction[] = [];
 
-  for (const diagnostic of context.diagnostics) {
-    // Check if the diagnostic is related to an abbreviation suggestion
-    if (diagnostic.message.startsWith("Did you mean")) {
-      const fullControlRecord = diagnostic.message.replace("Did you mean ", "").replace("?", "");
+  for (const diag of context.diagnostics) {
+    if (diag.message.startsWith("Did you mean")) {
+      const fullRecord = diag.message.replace("Did you mean ", "").replace("?", "");
 
       const replaceAction: CodeAction = {
-        title: `Replace with ${fullControlRecord}`,
+        title: `Replace with ${fullRecord}`,
         kind: CodeActionKind.QuickFix,
-        diagnostics: [diagnostic],
+        diagnostics: [diag],
         edit: {
           changes: {
             [uri]: [
               {
-                range: diagnostic.range,
-                newText: fullControlRecord
+                range: diag.range,
+                newText: fullRecord
               }
             ]
           }
@@ -125,28 +133,28 @@ connection.onCodeAction(({ textDocument, range, context }) => {
   return codeActions;
 });
 
-// ------------ Document Symbol Logic -------------
+// Provide document symbols (like an outline) by listing control records
 connection.onDocumentSymbol((params: DocumentSymbolParams) => {
   const uri = params.textDocument.uri;
-  const document = documents.get(uri);
-  if (!document) {
+  const doc = documents.get(uri);
+  if (!doc) {
     return null;
   }
 
-  const text = document.getText();
-  const controlRecords = findControlRecordsInText(text);
+  const text = doc.getText();
+  const controlRecords = locateControlRecordsInText(text);
   const symbols: SymbolInformation[] = [];
 
   for (const match of controlRecords) {
-    const fullControlRecord = getFullControlRecord(match[0]);
+    const fullControlRecord = getFullControlRecordName(match[0]);
     const symbolInfo: SymbolInformation = {
       name: fullControlRecord,
       kind: SymbolKind.Module,
       location: {
         uri: uri,
         range: {
-          start: document.positionAt(match.index),
-          end: document.positionAt(match.index + match[0].length)
+          start: doc.positionAt(match.index),
+          end: doc.positionAt(match.index + match[0].length)
         }
       }
     };
@@ -156,14 +164,14 @@ connection.onDocumentSymbol((params: DocumentSymbolParams) => {
   return symbols;
 });
 
-// ------------ Validation Logic -------------
-async function validateNMTRANDocument(textDocument: TextDocument): Promise<void> {
+// Validate a document by finding and reporting invalid control records
+async function validateNMTRANFile(textDocument: TextDocument): Promise<void> {
   const text = textDocument.getText();
-  const controlRecords = findControlRecordsInText(text);
+  const matches = locateControlRecordsInText(text);
   const diagnostics: Diagnostic[] = [];
 
-  for (const match of controlRecords) {
-    const diagnostic = createDiagnosticForControlRecord(match, textDocument);
+  for (const m of matches) {
+    const diagnostic = generateDiagnosticForControlRecord(m, textDocument);
     if (diagnostic) {
       diagnostics.push(diagnostic);
     }
@@ -172,11 +180,22 @@ async function validateNMTRANDocument(textDocument: TextDocument): Promise<void>
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
-// ------------ Event Listeners -------------
-documents.onDidChangeContent(async (change) => {
-  await validateNMTRANDocument(change.document);
+// Listen for changes to documents
+connection.onDidOpenTextDocument((params) => {
+  const doc = TextDocument.create(params.textDocument.uri, 'nmtran', params.textDocument.version, params.textDocument.text);
+  documents.setDocument(doc);
+  validateNMTRANFile(doc);
 });
 
-// ------------ Start Server -------------
-documents.listen(connection);
+connection.onDidChangeTextDocument((change) => {
+  const doc = TextDocument.create(
+    change.textDocument.uri,
+    'nmtran',
+    change.textDocument.version,
+    change.contentChanges[0].text
+  );
+  documents.setDocument(doc);
+  validateNMTRANFile(doc);
+});
+
 connection.listen();

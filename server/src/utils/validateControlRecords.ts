@@ -1,11 +1,15 @@
 import { Diagnostic, DiagnosticSeverity, TextDocument } from 'vscode-languageserver/node';
-import { validControlRecords } from '../constants';
+import { allowedControlRecords } from '../constants';
 
 /**
- * Returns the fully spelled-out control record if the abbreviation is recognized.
+ * Finds the full allowed control record name if the given record is a recognized abbreviation.
+ * 
+ * Why:
+ * We want to handle cases where a user abbreviates a control record. This function returns the
+ * full allowed control record if an abbreviation is recognized, improving consistency.
  */
-function getFullControlRecord(record: string): string {
-  for (const validRecord of validControlRecords) {
+function getFullControlRecordName(record: string): string {
+  for (const validRecord of allowedControlRecords) {
     if (validRecord.startsWith(record)) {
       return validRecord;
     }
@@ -14,11 +18,13 @@ function getFullControlRecord(record: string): string {
 }
 
 /**
- * Checks the validity of a control record. 
- * Returns whether it is valid, whether it is an abbreviation,
- * and optionally a closest match if relevant.
+ * Checks the validity and abbreviation status of a control record.
+ * 
+ * Why:
+ * Providing a single function to determine if a record is valid or abbreviated centralizes logic
+ * and reduces confusion throughout the codebase.
  */
-function checkControlRecordValidity(record: string): { 
+function evaluateControlRecord(record: string): { 
   isValid: boolean; 
   isAbbreviation: boolean; 
   closestMatch?: string 
@@ -26,7 +32,7 @@ function checkControlRecordValidity(record: string): {
   let closestMatch: string | undefined;
   let isAbbreviation = false;
 
-  for (const validRecord of validControlRecords) {
+  for (const validRecord of allowedControlRecords) {
     if (validRecord === record) {
       return { isValid: true, isAbbreviation: false };
     }
@@ -46,29 +52,37 @@ function checkControlRecordValidity(record: string): {
 }
 
 /**
- * Extracts all control records from a given text.
+ * Retrieves all control records from the given document text, ignoring commented lines.
+ * 
+ * Why:
+ * We must find control records within the text while ignoring commented lines to ensure that
+ * diagnostics are only produced for actual code lines.
  */
-function findControlRecordsInText(text: string): RegExpExecArray[] {
-  const controlRecordPattern = /\$[A-Z]+\b/g;
-  const matches: RegExpExecArray[] = [];
+function locateControlRecordsInText(text: string): RegExpExecArray[] {
+  const controlRecordRegex = /\$[A-Z]+\b/g;
+  const findings: RegExpExecArray[] = [];
   let match: RegExpExecArray | null;
 
   const filteredText = text.split('\n')
     .filter(line => !line.trim().startsWith(';'))
     .join('\n');
 
-  while ((match = controlRecordPattern.exec(filteredText)) !== null) {
-    matches.push(match);
+  while ((match = controlRecordRegex.exec(filteredText)) !== null) {
+    findings.push(match);
   }
 
-  return matches;
+  return findings;
 }
 
 /**
- * Creates a diagnostic for a given control record match, if it is invalid or abbreviated.
+ * Creates a diagnostic for an invalid or abbreviated control record.
+ * 
+ * Why:
+ * This encapsulates diagnostic creation logic, ensuring that all control record diagnostics are
+ * constructed consistently and can be easily maintained.
  */
-function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: TextDocument): Diagnostic | null {
-  const { isValid, isAbbreviation, closestMatch } = checkControlRecordValidity(match[0]);
+function generateDiagnosticForControlRecord(match: RegExpExecArray, textDocument: TextDocument): Diagnostic | null {
+  const { isValid, isAbbreviation, closestMatch } = evaluateControlRecord(match[0]);
 
   if (isValid) {
     if (isAbbreviation && closestMatch) {
@@ -102,7 +116,7 @@ function createDiagnosticForControlRecord(match: RegExpExecArray, textDocument: 
 }
 
 export {
-  findControlRecordsInText,
-  createDiagnosticForControlRecord,
-  getFullControlRecord
+  locateControlRecordsInText,
+  generateDiagnosticForControlRecord,
+  getFullControlRecordName
 };

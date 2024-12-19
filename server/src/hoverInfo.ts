@@ -1,10 +1,16 @@
-// Function to return hover information for a given control record
-export function getHoverInfoForControlRecord(controlRecord: string, fullControlRecord: string): string {
-  // If an abbreviation is used, return the hover info for the full control record
+// This function returns descriptive info for a given control record for hover display.
+//
+// Why:
+// Instead of simply naming the function 'getHoverInfoForControlRecord', we now call it
+// 'explainControlRecordHover' to emphasize what the function does: it explains a control record.
+
+export function explainControlRecordHover(controlRecord: string, fullControlRecord: string): string {
+  // If an abbreviation is used, adopt the full control record name for explanation
   if (controlRecord !== fullControlRecord) {
     controlRecord = fullControlRecord;
   }
 
+  // Return a human-readable explanation based on the recognized control record
   switch (controlRecord) {
     case '$ABBREVIATED':
       return 'Provides instructions about abbreviated code';
