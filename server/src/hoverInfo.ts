@@ -23,17 +23,17 @@ export function explainControlRecordHover(controlRecord: string, fullControlReco
     case '$BIND':
       return 'Define data values used by `$PK`, `$DES`, and `$AES`';
     case '$CHAIN':
-      return 'Supplies initial estimates for an entire problem';
+      return 'Supplies initial estimates for an entire problem run.';
     case '$CONTR':
       return 'Defines values for certain user-supplied routines';
     case '$COVARIANCE':
       return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix.';
     case '$COVR':
-      return 'This step outputs: standard errors, covariance matrix, inverse covariance matrix, and the correlation form of the covariance matrix. More commonly coded as `$COVARIANCE`';
+      return 'Synonym for $COVARIANCE.';
     case '$DATA':
-      return 'Describes the NMTRAN data set';
+      return 'Describes the NMTRAN data set.';
     case '$DEFAULT':
-      return 'Specifies certain defaults for NONMEM';
+      return 'Specifies certain defaults for NONMEM.';
     case '$DES':
       return 'Used to compute differential equations.';
     case '$DESIGN':
@@ -47,9 +47,9 @@ export function explainControlRecordHover(controlRecord: string, fullControlReco
     case '$ESTIMATE':
       return 'Obtains parameter estimate. More commonly coded as `$ESTIMATION`';
     case '$ETAS':
-      return 'Specifies Initial Values for Etas';
+      return 'Specifies initial values for ETAs.';
     case '$PHIS':
-      return 'Specifies Initial Values for Phis';
+      return 'Specifies initial values for PHIs.';
     case '$FORMAT':
       return 'Specifies significant digits for the NONMEM report file';
     case '$INDEX':
@@ -61,7 +61,7 @@ export function explainControlRecordHover(controlRecord: string, fullControlReco
     case '$INPUT':
       return 'Required. The items define the data item types that appear in the NMTRAN data records, and define the order of their appearance.';
     case '$LEVEL':
-      return 'Specifies Nested Random Levels Above Subject ID';
+      return 'Specifies nested random levels above subject ID.';
     case '$MIX':
       return 'Used to describe the mixture probabilities of a mixture model. It is evaluated with individual records.';
     case '$MODEL':
@@ -143,6 +143,6 @@ export function explainControlRecordHover(controlRecord: string, fullControlReco
     case '$WARNINGS':
       return 'Control Display of NMTRAN Warning, Data Warning and Data Error messages';
     default:
-      return `${controlRecord} not recognized`;
+      return `${controlRecord} not recognized.`;
   }
 }
