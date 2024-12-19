@@ -1,3 +1,10 @@
+## [0.2.3] - 19 Dec, 2024
+
+- Refactor validation logic
+- Fix snippet placeholder syntax
+- Performance updates
+- Improve maintainability
+
 ## [0.2.2] - 10 Oct, 2024
 
 - Performance updates
