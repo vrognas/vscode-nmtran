@@ -673,6 +673,8 @@
 		"; If you do not want these additional items, add NOAPPEND to the $TABLE record.",
 		"; Strictly, only sdtab* is needed for basic goodness-of-fit functionality,",
 		"; but patab*, cotab* and catab* are recommended to get full benefit from Xpose.",
+		"; Other variables you might need to have available to Xpose can be output into:",
+		"; extra*, mutab*, mytab*, xptab*, cwtab*",
 		"",
 		"\\$TABLE ID TIME EVID MDV IPRED IRES IWRES CWRES",
 		"VARCALC=1",
