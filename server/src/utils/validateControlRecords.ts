@@ -63,11 +63,13 @@ function locateControlRecordsInText(text: string): RegExpExecArray[] {
   const findings: RegExpExecArray[] = [];
   let match: RegExpExecArray | null;
 
-  const filteredText = text.split('\n')
-    .filter(line => !line.trim().startsWith(';'))
+  // Replace commented lines with whitespace so indexes remain correct
+  const sanitizedText = text
+    .split('\n')
+    .map(line => (line.trim().startsWith(';') ? ' '.repeat(line.length) : line))
     .join('\n');
 
-  while ((match = controlRecordRegex.exec(filteredText)) !== null) {
+  while ((match = controlRecordRegex.exec(sanitizedText)) !== null) {
     findings.push(match);
   }
 
