@@ -40,7 +40,7 @@ function runTest(testName: string, testFn: () => void) {
   }
 }
 
-function assertEqual(actual: any, expected: any, message?: string) {
+function assertEqual(actual: unknown, expected: unknown, message?: string) {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`);
   }

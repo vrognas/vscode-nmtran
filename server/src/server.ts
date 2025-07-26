@@ -23,8 +23,7 @@ import {
   ProposedFeatures,
   SymbolInformation,
   SymbolKind,
-  TextDocumentSyncKind,
-  CompletionItem
+  TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 
 // Import our services
@@ -35,7 +34,7 @@ import { FormattingService } from './services/formattingService';
 import { CompletionService } from './services/completionService';
 
 // Import types and utilities
-import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
+// import { DEFAULT_SETTINGS } from './types';
 import {
   locateControlRecordsInText,
   getFullControlRecordName
@@ -54,8 +53,8 @@ const hoverService = new HoverService(connection);
 const formattingService = new FormattingService(connection);
 const completionService = new CompletionService(connection);
 
-// Settings management
-let globalSettings: NMTRANSettings = DEFAULT_SETTINGS;
+// Settings management (reserved for future use)
+// const globalSettings: NMTRANSettings = DEFAULT_SETTINGS;
 
 // =================================================================
 // SERVER CAPABILITIES

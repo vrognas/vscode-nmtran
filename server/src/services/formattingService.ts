@@ -66,7 +66,7 @@ export class FormattingService {
   /**
    * Formats a specific range in the document
    */
-  formatRange(document: TextDocument, range: Range): TextEdit[] {
+  formatRange(document: TextDocument, _range: Range): TextEdit[] {
     try {
       // For simplicity, format the entire document
       // Could be optimized to only format the specified range
