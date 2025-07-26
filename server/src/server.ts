@@ -1,5 +1,5 @@
 /**
- * NMTRAN Language Server - The "Brain" of the Extension
+ * NMTRAN Language Server - Modernized Architecture
  * 
  * This is the smart part that provides all the NMTRAN language features:
  * - Hover explanations (when you hover over $THETA, shows what it means)
@@ -7,42 +7,37 @@
  * - Quick fixes (suggests $ESTIMATION when you type $EST)
  * - Document outline (shows all control records in sidebar)
  * 
- * HOW IT WORKS:
- * 1. Client sends file content when you open/edit NMTRAN files
- * 2. Server scans for control records (words starting with $)
- * 3. Server validates each one against the known list
- * 4. Server sends back hover info, errors, suggestions, etc.
- * 
- * MAINTENANCE NOTES:
- * - Most NMTRAN knowledge is in hoverInfo.ts and constants.ts
- * - Validation logic is in utils/validateControlRecords.ts
- * - This file just orchestrates the features using LSP protocol
+ * ARCHITECTURE:
+ * - Service-based architecture for better maintainability
+ * - Proper error handling throughout
+ * - Centralized document management
+ * - Separated concerns (hover, diagnostics, symbols)
  */
 
 import {
   createConnection,
   CodeAction,
   CodeActionKind,
-  Diagnostic,
-  DocumentSymbolParams,
-  Hover,
   InitializeParams,
   InitializeResult,
-  MarkupContent,
-  MarkupKind,
   ProposedFeatures,
   SymbolInformation,
   SymbolKind,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
+  CompletionItem
 } from 'vscode-languageserver/node';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 
-// Import our NMTRAN-specific knowledge and utilities
-import { allowedControlRecords } from './constants'; // Referenced by validation utilities
-import { explainControlRecordHover } from './hoverInfo';
+// Import our services
+import { DocumentService } from './services/documentService';
+import { DiagnosticsService } from './services/diagnosticsService';
+import { HoverService } from './services/hoverService';
+import { FormattingService } from './services/formattingService';
+import { CompletionService } from './services/completionService';
+
+// Import types and utilities
+import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
 import {
   locateControlRecordsInText,
-  generateDiagnosticForControlRecord,
   getFullControlRecordName
 } from './utils/validateControlRecords';
 
@@ -50,26 +45,21 @@ import {
 // SERVER SETUP
 // =================================================================
 
-// Create connection to communicate with the VSCode client
 const connection = createConnection(ProposedFeatures.all);
 
-// Document storage - keeps track of all open NMTRAN files
-// This is like a cache so we don't have to re-read files constantly
-const documents = new (class extends Map<string, TextDocument> {
-  get(uri: string) {
-    return super.get(uri);
-  }
-  setDocument(document: TextDocument) {
-    this.set(document.uri, document);
-  }
-})();
+// Initialize services
+const documentService = new DocumentService(connection);
+const diagnosticsService = new DiagnosticsService(connection);
+const hoverService = new HoverService(connection);
+const formattingService = new FormattingService(connection);
+const completionService = new CompletionService(connection);
 
-// Extension settings (currently just limits how many problems to report)
-interface NMTRANSettings {
-  maxNumberOfProblems: number;
-}
-const defaultSettings: NMTRANSettings = { maxNumberOfProblems: 100 };
-let globalSettings: NMTRANSettings = defaultSettings; // Reserved for future configuration features
+// Settings management
+let globalSettings: NMTRANSettings = DEFAULT_SETTINGS;
+
+// =================================================================
+// SERVER CAPABILITIES
+// =================================================================
 
 connection.onInitialize((_params: InitializeParams): InitializeResult => {
   // _params prefixed with underscore to indicate intentionally unused
@@ -78,166 +68,237 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
   // Debug logging
   connection.console.log('🚀 NMTRAN Language Server initializing...');
   connection.console.log('📁 Workspace folder: ' + (_params.workspaceFolders?.[0]?.uri || 'none'));
+  connection.console.log('🔧 Using service-based architecture for better maintainability');
   
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
       hoverProvider: true,
       codeActionProvider: true,
-      documentSymbolProvider: true
+      documentSymbolProvider: true,
+      completionProvider: {
+        triggerCharacters: ['$', ' ']
+      },
+      documentFormattingProvider: true,
+      documentRangeFormattingProvider: true
     }
   };
 });
 
+// =================================================================
+// LANGUAGE FEATURES
+// =================================================================
+
 // Provide hover info by matching control records under the cursor
 connection.onHover(({ textDocument, position }) => {
-  const uri = textDocument.uri;
-  const doc = documents.get(uri);
-  if (!doc) {
-    connection.console.error(`Document not found: ${uri}`);
+  try {
+    const doc = documentService.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found: ${textDocument.uri}`);
+      return null;
+    }
+
+    return hoverService.provideHover(doc, position);
+  } catch (error) {
+    connection.console.error(`❌ Error in hover handler: ${error}`);
     return null;
   }
-
-  const text = doc.getText();
-  const offset = doc.offsetAt(position);
-  const controlRecordRegex = /\$[A-Z]+\b/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = controlRecordRegex.exec(text)) !== null) {
-    const start = match.index;
-    const end = match.index + match[0].length;
-    if (start <= offset && offset <= end) {
-      const fullControlRecord = getFullControlRecordName(match[0]);
-      const hoverInfo: MarkupContent = {
-        kind: MarkupKind.Markdown,
-        value: explainControlRecordHover(match[0], fullControlRecord)
-      };
-
-      return {
-        contents: hoverInfo,
-        range: {
-          start: doc.positionAt(start),
-          end: doc.positionAt(end)
-        }
-      } as Hover;
-    }
-  }
-
-  return null;
 });
 
 // Provide code actions for replacing abbreviated control records
 connection.onCodeAction(({ textDocument, range: _range, context }) => {
   // _range prefixed with underscore to indicate intentionally unused
   // (required by LSP interface but we use diagnostics range instead)
-  const uri = textDocument.uri;
-  const doc = documents.get(uri);
-  if (!doc) {
-    return null;
-  }
-
-  const codeActions: CodeAction[] = [];
-
-  for (const diag of context.diagnostics) {
-    if (diag.message.startsWith("Did you mean")) {
-      const fullRecord = diag.message.replace("Did you mean ", "").replace("?", "");
-
-      const replaceAction: CodeAction = {
-        title: `Replace with ${fullRecord}`,
-        kind: CodeActionKind.QuickFix,
-        diagnostics: [diag],
-        edit: {
-          changes: {
-            [uri]: [
-              {
-                range: diag.range,
-                newText: fullRecord
-              }
-            ]
-          }
-        }
-      };
-
-      codeActions.push(replaceAction);
+  try {
+    const doc = documentService.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for code actions: ${textDocument.uri}`);
+      return null;
     }
-  }
 
-  return codeActions;
+    const codeActions: CodeAction[] = [];
+
+    for (const diag of context.diagnostics) {
+      if (diag.message.startsWith("Did you mean")) {
+        const fullRecord = diag.message.replace("Did you mean ", "").replace("?", "");
+
+        const replaceAction: CodeAction = {
+          title: `Replace with ${fullRecord}`,
+          kind: CodeActionKind.QuickFix,
+          diagnostics: [diag],
+          edit: {
+            changes: {
+              [textDocument.uri]: [
+                {
+                  range: diag.range,
+                  newText: fullRecord
+                }
+              ]
+            }
+          }
+        };
+
+        codeActions.push(replaceAction);
+      }
+    }
+
+    return codeActions;
+  } catch (error) {
+    connection.console.error(`❌ Error in code action handler: ${error}`);
+    return [];
+  }
 });
 
 // Provide document symbols (like an outline) by listing control records
-connection.onDocumentSymbol((params: DocumentSymbolParams) => {
-  const uri = params.textDocument.uri;
-  const doc = documents.get(uri);
-  if (!doc) {
-    return null;
-  }
-
-  const text = doc.getText();
-  const controlRecords = locateControlRecordsInText(text);
-  const symbols: SymbolInformation[] = [];
-
-  for (const match of controlRecords) {
-    const fullControlRecord = getFullControlRecordName(match[0]);
-    const symbolInfo: SymbolInformation = {
-      name: fullControlRecord,
-      kind: SymbolKind.Module,
-      location: {
-        uri: uri,
-        range: {
-          start: doc.positionAt(match.index),
-          end: doc.positionAt(match.index + match[0].length)
-        }
-      }
-    };
-    symbols.push(symbolInfo);
-  }
-
-  return symbols;
-});
-
-// Validate a document by finding and reporting invalid control records
-async function validateNMTRANFile(textDocument: TextDocument): Promise<void> {
-  const fileName = textDocument.uri.split('/').pop();
-  connection.console.log(`🔍 Validating ${fileName}...`);
-  
-  const text = textDocument.getText();
-  const matches = locateControlRecordsInText(text);
-  const diagnostics: Diagnostic[] = [];
-
-  connection.console.log(`📄 Found ${matches.length} control records: ${matches.map(m => m[0]).join(', ')}`);
-
-  for (const m of matches) {
-    const diagnostic = generateDiagnosticForControlRecord(m, textDocument);
-    if (diagnostic) {
-      diagnostics.push(diagnostic);
-      connection.console.log(`⚠️  Issue with ${m[0]}: ${diagnostic.message}`);
+connection.onDocumentSymbol((params) => {
+  try {
+    const doc = documentService.getDocument(params.textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for symbols: ${params.textDocument.uri}`);
+      return null;
     }
+
+    const text = doc.getText();
+    const controlRecords = locateControlRecordsInText(text);
+    const symbols: SymbolInformation[] = [];
+
+    for (const match of controlRecords) {
+      const fullControlRecord = getFullControlRecordName(match[0]);
+      const symbolInfo: SymbolInformation = {
+        name: fullControlRecord,
+        kind: SymbolKind.Module,
+        location: {
+          uri: params.textDocument.uri,
+          range: {
+            start: doc.positionAt(match.index),
+            end: doc.positionAt(match.index + match[0].length)
+          }
+        }
+      };
+      symbols.push(symbolInfo);
+    }
+
+    return symbols;
+  } catch (error) {
+    connection.console.error(`❌ Error in document symbol handler: ${error}`);
+    return [];
   }
+});
 
-  connection.console.log(`📊 Sending ${diagnostics.length} diagnostics for ${fileName}`);
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+// Provide code completion
+connection.onCompletion(({ textDocument, position }) => {
+  try {
+    const doc = documentService.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for completion: ${textDocument.uri}`);
+      return [];
+    }
 
-// Listen for changes to documents
+    return completionService.provideCompletions(doc, position);
+  } catch (error) {
+    connection.console.error(`❌ Error in completion handler: ${error}`);
+    return [];
+  }
+});
+
+// Provide document formatting
+connection.onDocumentFormatting(({ textDocument }) => {
+  try {
+    const doc = documentService.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for formatting: ${textDocument.uri}`);
+      return [];
+    }
+
+    return formattingService.formatDocument(doc);
+  } catch (error) {
+    connection.console.error(`❌ Error in formatting handler: ${error}`);
+    return [];
+  }
+});
+
+// Provide range formatting
+connection.onDocumentRangeFormatting(({ textDocument, range }) => {
+  try {
+    const doc = documentService.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for range formatting: ${textDocument.uri}`);
+      return [];
+    }
+
+    return formattingService.formatRange(doc, range);
+  } catch (error) {
+    connection.console.error(`❌ Error in range formatting handler: ${error}`);
+    return [];
+  }
+});
+
+// =================================================================
+// DOCUMENT LIFECYCLE
+// =================================================================
+
+// Listen for document open events
 connection.onDidOpenTextDocument((params) => {
-  const doc = TextDocument.create(params.textDocument.uri, 'nmtran', params.textDocument.version, params.textDocument.text);
-  documents.setDocument(doc);
-  validateNMTRANFile(doc);
+  try {
+    const doc = documentService.createDocument(
+      params.textDocument.uri,
+      'nmtran',
+      params.textDocument.version,
+      params.textDocument.text
+    );
+    
+    documentService.setDocument(doc);
+    diagnosticsService.validateDocument(doc);
+  } catch (error) {
+    connection.console.error(`❌ Error handling document open: ${error}`);
+  }
 });
 
+// Listen for document change events
 connection.onDidChangeTextDocument((change) => {
-  const doc = TextDocument.create(
-    change.textDocument.uri,
-    'nmtran',
-    change.textDocument.version,
-    change.contentChanges[0].text
-  );
-  documents.setDocument(doc);
-  validateNMTRANFile(doc);
+  try {
+    const doc = documentService.createDocument(
+      change.textDocument.uri,
+      'nmtran',
+      change.textDocument.version,
+      change.contentChanges[0].text
+    );
+    
+    documentService.setDocument(doc);
+    diagnosticsService.validateDocument(doc);
+  } catch (error) {
+    connection.console.error(`❌ Error handling document change: ${error}`);
+  }
 });
 
+// Listen for document close events
+connection.onDidCloseTextDocument((params) => {
+  try {
+    documentService.removeDocument(params.textDocument.uri);
+    // Clear diagnostics for closed document
+    connection.sendDiagnostics({ 
+      uri: params.textDocument.uri, 
+      diagnostics: [] 
+    });
+  } catch (error) {
+    connection.console.error(`❌ Error handling document close: ${error}`);
+  }
+});
+
+// =================================================================
+// SERVER LIFECYCLE
+// =================================================================
+
+// Handle shutdown gracefully
+connection.onShutdown(() => {
+  connection.console.log('🛑 NMTRAN Language Server shutting down...');
+  const stats = documentService.getCacheStats();
+  connection.console.log(`📊 Final stats: ${stats.documentCount} documents, ${stats.totalSize} chars`);
+});
+
+// Start listening for requests
 connection.listen();
 
 // Startup confirmation
 connection.console.log('✅ NMTRAN Language Server is ready and listening for requests!');
+connection.console.log('🏗️  Service-based architecture initialized for better maintainability');

@@ -33,10 +33,22 @@ export function activate(context: vscode.ExtensionContext) {
     { language: 'nmtran', scheme: 'file' },
     {
       provideFoldingRanges(document) {
-        // Look for lines that start with $ (control records like $PK)
+        // Look for lines that start with $ (control records like $THETA, $OMEGA)
         const controlRecordPattern = /^\$/;
         let currentSectionStart = -1;
         const foldingRanges = [];
+
+        // Helper function to check if there's meaningful content between lines
+        const hasContentBetween = (startLine: number, endLine: number): boolean => {
+          for (let i = startLine + 1; i <= endLine; i++) {
+            const line = document.lineAt(i).text.trim();
+            // If we find a non-empty line that isn't just whitespace
+            if (line.length > 0) {
+              return true;
+            }
+          }
+          return false;
+        };
 
         // Scan through each line of the document
         for (let lineNumber = 0; lineNumber < document.lineCount; lineNumber++) {
@@ -46,9 +58,13 @@ export function activate(context: vscode.ExtensionContext) {
           if (controlRecordPattern.test(lineText)) {
             // If we were already tracking a section, close it here
             if (currentSectionStart >= 0) {
-              foldingRanges.push(
-                new vscode.FoldingRange(currentSectionStart, lineNumber - 1, vscode.FoldingRangeKind.Region)
-              );
+              const sectionEnd = lineNumber - 1;
+              // Only create folding range if there's actual content (not just blank lines)
+              if (sectionEnd > currentSectionStart && hasContentBetween(currentSectionStart, sectionEnd)) {
+                foldingRanges.push(
+                  new vscode.FoldingRange(currentSectionStart, sectionEnd, vscode.FoldingRangeKind.Region)
+                );
+              }
             }
             // Start tracking this new section
             currentSectionStart = lineNumber;
@@ -56,10 +72,14 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Don't forget the last section (from last $ to end of file)
-        if (currentSectionStart > 0) {
-          foldingRanges.push(
-            new vscode.FoldingRange(currentSectionStart, document.lineCount - 1, vscode.FoldingRangeKind.Region)
-          );
+        if (currentSectionStart >= 0) {
+          const sectionEnd = document.lineCount - 1;
+          // Only create folding range if there's actual content (not just blank lines)
+          if (sectionEnd > currentSectionStart && hasContentBetween(currentSectionStart, sectionEnd)) {
+            foldingRanges.push(
+              new vscode.FoldingRange(currentSectionStart, sectionEnd, vscode.FoldingRangeKind.Region)
+            );
+          }
         }
 
         return foldingRanges;

@@ -27,9 +27,13 @@
     "url": "https://github.com/vrognas/vscode-nmtran.git"
   },
   "activationEvents": [],
+  "extensionKind": [
+    "workspace"
+  ],
   "main": "./client/out/extension.js",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.80.0",
+    "node": ">=20.8.0"
   },
   "contributes": {
     "languages": [
@@ -91,12 +95,12 @@
     "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {
-    "@types/node": "^20.8.0",
+    "@types/node": "^20.19.9",
     "@types/vscode": "^1.80.0",
     "js-yaml": "^4.1.0",
-    "typescript": "^5.1.3",
+    "typescript": "^5.8.3",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.11"
+    "vscode-languageserver-textdocument": "^1.0.12"
   }
 }
