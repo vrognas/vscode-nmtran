@@ -1,3 +1,10 @@
+/**
+ * NMTRAN Control Records Dictionary
+ * 
+ * Complete list of valid NMTRAN control records for validation.
+ * Add new control records here when NONMEM adds them.
+ * Keep alphabetically sorted for easy maintenance.
+ */
 export const allowedControlRecords = [
   '$ABBREVIATED',
   '$AES',

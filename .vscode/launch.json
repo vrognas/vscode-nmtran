@@ -1,28 +1,35 @@
-// A launch configuration that launches the extension inside a new window
-// Use IntelliSense to learn about possible attributes.
-// Hover to view descriptions of existing attributes.
-// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+// NMTRAN Extension Debug Configuration
+// 
+// Usage:
+// 1. Press F5 or select "Launch Extension" to start debugging
+// 2. For full debugging, use "Debug Extension + Server" compound
+// 3. Test files are available in the test/ folder
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Client",
+      "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--folder-uri=${workspaceFolder}/test"
+        "--folder-uri=${workspaceFolder}/test",
+        "--disable-extension=vscode.git", // Prevent git repo notification popup
+        "--disable-extension=CoenraadS.bracket-pair-colorizer-2" // Fix Positron compatibility error
       ],
-      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
-      "preLaunchTask": {
-        "type": "npm",
-        "script": "vscode:prepublish"
-        },
+      "outFiles": [
+        "${workspaceFolder}/client/out/**/*.js",
+        "${workspaceFolder}/server/out/**/*.js"
+      ],
+      "preLaunchTask": "npm: compile",
+      "env": {
+        "VSCODE_DEBUG_MODE": "true"
+      }
     },
     {
+      "name": "Attach to Language Server",
       "type": "node",
       "request": "attach",
-      "name": "Server",
       "port": 6009,
       "restart": true,
       "sourceMaps": true,
@@ -31,13 +38,26 @@
         "${workspaceFolder}/**",
         "!**/node_modules/**"
       ],
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "timeout": 30000
+    },
+    {
+      "name": "Quick Test (No Server Debug)",
+      "type": "extensionHost", 
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--folder-uri=${workspaceFolder}/test"
+      ],
+      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
+      "preLaunchTask": "npm: compile"
     }
   ],
   "compounds": [
     {
-      "name": "Client + Server",
-      "configurations": ["Client", "Server"]
+      "name": "Debug Extension + Server",
+      "configurations": ["Launch Extension", "Attach to Language Server"],
+      "stopAll": true
     }
-    ]
+  ]
 }
