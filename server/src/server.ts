@@ -34,7 +34,7 @@ import { FormattingService } from './services/formattingService';
 import { CompletionService } from './services/completionService';
 
 // Import types and utilities
-// import { DEFAULT_SETTINGS } from './types';
+import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
 import {
   locateControlRecordsInText,
   getFullControlRecordName
@@ -47,14 +47,32 @@ import {
 const connection = createConnection(ProposedFeatures.all);
 
 // Initialize services
-const documentService = new DocumentService(connection);
-const diagnosticsService = new DiagnosticsService(connection);
-const hoverService = new HoverService(connection);
-const formattingService = new FormattingService(connection);
-const completionService = new CompletionService(connection);
+const services = {
+  document: new DocumentService(connection),
+  diagnostics: new DiagnosticsService(connection),
+  hover: new HoverService(connection),
+  formatting: new FormattingService(connection),
+  completion: new CompletionService(connection)
+};
 
-// Settings management (reserved for future use)
-// const globalSettings: NMTRANSettings = DEFAULT_SETTINGS;
+// Settings management - currently only used for maxNumberOfProblems in diagnostics
+const documentSettings: Map<string, Thenable<NMTRANSettings>> = new Map();
+
+function getDocumentSettings(resource: string): Thenable<NMTRANSettings> {
+  if (!documentSettings.has(resource)) {
+    const result = connection.workspace.getConfiguration({
+      scopeUri: resource,
+      section: 'nmtranServer'
+    }).then((serverConfig) => {
+      return {
+        maxNumberOfProblems: serverConfig?.maxNumberOfProblems ?? DEFAULT_SETTINGS.maxNumberOfProblems
+      };
+    });
+    documentSettings.set(resource, result);
+    return result;
+  }
+  return documentSettings.get(resource)!;
+}
 
 // =================================================================
 // SERVER CAPABILITIES
@@ -88,28 +106,34 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
 // LANGUAGE FEATURES
 // =================================================================
 
-// Provide hover info by matching control records under the cursor
+/**
+ * Provides hover information for NMTRAN control records
+ * Shows explanations when users hover over control records like $THETA, $OMEGA, etc.
+ */
 connection.onHover(({ textDocument, position }) => {
   try {
-    const doc = documentService.getDocument(textDocument.uri);
+    const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found: ${textDocument.uri}`);
       return null;
     }
 
-    return hoverService.provideHover(doc, position);
+    return services.hover.provideHover(doc, position);
   } catch (error) {
     connection.console.error(`❌ Error in hover handler: ${error}`);
     return null;
   }
 });
 
-// Provide code actions for replacing abbreviated control records
+/**
+ * Provides code actions (quick fixes) for NMTRAN files
+ * Suggests replacing abbreviated control records with full names (e.g., $EST → $ESTIMATION)
+ */
 connection.onCodeAction(({ textDocument, range: _range, context }) => {
   // _range prefixed with underscore to indicate intentionally unused
   // (required by LSP interface but we use diagnostics range instead)
   try {
-    const doc = documentService.getDocument(textDocument.uri);
+    const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for code actions: ${textDocument.uri}`);
       return null;
@@ -148,10 +172,13 @@ connection.onCodeAction(({ textDocument, range: _range, context }) => {
   }
 });
 
-// Provide document symbols (like an outline) by listing control records
+/**
+ * Provides document outline (symbols) for NMTRAN files
+ * Lists all control records in the sidebar for easy navigation
+ */
 connection.onDocumentSymbol((params) => {
   try {
-    const doc = documentService.getDocument(params.textDocument.uri);
+    const doc = services.document.getDocument(params.textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for symbols: ${params.textDocument.uri}`);
       return null;
@@ -184,52 +211,73 @@ connection.onDocumentSymbol((params) => {
   }
 });
 
-// Provide code completion
+/**
+ * Provides code completion suggestions for NMTRAN files
+ * Suggests control records and common parameter names
+ */
 connection.onCompletion(({ textDocument, position }) => {
   try {
-    const doc = documentService.getDocument(textDocument.uri);
+    const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for completion: ${textDocument.uri}`);
       return [];
     }
 
-    return completionService.provideCompletions(doc, position);
+    return services.completion.provideCompletions(doc, position);
   } catch (error) {
     connection.console.error(`❌ Error in completion handler: ${error}`);
     return [];
   }
 });
 
-// Provide document formatting
+/**
+ * Provides document formatting for NMTRAN files
+ * Formats control records and ensures proper indentation
+ */
 connection.onDocumentFormatting(({ textDocument }) => {
   try {
-    const doc = documentService.getDocument(textDocument.uri);
+    const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for formatting: ${textDocument.uri}`);
       return [];
     }
 
-    return formattingService.formatDocument(doc);
+    connection.console.log(`🎨 Format document request for: ${textDocument.uri}`);
+    return services.formatting.formatDocument(doc);
   } catch (error) {
     connection.console.error(`❌ Error in formatting handler: ${error}`);
     return [];
   }
 });
 
-// Provide range formatting
+/**
+ * Provides range formatting for NMTRAN files
+ * Formats only the selected range of text
+ */
 connection.onDocumentRangeFormatting(({ textDocument, range }) => {
   try {
-    const doc = documentService.getDocument(textDocument.uri);
+    const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for range formatting: ${textDocument.uri}`);
       return [];
     }
 
-    return formattingService.formatRange(doc, range);
+    connection.console.log(`🎨 Format range request for: ${textDocument.uri}`);
+    return services.formatting.formatRange(doc, range);
   } catch (error) {
     connection.console.error(`❌ Error in range formatting handler: ${error}`);
     return [];
   }
+});
+
+/**
+ * Handles configuration changes
+ * Clears settings cache to ensure fresh configuration is loaded
+ */
+connection.onDidChangeConfiguration((_change) => {
+  // Clear document settings cache when configuration changes
+  documentSettings.clear();
+  connection.console.log('🔄 Configuration changed, cleared settings cache');
 });
 
 // =================================================================
@@ -239,15 +287,15 @@ connection.onDocumentRangeFormatting(({ textDocument, range }) => {
 // Listen for document open events
 connection.onDidOpenTextDocument((params) => {
   try {
-    const doc = documentService.createDocument(
+    const doc = services.document.createDocument(
       params.textDocument.uri,
       'nmtran',
       params.textDocument.version,
       params.textDocument.text
     );
     
-    documentService.setDocument(doc);
-    diagnosticsService.validateDocument(doc);
+    services.document.setDocument(doc);
+    services.diagnostics.validateDocument(doc);
   } catch (error) {
     connection.console.error(`❌ Error handling document open: ${error}`);
   }
@@ -256,15 +304,15 @@ connection.onDidOpenTextDocument((params) => {
 // Listen for document change events
 connection.onDidChangeTextDocument((change) => {
   try {
-    const doc = documentService.createDocument(
+    const doc = services.document.createDocument(
       change.textDocument.uri,
       'nmtran',
       change.textDocument.version,
       change.contentChanges[0].text
     );
     
-    documentService.setDocument(doc);
-    diagnosticsService.validateDocument(doc);
+    services.document.setDocument(doc);
+    services.diagnostics.validateDocument(doc);
   } catch (error) {
     connection.console.error(`❌ Error handling document change: ${error}`);
   }
@@ -273,7 +321,7 @@ connection.onDidChangeTextDocument((change) => {
 // Listen for document close events
 connection.onDidCloseTextDocument((params) => {
   try {
-    documentService.removeDocument(params.textDocument.uri);
+    services.document.removeDocument(params.textDocument.uri);
     // Clear diagnostics for closed document
     connection.sendDiagnostics({ 
       uri: params.textDocument.uri, 
@@ -291,7 +339,7 @@ connection.onDidCloseTextDocument((params) => {
 // Handle shutdown gracefully
 connection.onShutdown(() => {
   connection.console.log('🛑 NMTRAN Language Server shutting down...');
-  const stats = documentService.getCacheStats();
+  const stats = services.document.getCacheStats();
   connection.console.log(`📊 Final stats: ${stats.documentCount} documents, ${stats.totalSize} chars`);
 });
 

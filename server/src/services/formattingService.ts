@@ -19,6 +19,7 @@ export class FormattingService {
    * Formats the entire document
    */
   formatDocument(document: TextDocument): TextEdit[] {
+    // Note: Always format when requested - users control format-on-save via VSCode's "editor.formatOnSave" setting
     try {
       const text = document.getText();
       const lines = text.split('\n');
