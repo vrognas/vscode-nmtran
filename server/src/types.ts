@@ -6,6 +6,9 @@
 
 export interface NMTRANSettings {
   maxNumberOfProblems: number;
+  formatting?: {
+    indentSize: number;
+  };
 }
 
 export interface ControlRecordValidationResult {
@@ -22,5 +25,8 @@ export interface NMTRANDocumentInfo {
 }
 
 export const DEFAULT_SETTINGS: NMTRANSettings = {
-  maxNumberOfProblems: 100
+  maxNumberOfProblems: 100,
+  formatting: {
+    indentSize: 2
+  }
 };

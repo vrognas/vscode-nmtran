@@ -60,12 +60,21 @@ const documentSettings: Map<string, Thenable<NMTRANSettings>> = new Map();
 
 function getDocumentSettings(resource: string): Thenable<NMTRANSettings> {
   if (!documentSettings.has(resource)) {
-    const result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'nmtranServer'
-    }).then((serverConfig) => {
+    const result = Promise.all([
+      connection.workspace.getConfiguration({
+        scopeUri: resource,
+        section: 'nmtranServer'
+      }),
+      connection.workspace.getConfiguration({
+        scopeUri: resource,
+        section: 'nmtran'
+      })
+    ]).then(([serverConfig, nmtranConfig]) => {
       return {
-        maxNumberOfProblems: serverConfig?.maxNumberOfProblems ?? DEFAULT_SETTINGS.maxNumberOfProblems
+        maxNumberOfProblems: serverConfig?.maxNumberOfProblems ?? DEFAULT_SETTINGS.maxNumberOfProblems,
+        formatting: {
+          indentSize: Math.max(2, Math.min(4, nmtranConfig?.formatting?.indentSize ?? DEFAULT_SETTINGS.formatting?.indentSize ?? 2))
+        }
       };
     });
     documentSettings.set(resource, result);
@@ -73,6 +82,7 @@ function getDocumentSettings(resource: string): Thenable<NMTRANSettings> {
   }
   return documentSettings.get(resource)!;
 }
+
 
 // =================================================================
 // SERVER CAPABILITIES
@@ -234,7 +244,7 @@ connection.onCompletion(({ textDocument, position }) => {
  * Provides document formatting for NMTRAN files
  * Formats control records and ensures proper indentation
  */
-connection.onDocumentFormatting(({ textDocument }) => {
+connection.onDocumentFormatting(async ({ textDocument }) => {
   try {
     const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
@@ -242,8 +252,14 @@ connection.onDocumentFormatting(({ textDocument }) => {
       return [];
     }
 
+    // Always get fresh settings for formatting to pick up changes
+    documentSettings.delete(textDocument.uri);
+    const settings = await getDocumentSettings(textDocument.uri);
+    const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format document request for: ${textDocument.uri}`);
-    return services.formatting.formatDocument(doc);
+    connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
+    
+    return services.formatting.formatDocument(doc, indentSize);
   } catch (error) {
     connection.console.error(`❌ Error in formatting handler: ${error}`);
     return [];
@@ -254,7 +270,7 @@ connection.onDocumentFormatting(({ textDocument }) => {
  * Provides range formatting for NMTRAN files
  * Formats only the selected range of text
  */
-connection.onDocumentRangeFormatting(({ textDocument, range }) => {
+connection.onDocumentRangeFormatting(async ({ textDocument, range }) => {
   try {
     const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
@@ -262,8 +278,14 @@ connection.onDocumentRangeFormatting(({ textDocument, range }) => {
       return [];
     }
 
+    // Always get fresh settings for formatting to pick up changes
+    documentSettings.delete(textDocument.uri);
+    const settings = await getDocumentSettings(textDocument.uri);
+    const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format range request for: ${textDocument.uri}`);
-    return services.formatting.formatRange(doc, range);
+    connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
+    
+    return services.formatting.formatRange(doc, range, indentSize);
   } catch (error) {
     connection.console.error(`❌ Error in range formatting handler: ${error}`);
     return [];

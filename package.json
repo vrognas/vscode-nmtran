@@ -81,6 +81,13 @@
           "type": "number",
           "default": 100,
           "description": "Controls the maximum number of problems produced by the NMTRAN server."
+        },
+        "nmtran.formatting.indentSize": {
+          "scope": "resource",
+          "type": "number",
+          "default": 2,
+          "enum": [2, 4],
+          "description": "Number of spaces to use for NMTRAN indentation (2 or 4 spaces)."
         }
       }
     }

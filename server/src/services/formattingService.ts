@@ -1,8 +1,8 @@
 /**
  * Formatting Service
  * 
- * Provides document formatting capabilities for NMTRAN files.
- * Modern LSP feature for better code consistency.
+ * Provides basic document formatting capabilities for NMTRAN files.
+ * Only handles control record positioning and basic continuation line indentation.
  */
 
 import { Connection, TextEdit, Range } from 'vscode-languageserver/node';
@@ -10,52 +10,56 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export class FormattingService {
   private connection: Connection;
+  private static readonly DEFAULT_INDENT_SIZE = 2;
 
   constructor(connection: Connection) {
     this.connection = connection;
   }
 
   /**
-   * Formats the entire document
+   * Formats the entire document with basic formatting only
+   * @param document The text document to format
+   * @param indentSize Number of spaces for indentation (2 or 4)
    */
-  formatDocument(document: TextDocument): TextEdit[] {
-    // Note: Always format when requested - users control format-on-save via VSCode's "editor.formatOnSave" setting
+  formatDocument(document: TextDocument, indentSize: number = FormattingService.DEFAULT_INDENT_SIZE): TextEdit[] {
     try {
       const text = document.getText();
       const lines = text.split('\n');
       const edits: TextEdit[] = [];
+      
+      // Create indentation strings (always use spaces for NMTRAN)
+      const baseIndent = ' '.repeat(indentSize);
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line.trim();
         
-        // Skip empty lines
-        if (trimmedLine.length === 0) continue;
+        // Skip empty lines and comments
+        if (trimmedLine.length === 0 || trimmedLine.startsWith(';')) continue;
+
+        let expectedLine = '';
+        let needsEdit = false;
 
         // Format control records (ensure they start at column 0)
         if (trimmedLine.startsWith('$')) {
-          if (line !== trimmedLine) {
-            edits.push({
-              range: Range.create(i, 0, i, line.length),
-              newText: trimmedLine
-            });
-          }
+          expectedLine = trimmedLine;
+          needsEdit = (line !== expectedLine);
         }
-        // Format continuation lines (ensure proper indentation)
-        else if (trimmedLine.length > 0 && !trimmedLine.startsWith(';')) {
-          const expectedIndent = '  '; // 2 spaces for continuation
-          const expectedLine = expectedIndent + trimmedLine;
-          
-          if (line !== expectedLine) {
-            edits.push({
-              range: Range.create(i, 0, i, line.length),
-              newText: expectedLine
-            });
-          }
+        // Format continuation lines with basic indentation
+        else if (trimmedLine.length > 0) {
+          expectedLine = baseIndent + trimmedLine;
+          needsEdit = (line !== expectedLine);
+        }
+
+        if (needsEdit) {
+          edits.push({
+            range: Range.create(i, 0, i, line.length),
+            newText: expectedLine
+          });
         }
       }
 
-      this.connection.console.log(`🎨 Formatted document with ${edits.length} changes`);
+      this.connection.console.log(`🎨 Formatted document with ${edits.length} changes using ${indentSize}-space indentation`);
       return edits;
 
     } catch (error) {
@@ -66,12 +70,14 @@ export class FormattingService {
 
   /**
    * Formats a specific range in the document
+   * @param document The text document to format
+   * @param _range The range to format (currently formats entire document)
+   * @param indentSize Number of spaces for indentation (2 or 4)
    */
-  formatRange(document: TextDocument, _range: Range): TextEdit[] {
+  formatRange(document: TextDocument, _range: Range, indentSize: number = FormattingService.DEFAULT_INDENT_SIZE): TextEdit[] {
     try {
       // For simplicity, format the entire document
-      // Could be optimized to only format the specified range
-      return this.formatDocument(document);
+      return this.formatDocument(document, indentSize);
     } catch (error) {
       this.connection.console.error(`❌ Error formatting range: ${error}`);
       return [];
