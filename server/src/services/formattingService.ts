@@ -30,6 +30,8 @@ export class FormattingService {
       // Create indentation strings (always use spaces for NMTRAN)
       const baseIndent = ' '.repeat(indentSize);
 
+      let currentIndentLevel = 0;
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line.trim();
@@ -44,11 +46,28 @@ export class FormattingService {
         if (trimmedLine.startsWith('$')) {
           expectedLine = trimmedLine;
           needsEdit = (line !== expectedLine);
+          currentIndentLevel = 0; // Reset indentation for new control record
         }
-        // Format continuation lines with basic indentation
+        // Handle IF/THEN/ELSE/ENDIF indentation
         else if (trimmedLine.length > 0) {
-          expectedLine = baseIndent + trimmedLine;
+          // Check if this line decreases indentation (ELSE, ELSEIF, ENDIF)
+          if (/^(ELSE|ELSEIF|ENDIF)\b/i.test(trimmedLine)) {
+            if (currentIndentLevel > 0) currentIndentLevel--;
+          }
+
+          // Calculate expected indentation
+          const indent = ' '.repeat(Math.max(0, currentIndentLevel) * indentSize + indentSize); // Base + conditional indent
+          expectedLine = indent + trimmedLine;
           needsEdit = (line !== expectedLine);
+
+          // Check if this line increases indentation (IF...THEN, ELSEIF...THEN)
+          if (/^(IF|ELSEIF)\b.*\bTHEN\s*$/i.test(trimmedLine)) {
+            currentIndentLevel++;
+          }
+          // Handle ELSE (decreases then increases)
+          else if (/^ELSE\s*$/i.test(trimmedLine)) {
+            currentIndentLevel++;
+          }
         }
 
         if (needsEdit) {
