@@ -43,7 +43,7 @@ X = EXP(TRX) / (1 + EXP(TRX))  ; Constrained between 0 and 1
 $PK
 ; comment
 
-A = 10E4 
+A = 10E4
 B = 10E-4
 C = 10**4
 D = 10**-4
@@ -106,6 +106,11 @@ $SIGMA 1 FIX
 $THETA (0,0.00469307, Inf) ; TVCL
 $THETA (-Inf, 1.00916) ; TVV
 $THETA (-Inf, 0, Inf) FIX ; TV Description
+
+
+$THETA (0,0.00469307, Inf) ; TVCL
+(-Inf, 1.00916) ; TVV
+(-Inf, 0, Inf) FIX ; TV Description
 
 
 $OMEGA 0.0309626  ; IVCL
