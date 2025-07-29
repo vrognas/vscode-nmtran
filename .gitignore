@@ -1,5 +1,5 @@
 .DS_Store
 */out/
 node_modules/
-*.vsixserver/tsconfig.tsbuildinfo
+server/tsconfig.tsbuildinfo
 *.vsix
