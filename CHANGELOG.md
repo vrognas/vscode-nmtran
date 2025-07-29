@@ -1,3 +1,12 @@
+## [0.2.8] 29 Jul, 2025
+
+### Added
+
+* **NMTRAN Parameter Navigation**: Go to Definition and Find All References support for THETA, ETA, and EPS parameters
+* Right-click on `THETA(1)` → "Go to Definition" jumps to corresponding `$THETA` line
+* Right-click on `THETA(1)` or `$THETA` definition → "Find All References" shows all parameter usages
+* Support for BLOCK syntax in `$OMEGA` and `$SIGMA` parameter counting
+
 ## [0.2.6] 29 Jul, 2025
 
 * Smoother user experience with debounced diagnostics (500ms delay) to prevent excessive validation
