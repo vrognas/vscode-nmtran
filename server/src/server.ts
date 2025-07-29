@@ -34,6 +34,7 @@ import { DiagnosticsService } from './services/diagnosticsService';
 import { HoverService } from './services/hoverService';
 import { FormattingService } from './services/formattingService';
 import { CompletionService } from './services/completionService';
+import { DefinitionService } from './services/definitionService';
 
 // Import types and utilities
 import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
@@ -54,7 +55,8 @@ const services = {
   diagnostics: new DiagnosticsService(connection),
   hover: new HoverService(connection),
   formatting: new FormattingService(connection),
-  completion: new CompletionService(connection)
+  completion: new CompletionService(connection),
+  definition: new DefinitionService(connection)
 };
 
 // Settings management - currently only used for maxNumberOfProblems in diagnostics
@@ -140,7 +142,9 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
         triggerCharacters: ['$', ' ']
       },
       documentFormattingProvider: true,
-      documentRangeFormattingProvider: true
+      documentRangeFormattingProvider: true,
+      definitionProvider: true,
+      referencesProvider: true
     }
   };
 });
@@ -270,6 +274,44 @@ connection.onCompletion(({ textDocument, position }) => {
   } catch (error) {
     connection.console.error(`❌ Error in completion handler: ${error}`);
     return [];
+  }
+});
+
+/**
+ * Provides definition locations for NMTRAN parameters
+ * When user clicks "Go to Definition" on THETA(3), shows where it's defined
+ */
+connection.onDefinition(({ textDocument, position }) => {
+  try {
+    const doc = services.document.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for definition: ${textDocument.uri}`);
+      return null;
+    }
+
+    return services.definition.provideDefinition(doc, position);
+  } catch (error) {
+    connection.console.error(`❌ Error in definition handler: ${error}`);
+    return null;
+  }
+});
+
+/**
+ * Provides reference locations for NMTRAN parameters
+ * When user clicks "Find All References" on ETA(2), shows all usages
+ */
+connection.onReferences(({ textDocument, position, context }) => {
+  try {
+    const doc = services.document.getDocument(textDocument.uri);
+    if (!doc) {
+      connection.console.error(`❌ Document not found for references: ${textDocument.uri}`);
+      return null;
+    }
+
+    return services.definition.provideReferences(doc, position, context.includeDeclaration);
+  } catch (error) {
+    connection.console.error(`❌ Error in references handler: ${error}`);
+    return null;
   }
 });
 
