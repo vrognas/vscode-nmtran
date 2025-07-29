@@ -62,10 +62,10 @@ runTest('Should find control records in simple text', () => {
   const matches = locateControlRecordsInText(text);
   
   assertEqual(matches.length, 4, 'Should find 4 control records');
-  assertEqual(matches[0][0], '$PROBLEM');
-  assertEqual(matches[1][0], '$THETA');
-  assertEqual(matches[2][0], '$OMEGA');
-  assertEqual(matches[3][0], '$ESTIMATION');
+  assertEqual(matches[0]?.[0], '$PROBLEM');
+  assertEqual(matches[1]?.[0], '$THETA');
+  assertEqual(matches[2]?.[0], '$OMEGA');
+  assertEqual(matches[3]?.[0], '$ESTIMATION');
 });
 
 // Test: Ignore commented lines
@@ -78,9 +78,9 @@ $ESTIMATION`;
   
   const matches = locateControlRecordsInText(text);
   assertEqual(matches.length, 3, 'Should find 3 control records (ignoring commented ones)');
-  assertEqual(matches[0][0], '$PROBLEM');
-  assertEqual(matches[1][0], '$THETA');
-  assertEqual(matches[2][0], '$ESTIMATION');
+  assertEqual(matches[0]?.[0], '$PROBLEM');
+  assertEqual(matches[1]?.[0], '$THETA');
+  assertEqual(matches[2]?.[0], '$ESTIMATION');
 });
 
 // Test: Get full control record name
@@ -96,7 +96,7 @@ runTest('Should expand abbreviations correctly', () => {
 runTest('Should not flag valid control records', () => {
   const document = createTestDocument('$THETA 1');
   const matches = locateControlRecordsInText(document.getText());
-  const diagnostic = generateDiagnosticForControlRecord(matches[0], document);
+  const diagnostic = matches[0] ? generateDiagnosticForControlRecord(matches[0], document) : null;
   
   assertEqual(diagnostic, null, 'Valid control record should not produce diagnostic');
 });
@@ -105,7 +105,7 @@ runTest('Should not flag valid control records', () => {
 runTest('Should suggest full name for abbreviations', () => {
   const document = createTestDocument('$EST METHOD=1');
   const matches = locateControlRecordsInText(document.getText());
-  const diagnostic = generateDiagnosticForControlRecord(matches[0], document);
+  const diagnostic = matches[0] ? generateDiagnosticForControlRecord(matches[0], document) : null;
   
   assertTrue(diagnostic !== null, 'Should produce diagnostic for abbreviation');
   assertTrue(diagnostic!.message.includes('$ESTIMATION'), 'Should suggest $ESTIMATION');
@@ -115,7 +115,7 @@ runTest('Should suggest full name for abbreviations', () => {
 runTest('Should flag invalid control records', () => {
   const document = createTestDocument('$INVALID test');
   const matches = locateControlRecordsInText(document.getText());
-  const diagnostic = generateDiagnosticForControlRecord(matches[0], document);
+  const diagnostic = matches[0] ? generateDiagnosticForControlRecord(matches[0], document) : null;
   
   assertTrue(diagnostic !== null, 'Should produce diagnostic for invalid record');
   assertTrue(diagnostic!.message.includes('Invalid control record'), 'Should indicate invalid record');

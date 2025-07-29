@@ -1,34 +1,29 @@
 {
     "comments": {
-        // symbol used for single line comment
         "lineComment": ";"
-        // NMTRAN doesn't support block comments
     },
-    // symbols used as brackets
     "brackets": [
         ["{", "}"],
         ["[", "]"],
         ["(", ")"]
     ],
-    // symbols that are auto closed when typing
     "autoClosingPairs": [
-		{ "open": "{", "close": "}" },
-		{ "open": "[", "close": "]" },
-		{ "open": "(", "close": ")" },
-		{ "open": "'", "close": "'", "notIn": ["string", "comment"] },
-		{ "open": "\"", "close": "\"", "notIn": ["string"] },
-		{ "open": "`", "close": "`", "notIn": ["string", "comment"] }
-	],
+        { "open": "{", "close": "}" },
+        { "open": "[", "close": "]" },
+        { "open": "(", "close": ")" },
+        { "open": "'", "close": "'", "notIn": ["string", "comment"] },
+        { "open": "\"", "close": "\"", "notIn": ["string"] },
+        { "open": "`", "close": "`", "notIn": ["string", "comment"] }
+    ],
     "autoCloseBefore": ";:.,=}])>` \n\t",
-    // symbols that can be used to surround a selection
     "surroundingPairs": [
-		["{", "}"],
-		["[", "]"],
-		["(", ")"],
-		["'", "'"],
-		["\"", "\""],
-		["`", "`"]
-	],
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        ["'", "'"],
+        ["\"", "\""],
+        ["`", "`"]
+    ],
     "wordPattern": "(?i)\\b(THETA|ETA|EPS|ERR)\\(\\d+\\)|\\$[A-Z]+|\\b[A-Z_][A-Z0-9_]*\\b|\\b[a-z_][a-zA-Z0-9_]*\\b|(?:\\.(?:EQ|NE|LE|GE|LT|GT|AND|OR)\\.)|(?:==|/=|<=|>=|<|>)",
     "folding": {
         "markers": {

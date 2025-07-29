@@ -26,6 +26,8 @@ import {
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 
+import { TextDocument } from 'vscode-languageserver-textdocument';
+
 // Import our services
 import { DocumentService } from './services/documentService';
 import { DiagnosticsService } from './services/diagnosticsService';
@@ -57,6 +59,34 @@ const services = {
 
 // Settings management - currently only used for maxNumberOfProblems in diagnostics
 const documentSettings: Map<string, Thenable<NMTRANSettings>> = new Map();
+
+// Debounced diagnostics to prevent excessive validation during rapid text changes
+const diagnosticsTimeouts: Map<string, NodeJS.Timeout> = new Map();
+const DIAGNOSTICS_DEBOUNCE_MS = 500;
+
+/**
+ * Schedules debounced diagnostics validation for a document
+ * Prevents excessive validation during rapid text changes
+ */
+function scheduleDebouncedDiagnostics(uri: string, doc: TextDocument): void {
+  // Clear existing timeout for this document
+  const existingTimeout = diagnosticsTimeouts.get(uri);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+
+  // Schedule new validation after debounce period
+  const timeout = setTimeout(() => {
+    try {
+      services.diagnostics.validateDocument(doc);
+      diagnosticsTimeouts.delete(uri);
+    } catch (error) {
+      connection.console.error(`❌ Error in debounced diagnostics: ${error}`);
+    }
+  }, DIAGNOSTICS_DEBOUNCE_MS);
+
+  diagnosticsTimeouts.set(uri, timeout);
+}
 
 function getDocumentSettings(resource: string): Thenable<NMTRANSettings> {
   if (!documentSettings.has(resource)) {
@@ -99,7 +129,10 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
   
   return {
     capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Full,
+      textDocumentSync: {
+        openClose: true,
+        change: TextDocumentSyncKind.Incremental
+      },
       hoverProvider: true,
       codeActionProvider: true,
       documentSymbolProvider: true,
@@ -244,8 +277,13 @@ connection.onCompletion(({ textDocument, position }) => {
  * Provides document formatting for NMTRAN files
  * Formats control records and ensures proper indentation
  */
-connection.onDocumentFormatting(async ({ textDocument }) => {
+connection.onDocumentFormatting(async ({ textDocument }, token) => {
   try {
+    // Check for cancellation
+    if (token.isCancellationRequested) {
+      return [];
+    }
+
     const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for formatting: ${textDocument.uri}`);
@@ -255,6 +293,12 @@ connection.onDocumentFormatting(async ({ textDocument }) => {
     // Always get fresh settings for formatting to pick up changes
     documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
+    
+    // Check for cancellation after async operation
+    if (token.isCancellationRequested) {
+      return [];
+    }
+    
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format document request for: ${textDocument.uri}`);
     connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
@@ -270,8 +314,13 @@ connection.onDocumentFormatting(async ({ textDocument }) => {
  * Provides range formatting for NMTRAN files
  * Formats only the selected range of text
  */
-connection.onDocumentRangeFormatting(async ({ textDocument, range }) => {
+connection.onDocumentRangeFormatting(async ({ textDocument, range }, token) => {
   try {
+    // Check for cancellation
+    if (token.isCancellationRequested) {
+      return [];
+    }
+
     const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for range formatting: ${textDocument.uri}`);
@@ -281,6 +330,12 @@ connection.onDocumentRangeFormatting(async ({ textDocument, range }) => {
     // Always get fresh settings for formatting to pick up changes
     documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
+    
+    // Check for cancellation after async operation
+    if (token.isCancellationRequested) {
+      return [];
+    }
+    
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format range request for: ${textDocument.uri}`);
     connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
@@ -323,18 +378,35 @@ connection.onDidOpenTextDocument((params) => {
   }
 });
 
-// Listen for document change events
+// Listen for document change events (incremental)
 connection.onDidChangeTextDocument((change) => {
   try {
-    const doc = services.document.createDocument(
-      change.textDocument.uri,
-      'nmtran',
-      change.textDocument.version,
-      change.contentChanges[0].text
-    );
+    // Get the current document from cache
+    let doc = services.document.getDocument(change.textDocument.uri);
+    
+    if (!doc) {
+      connection.console.warn(`⚠️  Document not found in cache: ${change.textDocument.uri}`);
+      return;
+    }
+    
+    // Apply incremental changes
+    for (const contentChange of change.contentChanges) {
+      if ('range' in contentChange) {
+        // Incremental change
+        doc = TextDocument.update(doc, [contentChange], change.textDocument.version);
+      } else {
+        // Full document change (fallback)
+        doc = services.document.createDocument(
+          change.textDocument.uri,
+          'nmtran',
+          change.textDocument.version,
+          contentChange.text
+        );
+      }
+    }
     
     services.document.setDocument(doc);
-    services.diagnostics.validateDocument(doc);
+    scheduleDebouncedDiagnostics(change.textDocument.uri, doc);
   } catch (error) {
     connection.console.error(`❌ Error handling document change: ${error}`);
   }
@@ -344,6 +416,14 @@ connection.onDidChangeTextDocument((change) => {
 connection.onDidCloseTextDocument((params) => {
   try {
     services.document.removeDocument(params.textDocument.uri);
+    
+    // Clear any pending diagnostics timeout
+    const timeout = diagnosticsTimeouts.get(params.textDocument.uri);
+    if (timeout) {
+      clearTimeout(timeout);
+      diagnosticsTimeouts.delete(params.textDocument.uri);
+    }
+    
     // Clear diagnostics for closed document
     connection.sendDiagnostics({ 
       uri: params.textDocument.uri, 

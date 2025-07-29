@@ -14,7 +14,7 @@ export interface NMTRANSettings {
 export interface ControlRecordValidationResult {
   isValid: boolean;
   isAbbreviation: boolean;
-  closestMatch?: string;
+  closestMatch?: string | undefined;
 }
 
 export interface NMTRANDocumentInfo {

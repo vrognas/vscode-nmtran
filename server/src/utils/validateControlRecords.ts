@@ -48,7 +48,11 @@ function evaluateControlRecord(record: string): {
     }
   }
 
-  return { isValid: false, isAbbreviation: false, closestMatch };
+  return { 
+    isValid: false, 
+    isAbbreviation: false, 
+    ...(closestMatch ? { closestMatch } : {})
+  };
 }
 
 /**

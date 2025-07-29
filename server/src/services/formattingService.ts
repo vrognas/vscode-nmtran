@@ -28,12 +28,13 @@ export class FormattingService {
       const edits: TextEdit[] = [];
       
       // Create indentation strings (always use spaces for NMTRAN)
-      const baseIndent = ' '.repeat(indentSize);
+      // const baseIndent = ' '.repeat(indentSize); // TODO: Use for basic continuation indentation if needed
 
       let currentIndentLevel = 0;
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        if (!line) continue;
         const trimmedLine = line.trim();
         
         // Skip empty lines and comments

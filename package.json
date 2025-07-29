@@ -1,6 +1,6 @@
 {
   "name": "nmtran",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "displayName": "NMTRAN",
   "publisher": "vrognas",
@@ -15,7 +15,15 @@
   ],
   "keywords": [
     "nonmem",
-    "pharmacometrics"
+    "pharmacometrics",
+    "nmtran",
+    "population",
+    "pharmacokinetics",
+    "modeling",
+    "fortran",
+    "pkpd",
+    "popPK",
+    "nlme"
   ],
   "homepage": "https://github.com/vrognas/vscode-nmtran",
   "bugs": {
@@ -26,6 +34,11 @@
     "type": "git",
     "url": "https://github.com/vrognas/vscode-nmtran.git"
   },
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "qna": "https://github.com/vrognas/vscode-nmtran/discussions",
   "activationEvents": [],
   "extensionKind": [
     "workspace"
@@ -86,19 +99,28 @@
           "scope": "resource",
           "type": "number",
           "default": 2,
-          "enum": [2, 4],
+          "enum": [
+            2,
+            4
+          ],
           "description": "Number of spaces to use for NMTRAN indentation (2 or 4 spaces)."
         }
       }
     }
   },
-  "semanticHighlighting": true,
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "Language features work with virtual workspaces"
+    }
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-    "test": "cd server && npm run test",
+    "test": "vscode-test",
+    "test:server": "cd server && npm run test",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {
@@ -106,6 +128,8 @@
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
     "eslint": "^8.57.0",
     "js-yaml": "^4.1.0",
     "typescript": "^5.8.3",

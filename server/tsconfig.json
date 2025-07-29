@@ -6,6 +6,11 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
     "outDir": "out",
     "rootDir": "src"
   },

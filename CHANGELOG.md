@@ -1,3 +1,20 @@
+## [0.2.6] 29 Jul, 2025
+
+* Smoother user experience with debounced diagnostics (500ms delay) to prevent excessive validation
+* Significantly better performance with large NMTRAN files through LSP incremental sync
+* Added TypeScript strict features: Better code quality and fewer runtime errors
+* Better memory management with proper cleanup
+
+## [0.2.5] 26 Jul, 2025
+
+* Bugfix auto-release
+
+## [0.2.4] 26 Jul, 2025
+
+* Initiate Claude Code
+* Refactor server to service-based architecture
+* Add ESLint with TypeScript support and clean up server code
+
 ## [0.2.3] 19 Dec, 2024
 
 ### Changed
