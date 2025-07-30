@@ -50,12 +50,44 @@ jobs:
         OVSX_PAT: ${{ secrets.OVSX_PAT }}
       run: ovsx publish -p $OVSX_PAT
       
+    - name: Extract changelog for this version
+      id: changelog
+      run: |
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "Extracting changelog for version $VERSION"
+        
+        # Extract changelog section for current version
+        awk -v version="$VERSION" '
+        /^## \[/ { 
+          if ($0 ~ "\\[" version "\\]") { 
+            found=1; next 
+          } else if (found) { 
+            exit 
+          } 
+        }
+        found && /^## \[/ { exit }
+        found { print }
+        ' CHANGELOG.md > release_notes.md
+        
+        # Check if we found content, otherwise use auto-generated notes
+        if [ ! -s release_notes.md ]; then
+          echo "No changelog found for version $VERSION, using auto-generated notes"
+          echo "RELEASE_NOTES=" >> $GITHUB_OUTPUT
+          echo "USE_AUTO_NOTES=true" >> $GITHUB_OUTPUT
+        else
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "USE_AUTO_NOTES=false" >> $GITHUB_OUTPUT
+        fi
+        
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
+        body: ${{ steps.changelog.outputs.RELEASE_NOTES }}
         draft: false
         prerelease: false
         files: "*.vsix"
-        generate_release_notes: true
+        generate_release_notes: ${{ steps.changelog.outputs.USE_AUTO_NOTES }}
