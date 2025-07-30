@@ -159,19 +159,19 @@ $PK
     TVRET0 = THETA(11)
     MU_4 = LOG(TVRET0)
     RET0 = EXP(MU_4 + ETA(4))
-    
+
     KLS_RET  = KLS_RBC * (RBC0 / NCTR) / (RET0 * (1 - IRF0))
-    
+
     LS_RET      = 1 / KLS_RET ; Life span for mature reticulocytes in blood
     LS_RET_MAT  = 3 * LS_RET  ; LS for entire RET lifespan from bone-marrow to RBC
-    
+
   ; Precursors (PRE)
-    
+
     LS_PRE  = 5
     KLS_PRE = 1 / LS_PRE
-    RIN_PRE = KLS_RBC * (RBC0 / NCTR) 
+    RIN_PRE = KLS_RBC * (RBC0 / NCTR)
     PRE0    = RIN_PRE / KLS_PRE
-    
+
     TVK_TOL = THETA(17)
     MU_10   = LOG(TVK_TOL)
     K_TOL   = EXP(MU_10 + ETA(10))
@@ -185,7 +185,7 @@ $PK
 
   ; Hemoglobin (Hb)
     HB0 = MCH0 * RBC0 ; Baseline HB
-    
+
     TVFDB = THETA(4)
     MU_7  = LOG(TVFDB)
     FDB   = EXP(MU_7 + ETA(7))
@@ -194,11 +194,11 @@ $PK
     TVIMAX_BTP = THETA(5)
     MU_8       = LOG(TVIMAX_BTP)
     IMAX_BTP   = EXP(MU_8 + ETA(8))
-    
+
     TVIC50_BTP = THETA(6)
     MU_6       = LOG(TVIC50_BTP)
     AUC50_BTP   = EXP(MU_6 + ETA(6))
-    
+
     TVGAM_BTP = THETA(7)
     MU_9      = LOG(TVGAM_BTP)
     GAM_BTP   = EXP(MU_9 + ETA(9))
@@ -206,11 +206,11 @@ $PK
   ; Initial conditions ---------------------------------------------------------
 
     A_0(1)   = PRE0
-    
+
     A_0(14)  = PRE0 ; Moderator 1
     A_0(15)  = PRE0 ; Moderator 2
 
-    A_0(2)   = RET0 * (IRF0 / p_release) 
+    A_0(2)   = RET0 * (IRF0 / p_release)
     A_0(3)   = RET0 * (1 - 2 * IRF0)
 
     A_0(4)   = RET0 * IRF0       ; Immature reticulocytes
@@ -297,7 +297,7 @@ $DES
   ; -------- MCH --------
   DADT(10) = RIN_MCH * INH_BTP - KLS_RBC * MC1
   DADT(11) = KLS_RBC * (MC1 - MC2)
-  DADT(12) = KLS_RBC * (MC2 - MC3) 
+  DADT(12) = KLS_RBC * (MC2 - MC3)
   DADT(13) = KLS_RBC * (MC3 - MC4)
 
 $ERROR
@@ -350,7 +350,7 @@ $ERROR
     IPRED = RBC / 1000 ; convert 10^9 to 10^12/L
     W     = THETA(8)
   ENDIF
-  
+
   ; -------- MCH --------
   IF (dv_mch == 1) THEN
     IPRED = MCH
@@ -370,13 +370,13 @@ $ERROR
 $THETA
  (1,124,200)   ;  1 LS_RBC
  (0,29.8)      ;  2 TVMCH0
- (0,5.93)      ;  3 TVRBC0 males (subtract 1 unit to account for parameterisation)
+ (0, 5.93)      ;  3 TVRBC0 males (subtract 1 unit to account for parameterisation)
  10            ;  4 TVFDB
  (0,0.6,1) FIX ;  5 IMAX_BTP
  (0,16.3)      ;  6 AUC50_BTP
  1 FIX         ;  7 GAM_BTP
  (0,0.173)     ;  8 Add_err_RBC (%CV)
- (0,0.346)     ;  9 Add_err_MCH (%CV)
+ (0,,0.346)     ;  9 Add_err_MCH (%CV)
  1.59          ; 10 TVRBC0 females
  (0,39.9)      ; 11 TVRET0
  (0,0.217)     ; 12 Prop_err_RET (%CV)
