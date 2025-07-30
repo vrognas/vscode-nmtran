@@ -1,3 +1,10 @@
+## [0.2.10] 31 Jul, 2025
+
+### Fixed
+
+* **Extension Activation**: Fixed TypeScript compilation error that prevented extension from activating properly
+* **Go to Definition**: Resolved "Cannot find module 'vscode-languageclient/node'" error that blocked parameter navigation features
+
 ## [0.2.9] 30 Jul, 2025
 
 ### Enhanced
