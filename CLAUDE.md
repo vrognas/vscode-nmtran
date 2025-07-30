@@ -11,7 +11,7 @@ This is a Visual Studio Code extension for NMTRAN (NONMEM) language support. It 
 NMTRAN (NM-TRAN stands for NONMEM Translator) is a Fortran-flavor language that is custom built to work with a program called NONMEM. It is a preprocessor to NONMEM which translates user-inputs into:
 
 1. A NONMEM data set
-2. A NONMEM control stream  
+2. A NONMEM control stream
 3. Various subroutines which must be included in a NONMEM load module
 
 NMTRAN is a separate computer program written in FORTRAN 90/95, and one precedes a NONMEM run by first running it. The language combines Fortran syntax with specialized control records and pharmacometric modeling constructs for population pharmacokinetic and pharmacodynamic analysis.
@@ -22,6 +22,8 @@ In the NMTRAN language:
 - **Fixed effects** are denoted by `THETA(1)`, `THETA(2)`, etc. The numbering sequence is strict - there cannot be a gap in the numbering (eg `THETA(1)`, `THETA(3)` without a `THETA(2)` in the control stream).
 - **Random interindividual (IIV) effects** are denoted by `ETA(1)`, `ETA(2)`, etc. The numbering sequence is strict with no gaps allowed. Their variance-covariance matrix is denoted `OMEGA` in the NONMEM printout.
 - **Residual variabilities** are denoted by `EPS(1)`, `EPS(2)`, etc. The numbering sequence is strict with no gaps allowed. Their variance-covariance matrix is denoted by `SIGMA` in the NONMEM printout.
+
+Documentation on NMTRAN/NONMEM can be found on sub-URLs of this website: <https://nmhelp.tingjieguo.com>
 
 ## Architecture
 
