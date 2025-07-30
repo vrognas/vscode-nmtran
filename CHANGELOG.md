@@ -1,3 +1,9 @@
+## [0.2.11] 31 Jul, 2025
+
+### Fixed
+
+* Bugfix
+
 ## [0.2.10] 31 Jul, 2025
 
 ### Fixed
@@ -11,7 +17,7 @@
 
 * **Improved Parameter Navigation**: Enhanced precision and reliability for THETA, ETA, and EPS parameter navigation
 * **Precise Value Positioning**: Go to Definition now points to exact parameter values (e.g., initial values in bounded THETA syntax)
-* **SAME Constraint Support**: Multiple definition locations for OMEGA SAME constraints showing both declaration and referenced value  
+* **SAME Constraint Support**: Multiple definition locations for OMEGA SAME constraints showing both declaration and referenced value
 * **Performance Optimization**: Added document parsing cache with automatic cleanup for faster repeated operations
 * **Type Safety**: Improved TypeScript typing with ParameterInfo, CharacterRange, and ParameterType definitions
 * **Code Quality**: Unified ETA/OMEGA and EPS/SIGMA handling, removed unused code, consolidated patterns
