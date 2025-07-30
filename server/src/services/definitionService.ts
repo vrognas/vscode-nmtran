@@ -8,6 +8,12 @@
 import { Connection, Location, Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
+interface ParameterLocation {
+  type: 'THETA' | 'ETA' | 'EPS';
+  index: number;
+  line: number;
+}
+
 export class DefinitionService {
   private connection: Connection;
 
@@ -97,7 +103,73 @@ export class DefinitionService {
       
       return this.getParameterFromDefinitionLine(document, position.line, trimmedLine);
     }
+    
+    // Check if this is a continuation line within a parameter block
+    return this.getParameterFromContinuationLine(document, position.line);
+  }
 
+  /**
+   * Simple scanner that maps all parameter definitions in the document
+   * Handles multi-line THETA/OMEGA/SIGMA blocks
+   */
+  private scanAllParameters(document: TextDocument): ParameterLocation[] {
+    const locations: ParameterLocation[] = [];
+    const lines = document.getText().split('\n');
+    
+    let currentBlockType: 'THETA' | 'ETA' | 'EPS' | null = null;
+    const counters = { THETA: 0, ETA: 0, EPS: 0 };
+    
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      
+      const trimmed = line.trim();
+      if (trimmed.startsWith(';') || trimmed.length === 0) continue;
+      
+      // Check if starting a new parameter block
+      if (/^\$THETA(\s|$)/i.test(trimmed)) {
+        currentBlockType = 'THETA';
+      } else if (/^\$OMEGA(\s|$)/i.test(trimmed)) {
+        currentBlockType = 'ETA';
+      } else if (/^\$SIGMA(\s|$)/i.test(trimmed)) {
+        currentBlockType = 'EPS';
+      } else if (trimmed.startsWith('$')) {
+        currentBlockType = null; // Different control record
+      }
+      
+      // If we're in a parameter block, count parameters on this line
+      if (currentBlockType) {
+        const paramCount = this.countParametersInLine(trimmed, currentBlockType);
+        for (let i = 0; i < paramCount; i++) {
+          counters[currentBlockType]++;
+          locations.push({
+            type: currentBlockType,
+            index: counters[currentBlockType],
+            line: lineNum
+          });
+        }
+      }
+    }
+    
+    return locations;
+  }
+
+  /**
+   * Check if current line is a parameter continuation line and get parameter info
+   */
+  private getParameterFromContinuationLine(document: TextDocument, lineNum: number): { type: string; index: number } | null {
+    const allParams = this.scanAllParameters(document);
+    
+    // Find any parameter defined on this line
+    for (const param of allParams) {
+      if (param.line === lineNum) {
+        return {
+          type: param.type,
+          index: param.index
+        };
+      }
+    }
+    
     return null;
   }
 
@@ -153,42 +225,27 @@ export class DefinitionService {
    * Finds where a parameter is defined in the document
    */
   private findDefinitionLocation(document: TextDocument, parameter: { type: string; index: number }): Location | null {
-    const lines = document.getText().split('\n');
-    let parameterCount = 0;
-
-    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-      const line = lines[lineNum];
-      if (!line) continue;
-      const trimmedLine = line.trim();
-      
-      // Skip comments and empty lines
-      if (trimmedLine.startsWith(';') || trimmedLine.length === 0) {
-        continue;
-      }
-
-      // Check if this line defines our parameter type
-      if (!this.isDefinitionLine(trimmedLine, parameter.type)) {
-        continue;
-      }
-
-      // Count parameters defined by this line
-      const parametersInThisLine = this.countParametersInLine(trimmedLine, parameter.type);
-      
-      // Check if our target parameter is defined in this line
-      if (parameterCount + parametersInThisLine >= parameter.index) {
-        return {
-          uri: document.uri,
-          range: {
-            start: { line: lineNum, character: 0 },
-            end: { line: lineNum, character: lines[lineNum]?.length || 0 }
-          }
-        };
-      }
-      
-      parameterCount += parametersInThisLine;
+    const allParams = this.scanAllParameters(document);
+    
+    // Find the specific parameter definition
+    const paramLocation = allParams.find(param => 
+      param.type === parameter.type && param.index === parameter.index
+    );
+    
+    if (!paramLocation) {
+      return null;
     }
-
-    return null;
+    
+    const lines = document.getText().split('\n');
+    const line = lines[paramLocation.line];
+    
+    return {
+      uri: document.uri,
+      range: {
+        start: { line: paramLocation.line, character: 0 },
+        end: { line: paramLocation.line, character: line?.length || 0 }
+      }
+    };
   }
 
   /**
@@ -202,37 +259,43 @@ export class DefinitionService {
     // Note: \b doesn't work well with parentheses, so use more specific pattern
     const searchPattern = new RegExp(`\\b${parameter.type}\\(${parameter.index}\\)`, 'gi');
     
+    // Use scanner to find definition lines (including continuation lines)
+    const allParams = this.scanAllParameters(document);
+    const definitionLines = allParams
+      .filter(param => param.type === parameter.type && param.index === parameter.index)
+      .map(param => param.line);
 
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
       const line = lines[lineNum];
       if (!line) continue;
       
-      // Also check if this line is a definition line for this parameter
-      const trimmedLine = line.trim();
-      if (this.isDefinitionLine(trimmedLine, parameter.type)) {
-        // Check if this definition line defines our target parameter
-        const parameterInfo = this.getParameterFromDefinitionLine(document, lineNum, trimmedLine);
-        if (parameterInfo && parameterInfo.index === parameter.index) {
-          references.push({
-            uri: document.uri,
-            range: {
-              start: { line: lineNum, character: 0 },
-              end: { line: lineNum, character: line.length }
-            }
-          });
-        }
-      }
-      
-      let match: RegExpExecArray | null;
-
-      while ((match = searchPattern.exec(line)) !== null) {
+      // Check if this is a definition line for our parameter (including continuation lines)
+      if (definitionLines.includes(lineNum)) {
         references.push({
           uri: document.uri,
           range: {
-            start: { line: lineNum, character: match.index },
-            end: { line: lineNum, character: match.index + match[0].length }
+            start: { line: lineNum, character: 0 },
+            end: { line: lineNum, character: line.length }
           }
         });
+      }
+      
+      // Find usage references (THETA(n) patterns) - but exclude commented-out ones
+      let match: RegExpExecArray | null;
+      while ((match = searchPattern.exec(line)) !== null) {
+        // Check if this match is inside a comment (after a semicolon)
+        const commentStart = line.indexOf(';');
+        const isInComment = commentStart !== -1 && match.index > commentStart;
+        
+        if (!isInComment) {
+          references.push({
+            uri: document.uri,
+            range: {
+              start: { line: lineNum, character: match.index },
+              end: { line: lineNum, character: match.index + match[0].length }
+            }
+          });
+        }
       }
 
       // Reset regex for next line
@@ -261,41 +324,57 @@ export class DefinitionService {
 
   /**
    * Counts how many parameters are defined in a single line
-   * THETA: Always 1 (simplified rule - one parameter per $THETA line)
-   * ETA/EPS: 1 for diagonal, n for BLOCK(n)
+   * Handles both header lines ($THETA) and continuation lines with parameter values
    */
   private countParametersInLine(line: string, parameterType: string): number {
-    if (parameterType === 'THETA') {
-      // Simplified: One THETA parameter per $THETA line
-      return 1;
-    }
-
     // For ETA/EPS: Check for BLOCK(n) syntax first
-    const blockMatch = line.match(/BLOCK\((\d+)\)/i);
-    if (blockMatch && blockMatch[1]) {
-      return parseInt(blockMatch[1], 10);
-    }
-
-    // For diagonal elements: count parameter-like tokens
-    // Remove $OMEGA/$SIGMA and comments, then count values
-    const contentPart = line.replace(/^\$\w+/i, '').replace(/;.*$/, '').trim();
-    
-    if (!contentPart) {
-      return 1; // Default to 1 parameter if line exists
-    }
-
-    // Simple counting: split by whitespace and count numeric/bounded values
-    const tokens = contentPart.split(/\s+/).filter(token => token.length > 0);
-    let paramCount = 0;
-
-    for (const token of tokens) {
-      // Count tokens that look like parameter values (numbers, bounds, etc.)
-      if (this.looksLikeParameterValue(token)) {
-        paramCount++;
+    if (parameterType !== 'THETA') {
+      const blockMatch = line.match(/BLOCK\((\d+)\)/i);
+      if (blockMatch && blockMatch[1]) {
+        return parseInt(blockMatch[1], 10);
       }
     }
 
-    return Math.max(1, paramCount); // At least 1 parameter per definition line
+    // Remove control record prefix and comments, then count parameter values
+    const contentPart = line.replace(/^\$\w+/i, '').replace(/;.*$/, '').trim();
+    
+    if (!contentPart) {
+      return 0; // Header-only line with no parameter values
+    }
+
+    // Handle bounded values that may have spaces inside them
+    // Count complete parameter units: standalone numbers or complete bounded expressions
+    let paramCount = 0;
+    
+    // Remove common keywords first
+    const cleanContent = contentPart.replace(/\b(FIX|FIXED|STANDARD|VARIANCE|CORRELATION|CHOLESKY|DIAGONAL|SAME|VALUES|NAMES)\b/gi, '').trim();
+    
+    if (!cleanContent) {
+      return 0;
+    }
+    
+    // Count bounded expressions like (0,1,2) or (0, 1, 2) as single parameters
+    const boundedExpressions = cleanContent.match(/\([^)]*\)/g);
+    if (boundedExpressions) {
+      paramCount += boundedExpressions.length;
+      // Remove bounded expressions to count remaining standalone numbers
+      const withoutBounded = cleanContent.replace(/\([^)]*\)/g, '').trim();
+      if (withoutBounded) {
+        // Count remaining standalone numeric values
+        const standaloneNumbers = withoutBounded.split(/\s+/).filter(token => 
+          token.length > 0 && /^[\d\-.]/.test(token)
+        );
+        paramCount += standaloneNumbers.length;
+      }
+    } else {
+      // No bounded expressions, just count standalone numbers
+      const tokens = cleanContent.split(/\s+/).filter(token => 
+        token.length > 0 && /^[\d\-.]/.test(token)
+      );
+      paramCount = tokens.length;
+    }
+
+    return paramCount;
   }
 
   /**
@@ -307,7 +386,11 @@ export class DefinitionService {
       return false;
     }
 
-    // Accept numeric values, bounded values like (0,1,2), or infinity patterns
-    return /^[\d\-.]|^\(|^-?INF$/i.test(token);
+    // Accept:
+    // - Pure numbers: 10, 1.5, -2.3
+    // - Bounded values: (0,1,2), (0,0.6,
+    // - End of bounded values: 1), 2.5)
+    // - Infinity patterns: INF, -INF
+    return /^[\d\-.]+$|^\(|.*\)$|^-?INF$/i.test(token);
   }
 }
