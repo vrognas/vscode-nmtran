@@ -21,11 +21,6 @@ const PARAMETER_PATTERNS = {
 // Factory function to create fresh regex instances to avoid state contamination
 const createParameterUsageRegex = () => new RegExp(PARAMETER_PATTERNS.PARAMETER_USAGE_SOURCE, 'gi');
 
-const PARAMETER_TYPE_MAP = {
-  THETA: 'THETA' as const,
-  OMEGA: 'ETA' as const,
-  SIGMA: 'EPS' as const
-};
 
 type ParameterType = 'THETA' | 'ETA' | 'EPS';
 
@@ -278,7 +273,7 @@ export class DefinitionService {
     const codePart = codePartEnd !== -1 ? line.substring(0, codePartEnd) : line;
     
     // Find all numeric values (including scientific notation)
-    const numericPattern = /[\d\-+][\d\-+\.eE]*/g;
+    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
     const matches = [];
     let match;
     
@@ -317,11 +312,11 @@ export class DefinitionService {
     const contentPart = codePart.replace(/^\s*\$\w+\s*/i, '');
     
     // Find all numeric values (including scientific notation)
-    const numericPattern = /[\d\-+][\d\-+\.eE]*/g;
+    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
     const matches = [];
     let match;
     
-    let searchOffset = codePart.length - contentPart.length; // Offset for control record removal
+    const searchOffset = codePart.length - contentPart.length; // Offset for control record removal
     
     while ((match = numericPattern.exec(contentPart)) !== null) {
       matches.push({
@@ -399,7 +394,7 @@ export class DefinitionService {
       if (content[i] === '(') {
         // Find matching closing parenthesis
         let depth = 1;
-        let start = i;
+        const start = i;
         i++; // Skip opening paren
         
         while (i < content.length && depth > 0) {
@@ -418,7 +413,7 @@ export class DefinitionService {
         }
       } else {
         // Standalone value (number, keyword like FIX, etc.)
-        let start = i;
+        const start = i;
         while (i < content.length && !/\s/.test(content.charAt(i))) i++;
         
         const text = content.substring(start, i);
