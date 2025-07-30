@@ -24,11 +24,11 @@
         ["\"", "\""],
         ["`", "`"]
     ],
-    "wordPattern": "(?i)\\b(THETA|ETA|EPS|ERR)\\(\\d+\\)|\\$[A-Z]+|\\b[A-Z_][A-Z0-9_]*\\b|\\b[a-z_][a-zA-Z0-9_]*\\b|(?:\\.(?:EQ|NE|LE|GE|LT|GT|AND|OR)\\.)|(?:==|/=|<=|>=|<|>)",
+    "wordPattern": "\\b(THETA|ETA|EPS|ERR)\\(\\d+\\)|\\$[A-Z]+|\\b[A-Z_][A-Z0-9_]*\\b|\\b[a-z_][a-zA-Z0-9_]*\\b|(?:\\.(?:EQ|NE|LE|GE|LT|GT|AND|OR)\\.)|(?:==|/=|<=|>=|<|>)",
     "folding": {
         "markers": {
-            "start": "(?i)^\\s*IF\\s*.*\\s*THEN\\s*$|^\\$[A-Z]+",
-            "end": "(?i)^\\s*ENDIF\\s*$|^\\$[A-Z]+"
+            "start": "^\\s*IF\\s*.*\\s*THEN\\s*$|^\\$[A-Z]+",
+            "end": "^\\s*ENDIF\\s*$|^\\$[A-Z]+"
         }
     }
 }

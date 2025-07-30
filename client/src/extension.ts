@@ -24,6 +24,8 @@ let client: LanguageClient;
  * Called when the extension is activated (when NMTRAN files are opened)
  */
 export function activate(context: vscode.ExtensionContext) {
+  console.log('🚀 NMTRAN Extension: Starting activation...');
+  
   // =================================================================
   // FEATURE 1: Code Folding
   // =================================================================
@@ -132,7 +134,12 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Start the language server
-  client.start();
+  console.log('🔄 NMTRAN Extension: Starting language server...');
+  client.start().then(() => {
+    console.log('✅ NMTRAN Extension: Language server started successfully');
+  }).catch((error) => {
+    console.error('❌ NMTRAN Extension: Failed to start language server:', error);
+  });
   
   // Auto-show language server logs when debugging
   if (process.env.VSCODE_DEBUG_MODE === 'true') {
@@ -144,6 +151,8 @@ export function activate(context: vscode.ExtensionContext) {
   
   // Register our features with VSCode so they get cleaned up properly
   context.subscriptions.push(foldingProvider);
+  
+  console.log('✨ NMTRAN Extension: Activation completed successfully');
 }
 
 /**
