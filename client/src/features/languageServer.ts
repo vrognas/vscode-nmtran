@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -72,8 +73,6 @@ export class LanguageServerManager {
     this.logger.server('Server module path:', serverModule);
     
     // Verify server file exists
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs');
     const serverExists = fs.existsSync(serverModule);
     this.logger.server('Server file exists:', serverExists);
     

@@ -1,6 +1,6 @@
 {
   "name": "nmtran",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "license": "MIT",
   "displayName": "NMTRAN",
   "publisher": "vrognas",
@@ -157,10 +157,10 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.19.9",
-    "@types/vscode": "^1.80.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@types/node": "^22.10.2",
+    "@types/vscode": "^1.102.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.25.8",

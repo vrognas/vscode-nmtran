@@ -9,6 +9,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ConfigurationService } from './config';
 import { Logger } from './logger';
 import { NMTRANFoldingProvider } from './features/foldingProvider';
@@ -89,13 +90,11 @@ function setupConfigurationHandlers(): void {
  */
 function getExtensionVersion(context: vscode.ExtensionContext): string {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const path = require('path');
     const packageJsonPath = path.join(context.extensionPath, 'package.json');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const packageJson = require(packageJsonPath);
     return packageJson.version || 'unknown';
-  } catch (error) {
+  } catch (_error) {
     return 'unknown';
   }
 }
