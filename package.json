@@ -95,6 +95,31 @@
           "default": 100,
           "description": "Controls the maximum number of problems produced by the NMTRAN server."
         },
+        "nmtran.debug.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging for NMTRAN extension."
+        },
+        "nmtran.debug.logLevel": {
+          "scope": "resource",
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug"],
+          "default": "info",
+          "description": "Set the logging level for NMTRAN extension."
+        },
+        "nmtran.server.debugPort": {
+          "scope": "resource",
+          "type": "number",
+          "default": 6009,
+          "description": "Debug port for NMTRAN language server."
+        },
+        "nmtran.server.timeout": {
+          "scope": "resource",
+          "type": "number",
+          "default": 2000,
+          "description": "Timeout in milliseconds for language server operations."
+        },
         "nmtran.formatting.indentSize": {
           "scope": "resource",
           "type": "number",
