@@ -45,7 +45,7 @@
   ],
   "main": "./dist/extension.js",
   "engines": {
-    "vscode": "^1.80.0",
+    "vscode": "^1.102.0",
     "node": ">=20.8.0"
   },
   "contributes": {
@@ -151,7 +151,9 @@
     "esbuild": "npm run esbuild-base && npm run esbuild-server",
     "build": "npm run esbuild",
     "dev": "npm run esbuild-base -- --sourcemap --watch",
-    "vscode:prepublish": "npm run esbuild -- --minify"
+    "vscode:prepublish": "npm run esbuild -- --minify",
+    "pre-release": "./scripts/pre-release.sh",
+    "validate": "npm run lint && npm run compile && npm test"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
