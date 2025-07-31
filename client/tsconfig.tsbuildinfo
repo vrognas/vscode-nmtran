@@ -1,1 +1,1 @@
-{"root":["./src/extension.ts","./src/test/runtest.ts","./src/test/suite/extension.test.ts","./src/test/suite/index.ts"],"version":"5.8.3"}
+{"root":["./src/config.ts","./src/extension.ts","./src/logger.ts","./src/features/foldingprovider.ts","./src/features/languageserver.ts","./src/test/runtest.ts","./src/test/suite/extension.test.ts","./src/test/suite/index.ts"],"version":"5.8.3"}

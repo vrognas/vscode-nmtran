@@ -59,10 +59,14 @@ export class ParameterParserFactory {
       const matchEnd = match.index + match[0].length;
       
       if (position >= matchStart && position <= matchEnd) {
-        return {
-          type: match[1], // THETA, ETA, or EPS
-          index: parseInt(match[2], 10)
-        };
+        const paramType = match[1];
+        const paramIndex = match[2];
+        if (paramType && paramIndex) {
+          return {
+            type: paramType, // THETA, ETA, or EPS
+            index: parseInt(paramIndex, 10)
+          };
+        }
       }
     }
     
@@ -91,10 +95,14 @@ export class ParameterParserFactory {
       let match;
       
       while ((match = regex.exec(processLine)) !== null) {
-        references.push({
-          type: match[1],
-          index: parseInt(match[2], 10)
-        });
+        const paramType = match[1];
+        const paramIndex = match[2];
+        if (paramType && paramIndex) {
+          references.push({
+            type: paramType,
+            index: parseInt(paramIndex, 10)
+          });
+        }
       }
     }
     
@@ -119,7 +127,10 @@ export class ParameterParserFactory {
    */
   static extractBlockSize(line: string): number | null {
     const match = line.match(PARAMETER_PATTERNS.BLOCK);
-    return match ? parseInt(match[1], 10) : null;
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+    return null;
   }
 
   /**
@@ -137,7 +148,7 @@ export class ParameterParserFactory {
     
     // Handle bounded format: (low, init, up) or (low, init)
     const boundedMatch = trimmed.match(/^\s*\(\s*([^,]+)\s*,\s*([^,)]+)(?:\s*,\s*([^)]+))?\s*\)/);
-    if (boundedMatch) {
+    if (boundedMatch && boundedMatch[0] && boundedMatch[2]) {
       // Find the initial value (second parameter)
       const fullMatch = boundedMatch[0];
       const initialValue = boundedMatch[2];
@@ -151,7 +162,7 @@ export class ParameterParserFactory {
     
     // Handle simple numeric value
     const numericMatch = trimmed.match(/^\s*([\d.-]+)/);
-    if (numericMatch) {
+    if (numericMatch && numericMatch[1]) {
       return {
         start: 0,
         end: numericMatch[1].length
