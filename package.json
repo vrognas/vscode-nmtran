@@ -43,7 +43,7 @@
   "extensionKind": [
     "workspace"
   ],
-  "main": "./client/out/extension.js",
+  "main": "./dist/extension.js",
   "engines": {
     "vscode": "^1.80.0",
     "node": ">=20.8.0"
@@ -115,13 +115,21 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "test": "vscode-test",
     "test:server": "cd server && npm run test",
-    "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+    "esbuild-base": "esbuild ./client/src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild-server": "esbuild ./server/src/server.ts --bundle --outfile=dist/server.js --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base && npm run esbuild-server",
+    "build": "npm run esbuild",
+    "dev": "npm run esbuild-base -- --sourcemap --watch",
+    "vscode:prepublish": "npm run esbuild -- --minify"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.19.9",
@@ -130,10 +138,10 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.25.8",
     "eslint": "^8.57.0",
     "js-yaml": "^4.1.0",
     "typescript": "^5.8.3",
-    "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
   }

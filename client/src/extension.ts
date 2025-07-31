@@ -25,6 +25,8 @@ let client: LanguageClient;
  */
 export function activate(context: vscode.ExtensionContext) {
   console.log('🚀 NMTRAN Extension: Starting activation...');
+  console.log('📍 Extension path:', context.extensionPath);
+  console.log('📦 Extension version:', require(context.extensionPath + '/package.json').version);
   
   // =================================================================
   // FEATURE 1: Code Folding
@@ -95,10 +97,12 @@ export function activate(context: vscode.ExtensionContext) {
   // This starts the "brain" of the extension that provides smart features
   // like hover hints, error checking, and quick fixes
   
-  // Find the compiled server file (server.js built from server.ts)
+  // Find the bundled server file (server.js built by ESBuild)
   const serverModule = context.asAbsolutePath(
-    path.join('server', 'out', 'server.js')
+    path.join('dist', 'server.js')
   );
+  console.log('🗂️ Server module path:', serverModule);
+  console.log('📄 Server file exists:', require('fs').existsSync(serverModule));
 
   // Debug configuration (for development/troubleshooting)
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
