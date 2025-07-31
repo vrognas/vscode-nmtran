@@ -1,3 +1,30 @@
+## [0.2.12] 31 Jul, 2025
+
+### Enhanced
+
+* **Architecture Overhaul**: Refactored extension to service-based architecture with proper dependency injection
+* **Modern Bundling**: Implemented ESBuild bundling for improved performance and reliable dependency packaging
+* **Configuration Management**: Added centralized configuration service with user-configurable debug settings
+* **Structured Logging**: Professional logging service with configurable levels and consistent formatting
+* **Code Quality**: Comprehensive improvements across maintainability, readability, performance, and testability
+* **Modular Design**: Extracted features into dedicated services (folding, language server, parameter parsing)
+* **TypeScript Strict Mode**: Enhanced type safety with proper null checking and strict compilation
+* **Error Handling**: Improved error handling and recovery throughout the extension
+
+### Fixed
+
+* **TypeScript Compilation**: Fixed strict mode errors in parameter parser for reliable GitHub CI builds
+* **Dependency Updates**: Updated TypeScript ESLint packages to v8.x for better code quality enforcement
+* **Import Statements**: Converted legacy require() calls to modern ES6 imports for better bundling
+* **ESLint Configuration**: Enhanced rules to properly handle unused variables and caught errors
+
+### Updated
+
+* **@typescript-eslint/eslint-plugin**: Updated from v6.21.0 to v8.38.0
+* **@typescript-eslint/parser**: Updated from v6.21.0 to v8.38.0  
+* **@types/vscode**: Updated from v1.80.0 to v1.102.0
+* **@types/node**: Updated from v20.19.9 to v22.10.2
+
 ## [0.2.11] 31 Jul, 2025
 
 ### Fixed
