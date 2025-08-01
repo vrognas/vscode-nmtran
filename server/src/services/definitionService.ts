@@ -38,6 +38,7 @@ interface ParameterLocation {
   line: number;
   startChar?: number;  // Start character position of the specific value
   endChar?: number;    // End character position of the specific value
+  additionalRanges?: Array<{ startChar: number; endChar: number; line?: number }>; // For FIXED keyword, etc.
 }
 
 interface ParameterInfo {
@@ -144,7 +145,7 @@ export class DefinitionService {
         this.isDefinitionLine(trimmedLine, 'ETA') || 
         this.isDefinitionLine(trimmedLine, 'EPS')) {
       
-      return this.getParameterFromDefinitionLine(document, position.line, trimmedLine);
+      return this.getParameterFromDefinitionLine(document, position.line, trimmedLine, position.character);
     }
     
     // Check if this is a continuation line within a parameter block
@@ -646,9 +647,9 @@ export class DefinitionService {
 
   /**
    * Determines which parameter is defined on a given definition line
-   * by counting preceding definition lines of the same type
+   * by counting preceding definition lines of the same type and cursor position
    */
-  private getParameterFromDefinitionLine(document: TextDocument, lineNum: number, line: string): ParameterInfo | null {
+  private getParameterFromDefinitionLine(document: TextDocument, lineNum: number, line: string, cursorChar?: number): ParameterInfo | null {
     let parameterType: string;
     
     if (this.isDefinitionLine(line, 'THETA')) {
@@ -678,7 +679,18 @@ export class DefinitionService {
         const parametersInLine = this.countParametersInLine(trimmedCurrentLine, parameterType);
         
         if (i === lineNum) {
-          // This is our target line - return the first parameter it defines
+          // This is our target line - determine which specific parameter based on cursor position
+          if (cursorChar !== undefined) {
+            const parameterIndex = this.getParameterIndexFromCursorPosition(document, lineNum, cursorChar, parameterType, parameterCount);
+            if (parameterIndex !== null) {
+              return {
+                type: parameterType,
+                index: parameterIndex
+              };
+            }
+          }
+          
+          // Fallback: return the first parameter it defines if cursor position not provided
           return {
             type: parameterType,
             index: parameterCount + 1
@@ -689,6 +701,28 @@ export class DefinitionService {
       }
     }
 
+    return null;
+  }
+
+  /**
+   * Determine which parameter index the cursor is positioned on based on parameter locations
+   */
+  private getParameterIndexFromCursorPosition(document: TextDocument, lineNum: number, cursorChar: number, parameterType: string, baseParameterCount: number): number | null {
+    // Get all scanned parameters for this line
+    const allParams = this.scanAllParameters(document);
+    const paramsOnLine = allParams.filter(param => 
+      param.line === lineNum && param.type === parameterType
+    );
+    
+    // Find which parameter range the cursor falls into
+    for (const param of paramsOnLine) {
+      if (param.startChar !== undefined && param.endChar !== undefined) {
+        if (cursorChar >= param.startChar && cursorChar <= param.endChar) {
+          return param.index;
+        }
+      }
+    }
+    
     return null;
   }
 
@@ -712,7 +746,6 @@ export class DefinitionService {
     const locations: Location[] = [];
     
     // Always add the primary definition location
-    
     locations.push({
       uri: document.uri,
       range: {
@@ -726,6 +759,25 @@ export class DefinitionService {
         }
       }
     });
+    
+    // Add additional ranges (e.g., FIXED keywords)
+    if (paramLocation.additionalRanges) {
+      for (const range of paramLocation.additionalRanges) {
+        locations.push({
+          uri: document.uri,
+          range: {
+            start: { 
+              line: range.line !== undefined ? range.line : paramLocation.line, 
+              character: range.startChar 
+            },
+            end: { 
+              line: range.line !== undefined ? range.line : paramLocation.line, 
+              character: range.endChar 
+            }
+          }
+        });
+      }
+    }
     
     // For ETA parameters with SAME constraints, add the referenced location
     if (parameter.type === 'ETA' && line && /\bSAME\b/i.test(line.trim())) {
@@ -829,6 +881,7 @@ export class DefinitionService {
       );
       
       if (paramLocation && includeDeclaration) {
+        // Add primary definition range
         references.push({
           uri: document.uri,
           range: {
@@ -842,6 +895,25 @@ export class DefinitionService {
             }
           }
         });
+        
+        // Add additional ranges (e.g., FIXED keywords)
+        if (paramLocation.additionalRanges) {
+          for (const range of paramLocation.additionalRanges) {
+            references.push({
+              uri: document.uri,
+              range: {
+                start: { 
+                  line: range.line !== undefined ? range.line : lineNum, 
+                  character: range.startChar 
+                },
+                end: { 
+                  line: range.line !== undefined ? range.line : lineNum, 
+                  character: range.endChar 
+                }
+              }
+            });
+          }
+        }
       }
       
       // Find usage references (THETA(n) patterns) - but exclude commented-out ones

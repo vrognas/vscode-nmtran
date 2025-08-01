@@ -48,7 +48,8 @@ export class ParameterFactory {
         THETA: 0, 
         ETA: 0, 
         EPS: 0 
-      }
+      },
+      blockFixedKeywords: []
     };
   }
 
@@ -62,5 +63,6 @@ export class ParameterFactory {
     state.blockElementsSeen = 0;
     state.blockDiagonalsSeen = 0;
     state.blockElements = [];
+    state.blockFixedKeywords = [];
   }
 }
