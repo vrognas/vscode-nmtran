@@ -7,6 +7,9 @@
 
 import { Connection, Location, Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { NMTRANMatrixParser } from '../utils/NMTRANMatrixParser';
+import { ParameterScanner } from './ParameterScanner';
+import { PerformanceMonitor } from '../utils/performanceMonitor';
 
 // Constants for consistent parameter pattern matching
 const PARAMETER_PATTERNS = {
@@ -45,9 +48,11 @@ interface ParameterInfo {
 export class DefinitionService {
   private connection: Connection;
   private scanCache = new Map<string, ParameterLocation[]>();
+  private performanceMonitor: PerformanceMonitor;
 
   constructor(connection: Connection) {
     this.connection = connection;
+    this.performanceMonitor = new PerformanceMonitor(connection);
   }
 
   /**
@@ -57,21 +62,27 @@ export class DefinitionService {
    * EPS(1) → jumps to line defining 1st EPS parameter
    * For SAME constraints, shows both the SAME line and the referenced value
    */
-  provideDefinition(document: TextDocument, position: Position): Location[] | null {
-    try {
-      const parameter = this.getParameterAtPosition(document, position);
-      if (!parameter) {
-        return null;
-      }
+  async provideDefinition(document: TextDocument, position: Position): Promise<Location[] | null> {
+    return this.performanceMonitor.measure(
+      'provideDefinition',
+      async () => {
+        try {
+          const parameter = this.getParameterAtPosition(document, position);
+          if (!parameter) {
+            return null;
+          }
 
-      const definitionLocations = this.findAllDefinitionLocations(document, parameter);
-      
-      return definitionLocations.length > 0 ? definitionLocations : null;
+          const definitionLocations = this.findAllDefinitionLocations(document, parameter);
+          
+          return definitionLocations.length > 0 ? definitionLocations : null;
 
-    } catch (error) {
-      this.connection.console.error(`❌ Error in definition provider: ${error}`);
-      return null;
-    }
+        } catch (error) {
+          this.connection.console.error(`❌ Error in definition provider: ${error}`);
+          return null;
+        }
+      },
+      { documentUri: document.uri, position }
+    );
   }
 
   /**
@@ -149,110 +160,16 @@ export class DefinitionService {
     if (cached) {
       return cached;
     }
-    const locations: ParameterLocation[] = [];
-    const lines = document.getText().split('\n');
     
-    let currentBlockType: 'THETA' | 'ETA' | 'EPS' | null = null;
-    let inBlockMatrix = false;
-    let blockMatrixRemaining = 0;
-    const counters = { THETA: 0, ETA: 0, EPS: 0 };
+    // Use ParameterScanner for the actual scanning logic
+    const locations = ParameterScanner.scanDocument(document);
     
-    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-      const line = lines[lineNum];
-      if (!line) continue;
-      
-      const trimmed = line.trim();
-      if (trimmed.startsWith(';') || trimmed.length === 0) continue;
-      
-      // Check if starting a new parameter block
-      if (PARAMETER_PATTERNS.THETA.test(trimmed)) {
-        currentBlockType = 'THETA';
-        inBlockMatrix = false;
-        blockMatrixRemaining = 0;
-      } else if (PARAMETER_PATTERNS.OMEGA.test(trimmed)) {
-        currentBlockType = 'ETA';
-        this.handleBlockMatrixDetection(trimmed, state => {
-          inBlockMatrix = state.inBlockMatrix;
-          blockMatrixRemaining = state.blockMatrixRemaining;
-        });
-      } else if (PARAMETER_PATTERNS.SIGMA.test(trimmed)) {
-        currentBlockType = 'EPS';
-        this.handleBlockMatrixDetection(trimmed, state => {
-          inBlockMatrix = state.inBlockMatrix;
-          blockMatrixRemaining = state.blockMatrixRemaining;
-        });
-      } else if (trimmed.startsWith('$')) {
-        currentBlockType = null; // Different control record
-        inBlockMatrix = false;
-        blockMatrixRemaining = 0;
-      }
-      
-      // If we're in a parameter block, count parameters on this line
-      if (currentBlockType) {
-        let paramCount = 0;
-        
-        if (inBlockMatrix && blockMatrixRemaining > 0) {
-          // For BLOCK matrices, handle different cases
-          if (trimmed.match(PARAMETER_PATTERNS.BLOCK)) {
-            // Check if this is a SAME constraint or regular BLOCK
-            if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
-              // SAME constraint - this defines 1 ETA parameter
-              paramCount = 1;
-              blockMatrixRemaining--;
-              if (blockMatrixRemaining === 0) {
-                inBlockMatrix = false;
-              }
-            } else {
-              // Regular BLOCK header - don't assign parameters here, wait for matrix lines
-              paramCount = 0;
-            }
-          } else {
-            // Matrix data line - assign one ETA parameter to this line (the diagonal element)
-            paramCount = 1;
-            blockMatrixRemaining--;
-            if (blockMatrixRemaining === 0) {
-              inBlockMatrix = false; // End of this BLOCK matrix
-            }
-          }
-        } else {
-          // Regular parameter counting for THETA and diagonal OMEGA/SIGMA
-          paramCount = this.countParametersInLine(trimmed, currentBlockType);
-        }
-        
-        for (let i = 0; i < paramCount; i++) {
-          counters[currentBlockType]++;
-          const location: ParameterLocation = {
-            type: currentBlockType,
-            index: counters[currentBlockType],
-            line: lineNum
-          };
-          
-          // Add precise character positions for parameter values
-          let valuePosition;
-          
-          if (currentBlockType === 'THETA') {
-            // For THETA parameters, find the specific initial value (handle bounded syntax)
-            const paramPosition = i + 1; // Which parameter in this line (1-based)
-            valuePosition = this.findThetaInitialValue(line, paramPosition);
-          } else {
-            // For ETA/EPS parameters, handle different OMEGA/SIGMA patterns the same way
-            valuePosition = this.findOmegaParameterValue(document, lineNum, counters[currentBlockType], inBlockMatrix);
-          }
-          
-          if (valuePosition) {
-            location.startChar = valuePosition.start;
-            location.endChar = valuePosition.end;
-          }
-          
-          locations.push(location);
-        }
-      }
-    }
+    this.enhanceLocationsWithValuePositions(document, locations);
     
-    // Cache the results
+    // Cache the result
     this.scanCache.set(cacheKey, locations);
     
-    // Limit cache size to prevent memory leaks
+    // Limit cache size
     if (this.scanCache.size > 50) {
       const firstKey = this.scanCache.keys().next().value;
       if (firstKey) {
@@ -261,6 +178,112 @@ export class DefinitionService {
     }
     
     return locations;
+  }
+
+  /**
+   * Enhance parameter locations with precise value positions
+   * This is the refactored logic that was previously inline
+   */
+  private enhanceLocationsWithValuePositions(document: TextDocument, locations: ParameterLocation[]): void {
+    const lines = document.getText().split('\n');
+    
+    for (const location of locations) {
+      // Skip if positions are already set by ParameterScanner
+      if (location.startChar !== undefined && location.endChar !== undefined) {
+        continue;
+      }
+      
+      const line = lines[location.line];
+      if (!line) continue;
+      
+      // Find precise value position based on parameter type
+      let valuePosition;
+      if (location.type === 'THETA') {
+        // For THETA, determine position within the line based on parameter order
+        const paramPosition = this.getParameterPositionInLine(document, location.line, location.index, 'THETA');
+        valuePosition = this.findThetaInitialValue(line, paramPosition);
+      } else {
+        // For ETA/EPS, determine the position within the specific BLOCK
+        // For BLOCK(1), it's always position 1
+        // For BLOCK(n), we need to calculate which diagonal element this represents
+        const paramPositionInBlock = this.calculateParameterPositionInBlock(document, location.line, location.index);
+        
+        valuePosition = this.findOmegaParameterValue(
+          document, 
+          location.line, 
+          paramPositionInBlock, 
+          false // Let findOmegaParameterValue determine block matrix state internally
+        );
+      }
+      
+      if (valuePosition) {
+        location.startChar = valuePosition.start;
+        location.endChar = valuePosition.end;
+      }
+    }
+  }
+
+  /**
+   * Get the position of a parameter within its definition line
+   * For multi-parameter lines, determines which parameter on the line this refers to
+   */
+  private getParameterPositionInLine(document: TextDocument, lineNum: number, paramIndex: number, paramType: string): number {
+    const allParams = this.scanAllParameters(document);
+    
+    // Find all parameters of the same type defined on or before this line
+    const sameTypeParams = allParams.filter(param => 
+      param.type === paramType && param.line <= lineNum
+    );
+    
+    // Count how many parameters of this type are on the same line
+    const paramsOnThisLine = sameTypeParams.filter(param => param.line === lineNum);
+    
+    // Find the position of our parameter within this line
+    for (let i = 0; i < paramsOnThisLine.length; i++) {
+      if (paramsOnThisLine[i]?.index === paramIndex) {
+        return i + 1; // Return 1-based position
+      }
+    }
+    
+    return 1; // Default to first parameter on line
+  }
+
+  /**
+   * Calculate the position of a parameter within its BLOCK
+   * For BLOCK(1), always returns 1
+   * For BLOCK(n), calculates which diagonal position this parameter represents
+   */
+  private calculateParameterPositionInBlock(document: TextDocument, lineNum: number, globalParamIndex: number): number {
+    const lines = document.getText().split('\n');
+    const line = lines[lineNum];
+    if (!line) return 1;
+    
+    const trimmed = line.trim();
+    const blockMatch = trimmed.match(PARAMETER_PATTERNS.BLOCK);
+    
+    if (blockMatch && blockMatch[1]) {
+      const blockSize = parseInt(blockMatch[1], 10);
+      
+      if (blockSize === 1) {
+        // For BLOCK(1), there's only one parameter, so position is always 1
+        return 1;
+      } else {
+        // For BLOCK(n>1), we need to figure out which diagonal element this is
+        // First, find the first parameter defined by this BLOCK
+        const allParams = this.scanAllParameters(document);
+        const blockStartParam = allParams.find(param => 
+          param.line === lineNum && param.type === 'ETA'
+        );
+        
+        if (blockStartParam) {
+          // Calculate position within the block (1-based)
+          const positionInBlock = globalParamIndex - blockStartParam.index + 1;
+          return positionInBlock;
+        }
+      }
+    }
+    
+    return 1; // Default to position 1
   }
 
   /**
@@ -300,6 +323,41 @@ export class DefinitionService {
   }
 
   /**
+   * Find diagonal element in a text string with a given offset
+   * Similar to findDiagonalElementPosition but works on a substring
+   */
+  private findDiagonalElementInText(text: string, paramIndex: number, startOffset: number): CharacterRange | null {
+    // Remove comment part
+    const codePartEnd = text.indexOf(';');
+    const codePart = codePartEnd !== -1 ? text.substring(0, codePartEnd) : text;
+    
+    // Find all numeric values (including scientific notation)
+    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+    const matches = [];
+    let match;
+    
+    while ((match = numericPattern.exec(codePart)) !== null) {
+      matches.push({
+        value: match[0],
+        start: match.index + startOffset,
+        end: match.index + match[0].length + startOffset
+      });
+    }
+    
+    // Use NMTRANMatrixParser to get the correct diagonal position
+    const diagonalPosition = NMTRANMatrixParser.getDiagonalPosition(paramIndex);
+    
+    if (matches.length > diagonalPosition) {
+      const diagonalMatch = matches[diagonalPosition];
+      if (diagonalMatch) {
+        return { start: diagonalMatch.start, end: diagonalMatch.end };
+      }
+    }
+    
+    return null;
+  }
+
+  /**
    * Find the character position of a parameter value in a regular OMEGA/SIGMA line
    * For the nth parameter on a line, find the nth numeric value
    */
@@ -308,15 +366,16 @@ export class DefinitionService {
     const codePartEnd = line.indexOf(';');
     const codePart = codePartEnd !== -1 ? line.substring(0, codePartEnd) : line;
     
-    // Remove control record prefix (e.g., $OMEGA)
-    const contentPart = codePart.replace(/^\s*\$\w+\s*/i, '');
+    // Remove control record prefix (e.g., $OMEGA) and BLOCK(n) pattern if present
+    let contentPart = codePart.replace(/^\s*\$\w+\s*/i, '');
+    contentPart = contentPart.replace(/^BLOCK\(\d+\)\s*/i, ''); // Remove BLOCK(n) to avoid matching the number
     
     // Find all numeric values (including scientific notation)
     const numericPattern = /[\d\-+][\d\-+.eE]*/g;
     const matches = [];
     let match;
     
-    const searchOffset = codePart.length - contentPart.length; // Offset for control record removal
+    const searchOffset = codePart.length - contentPart.length; // Offset for prefix removal
     
     while ((match = numericPattern.exec(contentPart)) !== null) {
       matches.push({
@@ -326,7 +385,23 @@ export class DefinitionService {
       });
     }
     
-    // Return the paramPosition-th numeric value
+    // For BLOCK matrices, we need to find diagonal elements, not sequential values
+    // Check if this line contains a BLOCK pattern
+    const isBlockLine = /BLOCK\(\d+\)/i.test(codePart);
+    
+    if (isBlockLine) {
+      // For BLOCK matrices, use NMTRANMatrixParser to calculate diagonal position
+      const diagonalPosition = NMTRANMatrixParser.getDiagonalPosition(paramPosition);
+      
+      if (matches.length > diagonalPosition) {
+        const diagonalMatch = matches[diagonalPosition];
+        if (diagonalMatch) {
+          return { start: diagonalMatch.start, end: diagonalMatch.end };
+        }
+      }
+    }
+    
+    // Return the paramPosition-th numeric value for regular cases
     if (matches.length >= paramPosition && paramPosition > 0) {
       const targetMatch = matches[paramPosition - 1]; // Convert to 0-based index
       if (targetMatch) {
@@ -481,40 +556,55 @@ export class DefinitionService {
    * Find the parameter value for an OMEGA or SIGMA parameter, handling various matrix syntax patterns
    * Supports BLOCK matrices, SAME constraints, and regular inline values
    */
-  private findOmegaParameterValue(document: TextDocument, lineNum: number, paramIndex: number, inBlockMatrix: boolean): CharacterRange | null {
+  private findOmegaParameterValue(document: TextDocument, lineNum: number, paramIndex: number, inBlockMatrix?: boolean): CharacterRange | null {
     const lines = document.getText().split('\n');
     const line = lines[lineNum];
     if (!line) return null;
     
     const trimmed = line.trim();
     
+    // Determine block matrix state if not provided
+    if (inBlockMatrix === undefined) {
+      inBlockMatrix = PARAMETER_PATTERNS.BLOCK.test(trimmed);
+    }
+    
     // Check for SAME keyword - return position of SAME keyword itself
     if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
       return this.findSameKeywordPosition(line);
     }
     
-    // Check if this is a BLOCK with continuation line
-    if (PARAMETER_PATTERNS.BLOCK.test(trimmed) && inBlockMatrix) {
-      // Look for value on next non-comment line
-      for (let i = lineNum + 1; i < lines.length; i++) {
-        const nextLine = lines[i];
-        if (!nextLine) continue;
-        
-        const nextTrimmed = nextLine.trim();
-        if (nextTrimmed.startsWith(';') || nextTrimmed.length === 0) continue;
-        if (nextTrimmed.startsWith('$')) break; // Hit next control record
-        
-        // This should be our diagonal element
-        return this.findDiagonalElementPosition(nextLine, paramIndex);
+    // Check if this is a BLOCK line
+    if (PARAMETER_PATTERNS.BLOCK.test(trimmed)) {
+      // First check if there are values on the same line as the BLOCK declaration
+      const afterBlock = trimmed.replace(/^\$OMEGA\s+BLOCK\(\d+\)\s*/i, '').replace(/^\$SIGMA\s+BLOCK\(\d+\)\s*/i, '');
+      const hasInlineValues = afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+      
+      if (hasInlineValues) {
+        // BLOCK with inline values - find the diagonal element in the afterBlock portion
+        const blockStartIndex = line.indexOf(afterBlock.trim());
+        return this.findDiagonalElementInText(afterBlock, paramIndex, blockStartIndex);
+      } else if (inBlockMatrix) {
+        // BLOCK without inline values - look for value on next non-comment line
+        for (let i = lineNum + 1; i < lines.length; i++) {
+          const nextLine = lines[i];
+          if (!nextLine) continue;
+          
+          const nextTrimmed = nextLine.trim();
+          if (nextTrimmed.startsWith(';') || nextTrimmed.length === 0) continue;
+          if (nextTrimmed.startsWith('$')) break; // Hit next control record
+          
+          // This should be our diagonal element
+          return this.findDiagonalElementPosition(nextLine, paramIndex);
+        }
+        return null;
       }
-      return null;
     }
     
-    // Regular OMEGA with inline value: $OMEGA 0 FIX
-    // For BLOCK matrix lines, find the diagonal element at position paramIndex
+    // Regular OMEGA/SIGMA with inline value
+    // For BLOCK(1) matrices, there's only one value on the line - always position 1
+    // For multi-value BLOCK matrices, this was handled above
     // For regular OMEGA/SIGMA lines, find the first parameter
-    const paramPosition = inBlockMatrix ? paramIndex : 1;
-    return this.findParameterValuePosition(line, paramPosition);
+    return this.findParameterValuePosition(line, 1);
   }
 
   /**
@@ -619,6 +709,7 @@ export class DefinitionService {
     const locations: Location[] = [];
     
     // Always add the primary definition location
+    
     locations.push({
       uri: document.uri,
       range: {
@@ -660,25 +751,44 @@ export class DefinitionService {
       
       // Found a BLOCK that's not SAME
       if (/^\$OMEGA.*BLOCK\(\d+\)/i.test(trimmed) && !/\bSAME\b/i.test(trimmed)) {
-        // Look for the diagonal element on continuation line
-        for (let j = i + 1; j < lines.length; j++) {
-          const nextLine = lines[j];
-          if (!nextLine) continue;
-          
-          const nextTrimmed = nextLine.trim();
-          if (nextTrimmed.startsWith(';') || nextTrimmed.length === 0) continue;
-          if (nextTrimmed.startsWith('$')) break;
-          
-          // Found the diagonal element - return its location
-          const valuePosition = this.findDiagonalElementPosition(nextLine, 1);
+        // First check if there are inline values on the same line
+        const afterBlock = trimmed.replace(/^\$OMEGA\s+BLOCK\(\d+\)\s*/i, '');
+        const hasInlineValues = afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+        
+        if (hasInlineValues) {
+          // BLOCK with inline values - find the first value (diagonal element)
+          const blockStartIndex = line.indexOf(afterBlock.trim());
+          const valuePosition = this.findDiagonalElementInText(afterBlock, 1, blockStartIndex);
           if (valuePosition) {
             return {
               uri: document.uri,
               range: {
-                start: { line: j, character: valuePosition.start },
-                end: { line: j, character: valuePosition.end }
+                start: { line: i, character: valuePosition.start },
+                end: { line: i, character: valuePosition.end }
               }
             };
+          }
+        } else {
+          // Look for the diagonal element on continuation line
+          for (let j = i + 1; j < lines.length; j++) {
+            const nextLine = lines[j];
+            if (!nextLine) continue;
+            
+            const nextTrimmed = nextLine.trim();
+            if (nextTrimmed.startsWith(';') || nextTrimmed.length === 0) continue;
+            if (nextTrimmed.startsWith('$')) break;
+            
+            // Found the diagonal element - return its location
+            const valuePosition = this.findDiagonalElementPosition(nextLine, 1);
+            if (valuePosition) {
+              return {
+                uri: document.uri,
+                range: {
+                  start: { line: j, character: valuePosition.start },
+                  end: { line: j, character: valuePosition.end }
+                }
+              };
+            }
           }
         }
         break;
