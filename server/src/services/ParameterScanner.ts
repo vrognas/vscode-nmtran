@@ -8,7 +8,8 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { NMTRANMatrixParser } from '../utils/NMTRANMatrixParser';
 import { ParameterFactory } from '../factories/parameterFactory';
-import { LIMITS } from '../constants/parameters';
+import { ParameterValidator } from '../utils/parameterValidator';
+import { ErrorHandler } from '../utils/errorHandler';
 
 export interface ParameterLocation {
   type: 'THETA' | 'ETA' | 'EPS';
@@ -16,6 +17,7 @@ export interface ParameterLocation {
   line: number;
   startChar?: number;
   endChar?: number;
+  additionalRanges?: Array<{ startChar: number; endChar: number; line?: number }>; // For FIXED keyword, etc.
 }
 
 export interface ScannerState {
@@ -27,6 +29,7 @@ export interface ScannerState {
   blockDiagonalsSeen: number;
   blockElements: string[];
   counters: { THETA: number; ETA: number; EPS: number };
+  blockFixedKeywords: Array<{ startChar: number; endChar: number; line: number }>; // FIXED keywords for current block
 }
 
 interface BlockMatrixState {
@@ -41,6 +44,7 @@ const PARAMETER_PATTERNS = {
   SIGMA: /^\$SIGMA(\s|$)/i,
   BLOCK: /BLOCK\((\d+)\)/i,
   SAME: /\bSAME\b/i,
+  FIXED: /\b(FIX|FIXED)\b/gi,
   NUMERIC: /[\d\-+][\d\-+.eE]*/g,
   CONTROL_RECORD: /^\s*\$\w+\s*/i,
   COMMENT: /;.*$/
@@ -59,11 +63,30 @@ export class ParameterScanner {
       const line = lines[lineNum];
       if (!line) continue;
       
+      // Validate line before processing
+      const lineValidation = ParameterValidator.validateParameterLine(line);
+      if (!lineValidation.isValid) {
+        ErrorHandler.logWarning(
+          `Skipping invalid line: ${lineValidation.errors.join(', ')}`,
+          { operation: 'scanDocument', lineNumber: lineNum }
+        );
+        continue;
+      }
+      
       const trimmed = line.trim();
       if (this.shouldSkipLine(trimmed)) continue;
       
       // Update state based on control record
-      this.updateStateForControlRecord(trimmed, state);
+      this.updateStateForControlRecord(trimmed, state, lineNum);
+      
+      // Validate state consistency
+      const stateValidation = ParameterValidator.validateScannerState(state);
+      if (!stateValidation.isValid) {
+        ErrorHandler.logWarning(
+          `Scanner state validation failed: ${stateValidation.errors.join(', ')}`,
+          { operation: 'scanDocument', lineNumber: lineNum }
+        );
+      }
       
       // Process parameters if in a parameter block
       if (state.currentBlockType) {
@@ -90,7 +113,7 @@ export class ParameterScanner {
   /**
    * Update scanner state based on control record
    */
-  private static updateStateForControlRecord(trimmed: string, state: ScannerState): void {
+  private static updateStateForControlRecord(trimmed: string, state: ScannerState, lineNum: number): void {
     if (PARAMETER_PATTERNS.THETA.test(trimmed)) {
       state.currentBlockType = 'THETA';
       state.inBlockMatrix = false;
@@ -105,6 +128,12 @@ export class ParameterScanner {
       state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
       state.blockElementsSeen = 0;  // Reset element counter for new block
       state.blockDiagonalsSeen = 0; // Reset diagonal counter for new block
+      state.blockFixedKeywords = []; // Reset FIXED keywords for new block
+      
+      // Check for FIXED keywords on the BLOCK declaration line
+      if (state.inBlockMatrix) {
+        this.detectBlockFixedKeywords(trimmed, lineNum, state);
+      }
     } else if (PARAMETER_PATTERNS.SIGMA.test(trimmed)) {
       state.currentBlockType = 'EPS';
       const matrixState = this.detectBlockMatrix(trimmed);
@@ -115,11 +144,32 @@ export class ParameterScanner {
       state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
       state.blockElementsSeen = 0;  // Reset element counter for new block
       state.blockDiagonalsSeen = 0; // Reset diagonal counter for new block
+      state.blockFixedKeywords = []; // Reset FIXED keywords for new block
+      
+      // Check for FIXED keywords on the BLOCK declaration line
+      if (state.inBlockMatrix) {
+        this.detectBlockFixedKeywords(trimmed, lineNum, state);
+      }
     } else if (trimmed.startsWith('$')) {
       // Different control record - reset state
       state.currentBlockType = null;
       state.inBlockMatrix = false;
       state.blockMatrixRemaining = 0;
+    }
+  }
+
+  /**
+   * Detect and store FIXED keywords from BLOCK declaration line
+   */
+  private static detectBlockFixedKeywords(line: string, lineNum: number, state: ScannerState): void {
+    const fixedPattern = /\b(FIX|FIXED)\b/gi;
+    let match;
+    while ((match = fixedPattern.exec(line)) !== null) {
+      state.blockFixedKeywords.push({
+        startChar: match.index,
+        endChar: match.index + match[0].length,
+        line: lineNum
+      });
     }
   }
 
@@ -188,106 +238,93 @@ export class ParameterScanner {
     
     // For BLOCK matrices, we need to determine which values are diagonal elements
     if (state.inBlockMatrix && allValuesOnLine.length > 0) {
-      // Figure out which elements these values represent in the overall matrix
-      const startElementIndex = state.blockElementsSeen;
-      
-      // For each diagonal parameter on this line
-      let valuesProcessed = 0;
-      for (let i = 0; i < paramCount; i++) {
-        const blockType = state.currentBlockType;
-        if (!blockType) continue;
-        
-        state.counters[blockType]++;
-        
-        const location: ParameterLocation = {
-          type: blockType,
-          index: state.counters[blockType],
-          line: lineNum
-        };
-        
-        // Which diagonal parameter is this within the current BLOCK?
-        // For BLOCK matrices, we need to know which diagonal within the block this is
-        // ETA(3) is the 1st diagonal in its BLOCK(2)
-        // ETA(4) is the 2nd diagonal in its BLOCK(2)
-        const diagonalWithinBlock = state.blockDiagonalsSeen + i + 1;
-        
-        // For the Nth diagonal, we need to find which element position it's at
-        // and then find which value on this line corresponds to that position
-        const { NMTRANMatrixParser } = require('../utils/NMTRANMatrixParser');
-        const diagonalElementPosition = NMTRANMatrixParser.getDiagonalPosition(diagonalWithinBlock);
-        
-        // Which value on THIS line corresponds to this diagonal?
-        const positionOnLine = diagonalElementPosition - startElementIndex;
-        
-        
-        
-        if (positionOnLine >= 0 && positionOnLine < allValuesOnLine.length) {
-          // Find the position of this specific value
-          const targetValue = allValuesOnLine[positionOnLine];
-          
-          
-          if (targetValue) {
-            const cleanLine = line.replace(/;.*$/, '');
-            const prevValue = positionOnLine > 0 ? allValuesOnLine[positionOnLine - 1] : undefined;
-            const searchStart = prevValue ? cleanLine.lastIndexOf(prevValue) : 0;
-            const valueStart = cleanLine.indexOf(targetValue, searchStart);
-            
-            if (valueStart !== -1) {
-              location.startChar = valueStart;
-              location.endChar = valueStart + targetValue.length;
-            }
-          }
-        }
-        
-        locations.push(location);
-        valuesProcessed++;
-      }
-      
-      // Update total elements seen
-      state.blockElementsSeen += allValuesOnLine.length;
+      const processedLocations = this.processBlockMatrixLine(
+        line,
+        lineNum,
+        state,
+        allValuesOnLine
+      );
+      locations.push(...processedLocations);
     } else {
-      // Regular (non-block) parameter processing
-      for (let i = 0; i < paramCount; i++) {
-        const blockType = state.currentBlockType;
-        if (!blockType) continue;
+      // Regular (non-block) parameter processing - use sophisticated parser for THETA
+      if (state.currentBlockType === 'THETA') {
+        const expressions = this.parseParameterExpressions(line);
         
-        state.counters[blockType]++;
-        
-        const location: ParameterLocation = {
-          type: blockType,
-          index: state.counters[blockType],
-          line: lineNum
-        };
-        
-        const valuePosition = this.findParameterValuePosition(
-          line,
-          lineNum,
-          blockType,
-          1,
-          false,
-          i + 1,
-          document
-        );
-        
-        if (valuePosition) {
-          location.startChar = valuePosition.start;
-          location.endChar = valuePosition.end;
+        for (let i = 0; i < Math.min(paramCount, expressions.length); i++) {
+          state.counters.THETA++;
+          
+          const expr = expressions[i];
+          const location: ParameterLocation = {
+            type: 'THETA',
+            index: state.counters.THETA,
+            line: lineNum
+          };
+          
+          if (expr) {
+            location.startChar = expr.valueRange.startChar;
+            location.endChar = expr.valueRange.endChar;
+          }
+          
+          // Add FIXED keyword range if present
+          if (expr?.fixedRange) {
+            location.additionalRanges = [expr.fixedRange];
+          }
+          
+          locations.push(location);
         }
-        
-        locations.push(location);
+      } else {
+        // For OMEGA/SIGMA, use simpler processing (they typically don't have complex FIXED syntax)
+        for (let i = 0; i < paramCount; i++) {
+          const blockType = state.currentBlockType;
+          if (!blockType) continue;
+          
+          state.counters[blockType]++;
+          
+          const location: ParameterLocation = {
+            type: blockType,
+            index: state.counters[blockType],
+            line: lineNum
+          };
+          
+          const valuePosition = this.findParameterValuePosition(
+            line,
+            lineNum,
+            blockType,
+            1,
+            false,
+            i + 1,
+            document
+          );
+          
+          if (valuePosition) {
+            location.startChar = valuePosition.start;
+            location.endChar = valuePosition.end;
+          }
+          
+          // Check for FIXED keyword on this line (simpler approach for OMEGA/SIGMA)
+          const fixedPattern = /\b(FIX|FIXED)\b/gi;
+          const fixedMatches = [];
+          let match;
+          while ((match = fixedPattern.exec(line)) !== null) {
+            fixedMatches.push({
+              startChar: match.index,
+              endChar: match.index + match[0].length
+            });
+          }
+          if (fixedMatches.length > 0) {
+            location.additionalRanges = fixedMatches;
+          }
+          
+          locations.push(location);
+        }
       }
     }
     
     // Update block matrix state
-    if (state.inBlockMatrix) {
-      // Don't update here - we already updated in the loop above
-      state.blockDiagonalsSeen += paramCount;
-      state.blockMatrixRemaining -= paramCount;
-      if (state.blockMatrixRemaining <= 0) {
-        state.inBlockMatrix = false;
-        state.blockElementsSeen = 0;
-        state.blockDiagonalsSeen = 0;
-      }
+    if (state.inBlockMatrix && state.blockMatrixRemaining <= 0) {
+      state.inBlockMatrix = false;
+      state.blockElementsSeen = 0;
+      state.blockDiagonalsSeen = 0;
     }
     
     return locations;
@@ -327,8 +364,10 @@ export class ParameterScanner {
         return 0;
       }
     } else {
-      // Matrix data line - one diagonal parameter
-      return 1;
+      // Matrix data line - could have multiple diagonal parameters if all values are on one line
+      const numValues = this.countNumericValues(trimmed);
+      // Return the minimum of remaining parameters needed and values found
+      return Math.min(state.blockMatrixRemaining, numValues);
     }
   }
 
@@ -377,17 +416,201 @@ export class ParameterScanner {
   }
 
   /**
+   * Process BLOCK matrix line to find diagonal parameters
+   */
+  private static processBlockMatrixLine(
+    line: string,
+    lineNum: number,
+    state: ScannerState,
+    allValuesOnLine: string[]
+  ): ParameterLocation[] {
+    const locations: ParameterLocation[] = [];
+    
+    // Figure out which elements these values represent in the overall matrix
+    const startElementIndex = state.blockElementsSeen;
+    
+    // Find which diagonal elements are on this line
+    let diagonalsFound = 0;
+    
+    // Check each position on this line to see if it's a diagonal element
+    for (let positionOnLine = 0; positionOnLine < allValuesOnLine.length; positionOnLine++) {
+      const absolutePosition = startElementIndex + positionOnLine;
+      const parameterIndex = NMTRANMatrixParser.isDiagonalElement(absolutePosition);
+      
+      if (parameterIndex !== null) {
+        // This position contains a diagonal element
+        const blockType = state.currentBlockType;
+        if (!blockType) continue;
+        
+        state.counters[blockType]++;
+        
+        const location: ParameterLocation = {
+          type: blockType,
+          index: state.counters[blockType],
+          line: lineNum
+        };
+        
+        // Find the position of this specific value
+        const targetValue = allValuesOnLine[positionOnLine];
+        
+        if (targetValue) {
+          const cleanLine = line.replace(/;.*$/, '');
+          const prevValue = positionOnLine > 0 ? allValuesOnLine[positionOnLine - 1] : undefined;
+          const searchStart = prevValue ? cleanLine.lastIndexOf(prevValue) : 0;
+          const valueStart = cleanLine.indexOf(targetValue, searchStart);
+          
+          if (valueStart !== -1) {
+            location.startChar = valueStart;
+            location.endChar = valueStart + targetValue.length;
+          }
+        }
+        
+        // Add FIXED keyword ranges to each parameter in the block
+        if (state.blockFixedKeywords.length > 0) {
+          location.additionalRanges = state.blockFixedKeywords.map(keyword => ({
+            startChar: keyword.startChar,
+            endChar: keyword.endChar,
+            line: keyword.line
+          }));
+        }
+        
+        locations.push(location);
+        diagonalsFound++;
+      }
+    }
+    
+    // Update total elements seen
+    state.blockElementsSeen += allValuesOnLine.length;
+    
+    // Update diagonal count and block remaining  
+    state.blockDiagonalsSeen += diagonalsFound;
+    state.blockMatrixRemaining -= diagonalsFound;
+    
+    return locations;
+  }
+
+  /**
+   * Parse THETA parameter expressions from a line
+   * Handles: (0,3), 2 FIXED, (0,.6,1), 10, (-INF,-2.7,0), (37 FIXED), 4 FIX
+   */
+  private static parseParameterExpressions(line: string): Array<{
+    valueRange: { startChar: number; endChar: number };
+    fixedRange?: { startChar: number; endChar: number };
+  }> {
+    const expressions = [];
+    
+    // Remove control record prefix and comments
+    const controlRecordMatch = line.match(/^\s*\$\w+\s*/i);
+    const controlRecordLength = controlRecordMatch ? controlRecordMatch[0].length : 0;
+    
+    // Remove comment part
+    const commentIndex = line.indexOf(';');
+    const lineWithoutComment = commentIndex !== -1 ? line.substring(0, commentIndex) : line;
+    
+    // Get content after control record
+    const contentWithSpaces = lineWithoutComment.substring(controlRecordLength);
+    const content = contentWithSpaces.trim();
+    
+    // Find where the trimmed content starts in the original line
+    const trimmedContentStart = lineWithoutComment.indexOf(content, controlRecordLength);
+    let currentPos = trimmedContentStart >= 0 ? trimmedContentStart : controlRecordLength;
+    
+    let i = 0;
+    while (i < content.length) {
+      // Skip whitespace
+      while (i < content.length && /\s/.test(content.charAt(i))) {
+        i++;
+        currentPos++;
+      }
+      if (i >= content.length) break;
+      
+      const startPos = i;
+      const absStartPos = currentPos;
+      
+      if (content.charAt(i) === '(') {
+        // Bounded expression: (low,init,up) or (value FIXED)
+        let depth = 1;
+        i++; // Skip opening paren
+        while (i < content.length && depth > 0) {
+          if (content.charAt(i) === '(') depth++;
+          else if (content.charAt(i) === ')') depth--;
+          i++;
+        }
+        
+        const expr = content.substring(startPos, i);
+        const fixedMatch = expr.match(/\b(FIX|FIXED)\b/i);
+        
+        const expression: {
+          valueRange: { startChar: number; endChar: number };
+          fixedRange?: { startChar: number; endChar: number };
+        } = {
+          valueRange: { startChar: absStartPos, endChar: absStartPos + expr.length }
+        };
+        
+        if (fixedMatch && fixedMatch.index !== undefined) {
+          // Has FIXED inside parentheses
+          expression.fixedRange = { 
+            startChar: absStartPos + fixedMatch.index, 
+            endChar: absStartPos + fixedMatch.index + fixedMatch[0].length 
+          };
+        }
+        
+        expressions.push(expression);
+      } else {
+        // Simple value, possibly followed by FIXED
+        // Read until next whitespace or parenthesis
+        while (i < content.length && !/[\s(]/.test(content.charAt(i))) {
+          i++;
+        }
+        
+        // Check if followed by FIXED keyword
+        const afterValue = i;
+        
+        // Skip whitespace
+        while (i < content.length && /\s/.test(content.charAt(i))) {
+          i++;
+        }
+        
+        // Check for FIXED/FIX keyword
+        const remaining = content.substring(i);
+        const fixedMatch = remaining.match(/^(FIX|FIXED)\b/i);
+        
+        const expression: {
+          valueRange: { startChar: number; endChar: number };
+          fixedRange?: { startChar: number; endChar: number };
+        } = {
+          valueRange: { startChar: absStartPos, endChar: absStartPos + (afterValue - startPos) }
+        };
+        
+        if (fixedMatch) {
+          expression.fixedRange = {
+            startChar: absStartPos + (i - startPos),
+            endChar: absStartPos + (i - startPos) + fixedMatch[0].length
+          };
+          i += fixedMatch[0].length;
+        }
+        
+        expressions.push(expression);
+      }
+      
+      currentPos = absStartPos + (i - startPos);
+    }
+    
+    return expressions;
+  }
+
+  /**
    * Find the position of a parameter value
    * Delegates to appropriate finder based on parameter type
    */
   private static findParameterValuePosition(
     line: string,
-    lineNum: number,
-    paramType: 'THETA' | 'ETA' | 'EPS',
+    _lineNum: number,
+    _paramType: 'THETA' | 'ETA' | 'EPS',
     paramIndex: number,
     inBlockMatrix: boolean,
-    positionInLine: number,
-    document: TextDocument
+    _positionInLine: number,
+    _document: TextDocument
   ): { start: number; end: number } | null {
     const trimmed = line.trim();
     
