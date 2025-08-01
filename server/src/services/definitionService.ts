@@ -18,7 +18,7 @@ const PARAMETER_PATTERNS = {
   SIGMA: /^\$SIGMA(\s|$)/i,
   BLOCK: /BLOCK\((\d+)\)/i,
   SAME: /\bSAME\b/i,
-  PARAMETER_USAGE_SOURCE: '\\b(THETA|ETA|EPS)\\((\\d+)\\)' // Source pattern without flags
+  PARAMETER_USAGE_SOURCE: '\\b(THETA|ETA|EPS|ERR)\\((\\d+)\\)' // Source pattern without flags
 } as const;
 
 // Factory function to create fresh regex instances to avoid state contamination
@@ -128,8 +128,11 @@ export class DefinitionService {
       const end = match.index + match[0].length;
       
       if (position.character >= start && position.character <= end) {
+        const rawType = match[1]!.toUpperCase();
+        // Map ERR to EPS for consistency
+        const mappedType = rawType === 'ERR' ? 'EPS' : rawType;
         return {
-          type: match[1]!.toUpperCase(),
+          type: mappedType,
           index: parseInt(match[2]!, 10)
         };
       }
@@ -809,7 +812,9 @@ export class DefinitionService {
     
     // Create regex pattern for exact parameter match
     // Note: \b doesn't work well with parentheses, so use more specific pattern
-    const searchPattern = new RegExp(`\\b${parameter.type}\\(${parameter.index}\\)`, 'gi');
+    // For EPS parameters, also search for ERR (synonym)
+    const typePattern = parameter.type === 'EPS' ? '(EPS|ERR)' : parameter.type;
+    const searchPattern = new RegExp(`\\b${typePattern}\\(${parameter.index}\\)`, 'gi');
     
     // Use scanner to find definition lines (including continuation lines)
     const allParams = this.scanAllParameters(document);

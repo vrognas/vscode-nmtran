@@ -10329,7 +10329,7 @@ var PARAMETER_PATTERNS2 = {
   SIGMA: /^\$SIGMA(\s|$)/i,
   BLOCK: /BLOCK\((\d+)\)/i,
   SAME: /\bSAME\b/i,
-  PARAMETER_USAGE_SOURCE: "\\b(THETA|ETA|EPS)\\((\\d+)\\)"
+  PARAMETER_USAGE_SOURCE: "\\b(THETA|ETA|EPS|ERR)\\((\\d+)\\)"
   // Source pattern without flags
 };
 var createParameterUsageRegex = () => new RegExp(PARAMETER_PATTERNS2.PARAMETER_USAGE_SOURCE, "gi");
@@ -10399,8 +10399,10 @@ var DefinitionService = class {
       const start = match.index;
       const end = match.index + match[0].length;
       if (position.character >= start && position.character <= end) {
+        const rawType = match[1].toUpperCase();
+        const mappedType = rawType === "ERR" ? "EPS" : rawType;
         return {
-          type: match[1].toUpperCase(),
+          type: mappedType,
           index: parseInt(match[2], 10)
         };
       }
@@ -10898,7 +10900,8 @@ var DefinitionService = class {
   findAllReferences(document, parameter, includeDeclaration = true) {
     const references = [];
     const lines = document.getText().split("\n");
-    const searchPattern = new RegExp(`\\b${parameter.type}\\(${parameter.index}\\)`, "gi");
+    const typePattern = parameter.type === "EPS" ? "(EPS|ERR)" : parameter.type;
+    const searchPattern = new RegExp(`\\b${typePattern}\\(${parameter.index}\\)`, "gi");
     const allParams = this.scanAllParameters(document);
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
       const line = lines[lineNum];

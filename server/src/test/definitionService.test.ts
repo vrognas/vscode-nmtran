@@ -85,6 +85,19 @@ CL = THETA(1) * EXP(ETA(1))`;
       expect(def).toHaveLength(1);
     });
 
+    it('should handle ERR() as synonym for EPS()', async () => {
+      const content = `$SIGMA 0.01   ; Residual error
+$ERROR
+Y = F + F*ERR(1)`;
+      
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      
+      // Clicking on ERR(1) should navigate to 0.01 in $SIGMA
+      const def = await service.provideDefinition(doc, Position.create(2, 10)); // Position in ERR(1)
+      expect(def).toBeDefined();
+      expect(def).toHaveLength(1);
+    });
+
     it('should handle bounded THETA syntax', async () => {
       const content = `$THETA (0.01, 0.5, 10)   ; Bounded CL
 $THETA 2.5 FIX           ; Fixed V`;

@@ -49,6 +49,13 @@ describe('ParameterParserFactory', () => {
       expect(result).toEqual([]);
     });
 
+    it('should handle ERR() as synonym for EPS()', () => {
+      const result = ParameterParserFactory.findAllParameterReferences('Y = F + F*ERR(1) + ERR(2)');
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual({ type: 'ERR', index: 1 });
+      expect(result).toContainEqual({ type: 'ERR', index: 2 });
+    });
+
     it('should handle commented parameters', () => {
       const line = 'CL = THETA(1) ; Using THETA(2) for clearance';
       // By default excludes comments
@@ -115,6 +122,24 @@ describe('ParameterParserFactory', () => {
     it('should be case insensitive', () => {
       const result = ParameterParserFactory.extractBlockSize('$omega block(4)');
       expect(result).toBe(4);
+    });
+  });
+
+  describe('getParameterTypeMapping', () => {
+    it('should map standard parameter types', () => {
+      expect(ParameterParserFactory.getParameterTypeMapping('THETA')).toBe('THETA');
+      expect(ParameterParserFactory.getParameterTypeMapping('ETA')).toBe('ETA');
+      expect(ParameterParserFactory.getParameterTypeMapping('EPS')).toBe('EPS');
+    });
+
+    it('should map synonyms correctly', () => {
+      expect(ParameterParserFactory.getParameterTypeMapping('OMEGA')).toBe('ETA');
+      expect(ParameterParserFactory.getParameterTypeMapping('SIGMA')).toBe('EPS');
+      expect(ParameterParserFactory.getParameterTypeMapping('ERR')).toBe('EPS');
+    });
+
+    it('should handle invalid types', () => {
+      expect(ParameterParserFactory.getParameterTypeMapping('INVALID')).toBeNull();
     });
   });
 });

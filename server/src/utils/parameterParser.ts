@@ -12,7 +12,7 @@ export const PARAMETER_PATTERNS = {
   SIGMA: /^\$SIGMA(\s|$)/i,
   BLOCK: /BLOCK\((\d+)\)/i,
   SAME: /\bSAME\b/i,
-  PARAMETER_USAGE_SOURCE: '\\b(THETA|ETA|EPS)\\((\\d+)\\)' // Source pattern without flags
+  PARAMETER_USAGE_SOURCE: '\\b(THETA|ETA|EPS|ERR)\\((\\d+)\\)' // Source pattern without flags
 } as const;
 
 export type ParameterType = 'THETA' | 'ETA' | 'EPS';
@@ -181,6 +181,7 @@ export class ParameterParserFactory {
       'ETA': 'ETA',
       'OMEGA': 'ETA',
       'EPS': 'EPS',
+      'ERR': 'EPS',  // ERR() is a synonym for EPS()
       'SIGMA': 'EPS'
     };
     
