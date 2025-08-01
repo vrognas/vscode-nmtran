@@ -382,6 +382,13 @@ export class ParameterScanner {
       return 1;
     }
     
+    // For THETA parameters, count expressions (not individual numeric values)
+    if (blockType === 'THETA') {
+      const expressions = this.parseParameterExpressions(line);
+      return expressions.length;
+    }
+    
+    // For OMEGA/SIGMA, use the old numeric counting method
     const cleanContent = this.removeKeywords(line);
     if (!cleanContent) return 0;
     
@@ -538,7 +545,7 @@ export class ParameterScanner {
         }
         
         const expr = content.substring(startPos, i);
-        const fixedMatch = expr.match(/\b(FIX|FIXED)\b/i);
+        const fixedMatchInside = expr.match(/\b(FIX|FIXED)\b/i);
         
         const expression: {
           valueRange: { startChar: number; endChar: number };
@@ -547,12 +554,31 @@ export class ParameterScanner {
           valueRange: { startChar: absStartPos, endChar: absStartPos + expr.length }
         };
         
-        if (fixedMatch && fixedMatch.index !== undefined) {
+        if (fixedMatchInside && fixedMatchInside.index !== undefined) {
           // Has FIXED inside parentheses
           expression.fixedRange = { 
-            startChar: absStartPos + fixedMatch.index, 
-            endChar: absStartPos + fixedMatch.index + fixedMatch[0].length 
+            startChar: absStartPos + fixedMatchInside.index, 
+            endChar: absStartPos + fixedMatchInside.index + fixedMatchInside[0].length 
           };
+        } else {
+          // Check for FIXED keyword after the bounded expression
+          // Skip whitespace after the closing parenthesis
+          let afterParenPos = i;
+          while (afterParenPos < content.length && /\s/.test(content.charAt(afterParenPos))) {
+            afterParenPos++;
+          }
+          
+          // Check for FIXED/FIX keyword after the bounded expression
+          const remainingAfterParen = content.substring(afterParenPos);
+          const fixedMatchAfter = remainingAfterParen.match(/^(FIX|FIXED)\b/i);
+          
+          if (fixedMatchAfter) {
+            expression.fixedRange = {
+              startChar: absStartPos + (afterParenPos - startPos),
+              endChar: absStartPos + (afterParenPos - startPos) + fixedMatchAfter[0].length
+            };
+            i = afterParenPos + fixedMatchAfter[0].length;
+          }
         }
         
         expressions.push(expression);

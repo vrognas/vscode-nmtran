@@ -9697,14 +9697,14 @@ var ParameterValidator = class {
   static validateScannerState(state) {
     const errors = [];
     const warnings = [];
-    if (state.counters.THETA > LIMITS.MAX_THETA) {
-      errors.push(`THETA count ${state.counters.THETA} exceeds maximum ${LIMITS.MAX_THETA}`);
+    if (state.counters.THETA > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`THETA count ${state.counters.THETA} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
-    if (state.counters.ETA > LIMITS.MAX_ETA) {
-      errors.push(`ETA count ${state.counters.ETA} exceeds maximum ${LIMITS.MAX_ETA}`);
+    if (state.counters.ETA > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`ETA count ${state.counters.ETA} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
-    if (state.counters.EPS > LIMITS.MAX_EPS) {
-      errors.push(`EPS count ${state.counters.EPS} exceeds maximum ${LIMITS.MAX_EPS}`);
+    if (state.counters.EPS > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`EPS count ${state.counters.EPS} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
     if (state.inBlockMatrix) {
       if (state.blockMatrixSize <= 0) {
@@ -10205,6 +10205,10 @@ var ParameterScanner = class {
     if (PARAMETER_PATTERNS.SAME.test(line)) {
       return 1;
     }
+    if (blockType === "THETA") {
+      const expressions = this.parseParameterExpressions(line);
+      return expressions.length;
+    }
     const cleanContent = this.removeKeywords(line);
     if (!cleanContent) return 0;
     return this.countNumericValues(cleanContent);
@@ -10305,15 +10309,29 @@ var ParameterScanner = class {
           i++;
         }
         const expr = content.substring(startPos, i);
-        const fixedMatch = expr.match(/\b(FIX|FIXED)\b/i);
+        const fixedMatchInside = expr.match(/\b(FIX|FIXED)\b/i);
         const expression = {
           valueRange: { startChar: absStartPos, endChar: absStartPos + expr.length }
         };
-        if (fixedMatch && fixedMatch.index !== void 0) {
+        if (fixedMatchInside && fixedMatchInside.index !== void 0) {
           expression.fixedRange = {
-            startChar: absStartPos + fixedMatch.index,
-            endChar: absStartPos + fixedMatch.index + fixedMatch[0].length
+            startChar: absStartPos + fixedMatchInside.index,
+            endChar: absStartPos + fixedMatchInside.index + fixedMatchInside[0].length
           };
+        } else {
+          let afterParenPos = i;
+          while (afterParenPos < content.length && /\s/.test(content.charAt(afterParenPos))) {
+            afterParenPos++;
+          }
+          const remainingAfterParen = content.substring(afterParenPos);
+          const fixedMatchAfter = remainingAfterParen.match(/^(FIX|FIXED)\b/i);
+          if (fixedMatchAfter) {
+            expression.fixedRange = {
+              startChar: absStartPos + (afterParenPos - startPos),
+              endChar: absStartPos + (afterParenPos - startPos) + fixedMatchAfter[0].length
+            };
+            i = afterParenPos + fixedMatchAfter[0].length;
+          }
         }
         expressions.push(expression);
       } else {

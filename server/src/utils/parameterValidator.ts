@@ -20,14 +20,14 @@ export class ParameterValidator {
     const warnings: string[] = [];
 
     // Check counter limits
-    if (state.counters.THETA > LIMITS.MAX_THETA) {
-      errors.push(`THETA count ${state.counters.THETA} exceeds maximum ${LIMITS.MAX_THETA}`);
+    if (state.counters.THETA > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`THETA count ${state.counters.THETA} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
-    if (state.counters.ETA > LIMITS.MAX_ETA) {
-      errors.push(`ETA count ${state.counters.ETA} exceeds maximum ${LIMITS.MAX_ETA}`);
+    if (state.counters.ETA > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`ETA count ${state.counters.ETA} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
-    if (state.counters.EPS > LIMITS.MAX_EPS) {
-      errors.push(`EPS count ${state.counters.EPS} exceeds maximum ${LIMITS.MAX_EPS}`);
+    if (state.counters.EPS > LIMITS.MAX_PARAMETER_INDEX) {
+      errors.push(`EPS count ${state.counters.EPS} exceeds maximum ${LIMITS.MAX_PARAMETER_INDEX}`);
     }
 
     // Check block matrix consistency
