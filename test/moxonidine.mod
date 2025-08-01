@@ -50,7 +50,8 @@ $THETA  (0,2.45)             ;TVKA
 $THETA  (0,.140)             ;LAG
 $THETA  (0,.33)              ;RES ERR
 
-$OMEGA  BLOCK(2) 0.0444 0.027 0.0241    ; IIV (CL-V)
+$OMEGA  BLOCK(2) FIX 0.0444
+  0.027 0.0241    ; IIV (CL-V)
 $OMEGA  BLOCK(1) 3.0           ; IIV KA
 
 $OMEGA  BLOCK(1) 0.0165           ; IOV CL
