@@ -24,6 +24,22 @@
       }
     },
     {
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "label": "npm: build",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": ["$tsc"],
+      "options": {
+        "env": {
+          "PATH": "/opt/homebrew/opt/node@20/bin:${env:PATH}"
+        }
+      }
+    },
+    {
       "type": "npm", 
       "script": "vscode:prepublish",
       "group": "build",

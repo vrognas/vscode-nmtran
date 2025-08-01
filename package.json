@@ -104,7 +104,12 @@
         "nmtran.debug.logLevel": {
           "scope": "resource",
           "type": "string",
-          "enum": ["error", "warn", "info", "debug"],
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
           "default": "info",
           "description": "Set the logging level for NMTRAN extension."
         },
@@ -141,7 +146,9 @@
   },
   "scripts": {
     "compile": "tsc -b",
-    "watch": "tsc -b -w",
+    "compile:watch": "tsc -b -w",
+    "bundle": "npm run esbuild",
+    "bundle:watch": "npm run esbuild-base -- --sourcemap --watch",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "test": "vscode-test",
     "test:server": "cd server && npm run test",

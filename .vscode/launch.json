@@ -21,7 +21,7 @@
         "${workspaceFolder}/client/out/**/*.js",
         "${workspaceFolder}/server/out/**/*.js"
       ],
-      "preLaunchTask": "npm: compile",
+      "preLaunchTask": "npm: build",
       "env": {
         "VSCODE_DEBUG_MODE": "true"
       }
