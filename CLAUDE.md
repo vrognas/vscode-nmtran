@@ -116,3 +116,5 @@ The extension supports these NMTRAN file extensions: `.mod`, `.ctl`, `.lst`, `.m
 - The language server validates control records against a predefined list in `constants.ts`
 - Hover information is maintained in `hoverInfo.ts` with detailed explanations for each control record
 - The extension uses VSCode's Language Server Protocol for optimal performance and separation of concerns
+- IMPORTANT: We're doing test-driven development so avoid mock implementations, even for functionality that doesn’t exist yet in the codebase.
+- IMPORTANT: Make a plan before coding. DO NOT code until you've got confirmation that the plan looks good.
