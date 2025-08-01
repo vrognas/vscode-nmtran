@@ -5,8 +5,15 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -24,6 +31,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // server/node_modules/vscode-languageserver/lib/common/utils/is.js
 var require_is = __commonJS({
@@ -8875,6 +8883,157 @@ var require_node3 = __commonJS({
   }
 });
 
+// server/src/utils/NMTRANMatrixParser.ts
+var NMTRANMatrixParser_exports = {};
+__export(NMTRANMatrixParser_exports, {
+  NMTRANMatrixParser: () => NMTRANMatrixParser
+});
+var NMTRANMatrixParser;
+var init_NMTRANMatrixParser = __esm({
+  "server/src/utils/NMTRANMatrixParser.ts"() {
+    "use strict";
+    NMTRANMatrixParser = class {
+      /**
+       * Calculate the position of diagonal elements in a lower triangular matrix
+       * stored as a flattened array.
+       * 
+       * For a BLOCK(n) matrix, diagonal elements are at positions:
+       * - (1,1): position 0
+       * - (2,2): position 2
+       * - (3,3): position 5
+       * - (4,4): position 9
+       * - etc.
+       * 
+       * @param paramIndex The parameter index (1-based)
+       * @returns The array position of the diagonal element
+       */
+      static getDiagonalPosition(paramIndex) {
+        return paramIndex * (paramIndex + 1) / 2 - 1;
+      }
+      /**
+       * Parse a BLOCK matrix line and extract all numeric values
+       * @param line The line containing BLOCK matrix values
+       * @returns Array of numeric values found
+       */
+      static parseBlockValues(line) {
+        const codePartEnd = line.indexOf(";");
+        const codePart = codePartEnd !== -1 ? line.substring(0, codePartEnd) : line;
+        let contentPart = codePart.replace(/^\s*\$\w+\s*/i, "");
+        contentPart = contentPart.replace(/^BLOCK\(\d+\)\s*/i, "");
+        const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+        const values = [];
+        let match;
+        while ((match = numericPattern.exec(contentPart)) !== null) {
+          values.push(match[0]);
+        }
+        return values;
+      }
+      /**
+       * Extract diagonal elements from a BLOCK matrix
+       * @param blockSize The size of the BLOCK matrix
+       * @param values All values in the lower triangular matrix
+       * @returns Array of diagonal elements
+       */
+      static extractDiagonalElements(blockSize, values) {
+        const diagonals = [];
+        for (let i = 1; i <= blockSize; i++) {
+          const pos = this.getDiagonalPosition(i);
+          if (pos < values.length && values[pos] !== void 0) {
+            diagonals.push(values[pos]);
+          }
+        }
+        return diagonals;
+      }
+      /**
+       * Determine if a given position in a flattened array represents a diagonal element
+       * @param position Position in the flattened array
+       * @returns The parameter index if diagonal, null otherwise
+       */
+      static isDiagonalElement(position) {
+        if (position === 0) return 1;
+        if (position === 2) return 2;
+        if (position === 5) return 3;
+        if (position === 9) return 4;
+        if (position === 14) return 5;
+        for (let n = 1; n <= 20; n++) {
+          if (this.getDiagonalPosition(n) === position) {
+            return n;
+          }
+        }
+        return null;
+      }
+      /**
+       * Calculate the total number of elements in a lower triangular matrix
+       * @param size The size of the square matrix
+       * @returns Total number of elements including diagonal
+       */
+      static getTriangularMatrixSize(size) {
+        return size * (size + 1) / 2;
+      }
+      /**
+       * Convert a flat array position to matrix coordinates
+       * @param position Position in flattened array
+       * @returns Matrix coordinates (1-based) or null if invalid
+       */
+      static getMatrixCoordinates(position) {
+        let row = 1;
+        let elementsBeforeRow = 0;
+        while (elementsBeforeRow + row <= position) {
+          elementsBeforeRow += row;
+          row++;
+        }
+        const col = position - elementsBeforeRow + 1;
+        return {
+          arrayIndex: position,
+          matrixRow: row,
+          matrixCol: col
+        };
+      }
+      /**
+       * Parse a complete NMTRAN matrix block (potentially multi-line)
+       * @param lines Array of lines containing the matrix definition
+       * @param startLine The line index where the BLOCK starts
+       * @returns Parsed matrix information
+       */
+      static parseMatrixBlock(lines, startLine) {
+        const firstLine = lines[startLine];
+        if (!firstLine) return null;
+        const blockMatch = firstLine.match(/BLOCK\((\d+)\)/i);
+        if (!blockMatch || !blockMatch[1]) return null;
+        const blockSize = parseInt(blockMatch[1], 10);
+        const expectedElements = this.getTriangularMatrixSize(blockSize);
+        const values = [];
+        const inlineValues = this.parseBlockValues(firstLine);
+        values.push(...inlineValues);
+        let currentLine = startLine + 1;
+        while (values.length < expectedElements && currentLine < lines.length) {
+          const line = lines[currentLine];
+          if (!line || line.trim().startsWith("$")) break;
+          const lineValues = this.parseBlockValues(line);
+          values.push(...lineValues);
+          currentLine++;
+        }
+        return {
+          blockSize,
+          values,
+          diagonalElements: this.extractDiagonalElements(blockSize, values),
+          endLine: currentLine - 1
+        };
+      }
+      /**
+       * Validate that a BLOCK matrix has the correct number of elements
+       * @param blockSize The declared size of the BLOCK
+       * @param values The values found
+       * @returns True if valid, false otherwise
+       */
+      static validateBlockMatrix(blockSize, values) {
+        const expected = this.getTriangularMatrixSize(blockSize);
+        return values.length === expected;
+      }
+    };
+  }
+});
+
 // server/src/server.ts
 var import_node5 = __toESM(require_node3());
 
@@ -9543,7 +9702,10 @@ var FormattingService = class _FormattingService {
       const text = document.getText();
       const lines = text.split("\n");
       const edits = [];
+      const baseIndent = " ".repeat(indentSize);
+      const continuationIndent = baseIndent;
       let currentIndentLevel = 0;
+      let inContinuation = false;
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (!line) continue;
@@ -9671,7 +9833,497 @@ var CompletionService = class {
 };
 
 // server/src/services/definitionService.ts
+init_NMTRANMatrixParser();
+
+// server/src/constants/parameters.ts
+var PARAMETER_TYPES = {
+  THETA: "THETA",
+  ETA: "ETA",
+  EPS: "EPS"
+};
+
+// server/src/factories/parameterFactory.ts
+var ParameterFactory = class {
+  /**
+   * Create a new parameter location
+   */
+  static createLocation(type, index, line, startChar, endChar) {
+    const location = {
+      type: PARAMETER_TYPES[type],
+      index,
+      line
+    };
+    if (startChar !== void 0) {
+      location.startChar = startChar;
+    }
+    if (endChar !== void 0) {
+      location.endChar = endChar;
+    }
+    return location;
+  }
+  /**
+   * Create initial scanner state
+   */
+  static createScannerState() {
+    return {
+      currentBlockType: null,
+      inBlockMatrix: false,
+      blockMatrixRemaining: 0,
+      blockMatrixSize: 0,
+      blockElementsSeen: 0,
+      blockDiagonalsSeen: 0,
+      blockElements: [],
+      counters: {
+        THETA: 0,
+        ETA: 0,
+        EPS: 0
+      }
+    };
+  }
+  /**
+   * Reset block-related state
+   */
+  static resetBlockState(state) {
+    state.inBlockMatrix = false;
+    state.blockMatrixRemaining = 0;
+    state.blockMatrixSize = 0;
+    state.blockElementsSeen = 0;
+    state.blockDiagonalsSeen = 0;
+    state.blockElements = [];
+  }
+};
+
+// server/src/services/ParameterScanner.ts
 var PARAMETER_PATTERNS = {
+  THETA: /^\$THETA(\s|$)/i,
+  OMEGA: /^\$OMEGA(\s|$)/i,
+  SIGMA: /^\$SIGMA(\s|$)/i,
+  BLOCK: /BLOCK\((\d+)\)/i,
+  SAME: /\bSAME\b/i,
+  NUMERIC: /[\d\-+][\d\-+.eE]*/g,
+  CONTROL_RECORD: /^\s*\$\w+\s*/i,
+  COMMENT: /;.*$/
+};
+var ParameterScanner = class {
+  /**
+   * Scan document for all parameter definitions
+   */
+  static scanDocument(document) {
+    const locations = [];
+    const lines = document.getText().split("\n");
+    const state = ParameterFactory.createScannerState();
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      const trimmed = line.trim();
+      if (this.shouldSkipLine(trimmed)) continue;
+      this.updateStateForControlRecord(trimmed, state);
+      if (state.currentBlockType) {
+        const lineLocations = this.processParameterLine(
+          line,
+          lineNum,
+          state,
+          document
+        );
+        locations.push(...lineLocations);
+      }
+    }
+    return locations;
+  }
+  /**
+   * Check if line should be skipped
+   */
+  static shouldSkipLine(trimmed) {
+    return trimmed.startsWith(";") || trimmed.length === 0;
+  }
+  /**
+   * Update scanner state based on control record
+   */
+  static updateStateForControlRecord(trimmed, state) {
+    if (PARAMETER_PATTERNS.THETA.test(trimmed)) {
+      state.currentBlockType = "THETA";
+      state.inBlockMatrix = false;
+      state.blockMatrixRemaining = 0;
+    } else if (PARAMETER_PATTERNS.OMEGA.test(trimmed)) {
+      state.currentBlockType = "ETA";
+      const matrixState = this.detectBlockMatrix(trimmed);
+      state.inBlockMatrix = matrixState.inBlockMatrix;
+      state.blockMatrixRemaining = matrixState.blockMatrixRemaining;
+      const blockMatch = trimmed.match(PARAMETER_PATTERNS.BLOCK);
+      state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
+      state.blockElementsSeen = 0;
+      state.blockDiagonalsSeen = 0;
+    } else if (PARAMETER_PATTERNS.SIGMA.test(trimmed)) {
+      state.currentBlockType = "EPS";
+      const matrixState = this.detectBlockMatrix(trimmed);
+      state.inBlockMatrix = matrixState.inBlockMatrix;
+      state.blockMatrixRemaining = matrixState.blockMatrixRemaining;
+      const blockMatch = trimmed.match(PARAMETER_PATTERNS.BLOCK);
+      state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
+      state.blockElementsSeen = 0;
+      state.blockDiagonalsSeen = 0;
+    } else if (trimmed.startsWith("$")) {
+      state.currentBlockType = null;
+      state.inBlockMatrix = false;
+      state.blockMatrixRemaining = 0;
+    }
+  }
+  /**
+   * Detect BLOCK matrix from line
+   */
+  static detectBlockMatrix(line) {
+    const blockMatch = line.match(PARAMETER_PATTERNS.BLOCK);
+    if (blockMatch && blockMatch[1]) {
+      const blockSize = parseInt(blockMatch[1], 10);
+      if (blockSize === 1) {
+        return {
+          inBlockMatrix: false,
+          blockMatrixRemaining: 0
+        };
+      }
+      return {
+        inBlockMatrix: true,
+        blockMatrixRemaining: blockSize
+      };
+    }
+    return {
+      inBlockMatrix: false,
+      blockMatrixRemaining: 0
+    };
+  }
+  /**
+   * Check if line has inline values after BLOCK declaration
+   */
+  static hasInlineValues(line) {
+    const afterBlock = line.replace(/^\s*\$\w+\s+BLOCK\(\d+\)\s*/i, "");
+    return afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+  }
+  /**
+   * Process a line containing parameters
+   */
+  static processParameterLine(line, lineNum, state, document) {
+    const locations = [];
+    const trimmed = line.trim();
+    const paramCount = this.countParametersOnLine(trimmed, state);
+    let allValuesOnLine = [];
+    if (state.inBlockMatrix) {
+      const cleanLine = trimmed.replace(PARAMETER_PATTERNS.CONTROL_RECORD, "").replace(/BLOCK\(\d+\)\s*/i, "").replace(PARAMETER_PATTERNS.COMMENT, "");
+      const matches = cleanLine.match(PARAMETER_PATTERNS.NUMERIC);
+      allValuesOnLine = matches || [];
+    }
+    if (state.inBlockMatrix && allValuesOnLine.length > 0) {
+      const startElementIndex = state.blockElementsSeen;
+      let valuesProcessed = 0;
+      for (let i = 0; i < paramCount; i++) {
+        const blockType = state.currentBlockType;
+        if (!blockType) continue;
+        state.counters[blockType]++;
+        const location = {
+          type: blockType,
+          index: state.counters[blockType],
+          line: lineNum
+        };
+        const diagonalWithinBlock = state.blockDiagonalsSeen + i + 1;
+        const { NMTRANMatrixParser: NMTRANMatrixParser2 } = (init_NMTRANMatrixParser(), __toCommonJS(NMTRANMatrixParser_exports));
+        const diagonalElementPosition = NMTRANMatrixParser2.getDiagonalPosition(diagonalWithinBlock);
+        const positionOnLine = diagonalElementPosition - startElementIndex;
+        if (positionOnLine >= 0 && positionOnLine < allValuesOnLine.length) {
+          const targetValue = allValuesOnLine[positionOnLine];
+          if (targetValue) {
+            const cleanLine = line.replace(/;.*$/, "");
+            const prevValue = positionOnLine > 0 ? allValuesOnLine[positionOnLine - 1] : void 0;
+            const searchStart = prevValue ? cleanLine.lastIndexOf(prevValue) : 0;
+            const valueStart = cleanLine.indexOf(targetValue, searchStart);
+            if (valueStart !== -1) {
+              location.startChar = valueStart;
+              location.endChar = valueStart + targetValue.length;
+            }
+          }
+        }
+        locations.push(location);
+        valuesProcessed++;
+      }
+      state.blockElementsSeen += allValuesOnLine.length;
+    } else {
+      for (let i = 0; i < paramCount; i++) {
+        const blockType = state.currentBlockType;
+        if (!blockType) continue;
+        state.counters[blockType]++;
+        const location = {
+          type: blockType,
+          index: state.counters[blockType],
+          line: lineNum
+        };
+        const valuePosition = this.findParameterValuePosition(
+          line,
+          lineNum,
+          blockType,
+          1,
+          false,
+          i + 1,
+          document
+        );
+        if (valuePosition) {
+          location.startChar = valuePosition.start;
+          location.endChar = valuePosition.end;
+        }
+        locations.push(location);
+      }
+    }
+    if (state.inBlockMatrix) {
+      state.blockDiagonalsSeen += paramCount;
+      state.blockMatrixRemaining -= paramCount;
+      if (state.blockMatrixRemaining <= 0) {
+        state.inBlockMatrix = false;
+        state.blockElementsSeen = 0;
+        state.blockDiagonalsSeen = 0;
+      }
+    }
+    return locations;
+  }
+  /**
+   * Count parameters on a line based on current state
+   */
+  static countParametersOnLine(trimmed, state) {
+    if (state.inBlockMatrix && state.blockMatrixRemaining > 0) {
+      return this.countBlockMatrixParameters(trimmed, state);
+    } else {
+      return this.countRegularParameters(trimmed, state.currentBlockType);
+    }
+  }
+  /**
+   * Count parameters in a BLOCK matrix context
+   */
+  static countBlockMatrixParameters(trimmed, state) {
+    if (trimmed.match(PARAMETER_PATTERNS.BLOCK)) {
+      if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
+        return 1;
+      } else {
+        const afterBlock = trimmed.replace(/^\$OMEGA\s+BLOCK\(\d+\)\s*/i, "").replace(/^\$SIGMA\s+BLOCK\(\d+\)\s*/i, "");
+        const hasValues = afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+        if (hasValues) {
+          const numValues = this.countNumericValues(afterBlock);
+          return Math.min(state.blockMatrixRemaining, numValues);
+        }
+        return 0;
+      }
+    } else {
+      return 1;
+    }
+  }
+  /**
+   * Count regular (non-matrix) parameters
+   */
+  static countRegularParameters(line, blockType) {
+    if (!blockType) return 0;
+    if (PARAMETER_PATTERNS.SAME.test(line)) {
+      return 1;
+    }
+    const cleanContent = this.removeKeywords(line);
+    if (!cleanContent) return 0;
+    return this.countNumericValues(cleanContent);
+  }
+  /**
+   * Remove keywords from parameter line
+   */
+  static removeKeywords(line) {
+    const commentIndex = line.indexOf(";");
+    const contentPart = commentIndex !== -1 ? line.substring(0, commentIndex) : line;
+    let cleanedPrefix = contentPart.replace(/^\s*\$\w+\s*/i, "");
+    cleanedPrefix = cleanedPrefix.replace(/^BLOCK\(\d+\)\s*/i, "");
+    return cleanedPrefix.replace(/\b(FIX|FIXED|STANDARD|VARIANCE|CORRELATION|CHOLESKY|DIAGONAL|SAME|VALUES|NAMES)\b/gi, "").trim();
+  }
+  /**
+   * Count numeric values in a string
+   */
+  static countNumericValues(content) {
+    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+    const matches = content.match(numericPattern);
+    return matches ? matches.length : 0;
+  }
+  /**
+   * Find the position of a parameter value
+   * Delegates to appropriate finder based on parameter type
+   */
+  static findParameterValuePosition(line, lineNum, paramType, paramIndex, inBlockMatrix, positionInLine, document) {
+    const trimmed = line.trim();
+    if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
+      const match = trimmed.match(PARAMETER_PATTERNS.SAME);
+      if (match && match.index !== void 0) {
+        const start = line.indexOf(match[0]);
+        return {
+          start,
+          end: start + match[0].length
+        };
+      }
+    }
+    let searchText = trimmed;
+    const controlMatch = searchText.match(/^\s*\$\w+\s*/i);
+    if (controlMatch) {
+      searchText = searchText.substring(controlMatch[0].length);
+    }
+    const blockMatch = searchText.match(/^BLOCK\(\d+\)\s*/i);
+    if (blockMatch) {
+      searchText = searchText.substring(blockMatch[0].length);
+    }
+    const commentIndex = searchText.indexOf(";");
+    if (commentIndex !== -1) {
+      searchText = searchText.substring(0, commentIndex);
+    }
+    if (inBlockMatrix) {
+      const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+      const matches = [];
+      let match;
+      while ((match = numericPattern.exec(searchText)) !== null) {
+        matches.push({
+          value: match[0],
+          index: match.index
+        });
+      }
+      const targetPosition = matches.length === 1 ? 0 : paramIndex - 1;
+      if (matches.length > targetPosition && targetPosition >= 0) {
+        const targetMatch = matches[targetPosition];
+        if (targetMatch) {
+          const numericValue = targetMatch.value;
+          const absoluteStart = line.indexOf(numericValue, targetMatch.index > 0 ? line.indexOf(searchText) : 0);
+          if (absoluteStart !== -1) {
+            return {
+              start: absoluteStart,
+              end: absoluteStart + numericValue.length
+            };
+          }
+        }
+      }
+    } else {
+      const numericPattern = /[\d\-+][\d\-+.eE]*/;
+      const match = searchText.match(numericPattern);
+      if (match && match.index !== void 0) {
+        const numericValue = match[0];
+        const absoluteStart = line.indexOf(numericValue);
+        if (absoluteStart !== -1) {
+          return {
+            start: absoluteStart,
+            end: absoluteStart + numericValue.length
+          };
+        }
+      }
+    }
+    return null;
+  }
+};
+
+// server/src/utils/performanceMonitor.ts
+var PerformanceMonitor = class {
+  constructor(connection2) {
+    this.connection = connection2;
+    this.metrics = [];
+    this.maxMetrics = 1e3;
+    this.enabled = process.env.NODE_ENV === "development";
+  }
+  /**
+   * Measure the performance of an operation
+   */
+  async measure(operation, fn, metadata) {
+    if (!this.enabled) {
+      return fn();
+    }
+    const startTime = performance.now();
+    try {
+      const result = await fn();
+      const duration = performance.now() - startTime;
+      const metric = {
+        operation,
+        duration,
+        timestamp: /* @__PURE__ */ new Date()
+      };
+      if (metadata) {
+        metric.metadata = metadata;
+      }
+      this.recordMetric(metric);
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      this.recordMetric({
+        operation,
+        duration,
+        timestamp: /* @__PURE__ */ new Date(),
+        metadata: { ...metadata, error: true }
+      });
+      throw error;
+    }
+  }
+  /**
+   * Record a performance metric locally
+   */
+  recordMetric(metric) {
+    this.metrics.push(metric);
+    if (this.metrics.length > this.maxMetrics) {
+      this.metrics.shift();
+    }
+    if (metric.duration > 100) {
+      this.connection.console.warn(
+        `\u26A0\uFE0F Slow operation: ${metric.operation} took ${metric.duration.toFixed(2)}ms`
+      );
+    }
+  }
+  /**
+   * Get performance statistics (local only)
+   */
+  getStats(operation) {
+    const relevantMetrics = operation ? this.metrics.filter((m) => m.operation === operation) : this.metrics;
+    if (relevantMetrics.length === 0) {
+      return {
+        count: 0,
+        avgDuration: 0,
+        minDuration: 0,
+        maxDuration: 0,
+        p95Duration: 0
+      };
+    }
+    const durations = relevantMetrics.map((m) => m.duration).sort((a, b) => a - b);
+    const sum = durations.reduce((a, b) => a + b, 0);
+    const p95Index = Math.floor(durations.length * 0.95);
+    return {
+      count: durations.length,
+      avgDuration: sum / durations.length,
+      minDuration: durations[0],
+      maxDuration: durations[durations.length - 1],
+      p95Duration: durations[p95Index]
+    };
+  }
+  /**
+   * Log current statistics to console (development only)
+   */
+  logStats() {
+    if (!this.enabled) return;
+    const operations = new Set(this.metrics.map((m) => m.operation));
+    this.connection.console.log("\u{1F4CA} Performance Statistics:");
+    for (const op of operations) {
+      const stats = this.getStats(op);
+      this.connection.console.log(
+        `  ${op}: ${stats.count} calls, avg ${stats.avgDuration.toFixed(2)}ms, p95 ${stats.p95Duration.toFixed(2)}ms`
+      );
+    }
+  }
+  /**
+   * Clear all metrics
+   */
+  clear() {
+    this.metrics = [];
+  }
+  /**
+   * Enable/disable performance monitoring
+   */
+  setEnabled(enabled) {
+    this.enabled = enabled;
+    if (!enabled) {
+      this.clear();
+    }
+  }
+};
+
+// server/src/services/definitionService.ts
+var PARAMETER_PATTERNS2 = {
   THETA: /^\$THETA(\s|$)/i,
   OMEGA: /^\$OMEGA(\s|$)/i,
   SIGMA: /^\$SIGMA(\s|$)/i,
@@ -9680,11 +10332,12 @@ var PARAMETER_PATTERNS = {
   PARAMETER_USAGE_SOURCE: "\\b(THETA|ETA|EPS)\\((\\d+)\\)"
   // Source pattern without flags
 };
-var createParameterUsageRegex = () => new RegExp(PARAMETER_PATTERNS.PARAMETER_USAGE_SOURCE, "gi");
+var createParameterUsageRegex = () => new RegExp(PARAMETER_PATTERNS2.PARAMETER_USAGE_SOURCE, "gi");
 var DefinitionService = class {
   constructor(connection2) {
     this.scanCache = /* @__PURE__ */ new Map();
     this.connection = connection2;
+    this.performanceMonitor = new PerformanceMonitor(connection2);
   }
   /**
    * Provides definition location for NMTRAN parameters
@@ -9693,18 +10346,24 @@ var DefinitionService = class {
    * EPS(1) → jumps to line defining 1st EPS parameter
    * For SAME constraints, shows both the SAME line and the referenced value
    */
-  provideDefinition(document, position) {
-    try {
-      const parameter = this.getParameterAtPosition(document, position);
-      if (!parameter) {
-        return null;
-      }
-      const definitionLocations = this.findAllDefinitionLocations(document, parameter);
-      return definitionLocations.length > 0 ? definitionLocations : null;
-    } catch (error) {
-      this.connection.console.error(`\u274C Error in definition provider: ${error}`);
-      return null;
-    }
+  async provideDefinition(document, position) {
+    return this.performanceMonitor.measure(
+      "provideDefinition",
+      async () => {
+        try {
+          const parameter = this.getParameterAtPosition(document, position);
+          if (!parameter) {
+            return null;
+          }
+          const definitionLocations = this.findAllDefinitionLocations(document, parameter);
+          return definitionLocations.length > 0 ? definitionLocations : null;
+        } catch (error) {
+          this.connection.console.error(`\u274C Error in definition provider: ${error}`);
+          return null;
+        }
+      },
+      { documentUri: document.uri, position }
+    );
   }
   /**
    * Provides all reference locations for NMTRAN parameters
@@ -9763,83 +10422,8 @@ var DefinitionService = class {
     if (cached) {
       return cached;
     }
-    const locations = [];
-    const lines = document.getText().split("\n");
-    let currentBlockType = null;
-    let inBlockMatrix = false;
-    let blockMatrixRemaining = 0;
-    const counters = { THETA: 0, ETA: 0, EPS: 0 };
-    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-      const line = lines[lineNum];
-      if (!line) continue;
-      const trimmed = line.trim();
-      if (trimmed.startsWith(";") || trimmed.length === 0) continue;
-      if (PARAMETER_PATTERNS.THETA.test(trimmed)) {
-        currentBlockType = "THETA";
-        inBlockMatrix = false;
-        blockMatrixRemaining = 0;
-      } else if (PARAMETER_PATTERNS.OMEGA.test(trimmed)) {
-        currentBlockType = "ETA";
-        this.handleBlockMatrixDetection(trimmed, (state) => {
-          inBlockMatrix = state.inBlockMatrix;
-          blockMatrixRemaining = state.blockMatrixRemaining;
-        });
-      } else if (PARAMETER_PATTERNS.SIGMA.test(trimmed)) {
-        currentBlockType = "EPS";
-        this.handleBlockMatrixDetection(trimmed, (state) => {
-          inBlockMatrix = state.inBlockMatrix;
-          blockMatrixRemaining = state.blockMatrixRemaining;
-        });
-      } else if (trimmed.startsWith("$")) {
-        currentBlockType = null;
-        inBlockMatrix = false;
-        blockMatrixRemaining = 0;
-      }
-      if (currentBlockType) {
-        let paramCount = 0;
-        if (inBlockMatrix && blockMatrixRemaining > 0) {
-          if (trimmed.match(PARAMETER_PATTERNS.BLOCK)) {
-            if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
-              paramCount = 1;
-              blockMatrixRemaining--;
-              if (blockMatrixRemaining === 0) {
-                inBlockMatrix = false;
-              }
-            } else {
-              paramCount = 0;
-            }
-          } else {
-            paramCount = 1;
-            blockMatrixRemaining--;
-            if (blockMatrixRemaining === 0) {
-              inBlockMatrix = false;
-            }
-          }
-        } else {
-          paramCount = this.countParametersInLine(trimmed, currentBlockType);
-        }
-        for (let i = 0; i < paramCount; i++) {
-          counters[currentBlockType]++;
-          const location = {
-            type: currentBlockType,
-            index: counters[currentBlockType],
-            line: lineNum
-          };
-          let valuePosition;
-          if (currentBlockType === "THETA") {
-            const paramPosition = i + 1;
-            valuePosition = this.findThetaInitialValue(line, paramPosition);
-          } else {
-            valuePosition = this.findOmegaParameterValue(document, lineNum, counters[currentBlockType], inBlockMatrix);
-          }
-          if (valuePosition) {
-            location.startChar = valuePosition.start;
-            location.endChar = valuePosition.end;
-          }
-          locations.push(location);
-        }
-      }
-    }
+    const locations = ParameterScanner.scanDocument(document);
+    this.enhanceLocationsWithValuePositions(document, locations);
     this.scanCache.set(cacheKey, locations);
     if (this.scanCache.size > 50) {
       const firstKey = this.scanCache.keys().next().value;
@@ -9848,6 +10432,83 @@ var DefinitionService = class {
       }
     }
     return locations;
+  }
+  /**
+   * Enhance parameter locations with precise value positions
+   * This is the refactored logic that was previously inline
+   */
+  enhanceLocationsWithValuePositions(document, locations) {
+    const lines = document.getText().split("\n");
+    for (const location of locations) {
+      if (location.startChar !== void 0 && location.endChar !== void 0) {
+        continue;
+      }
+      const line = lines[location.line];
+      if (!line) continue;
+      let valuePosition;
+      if (location.type === "THETA") {
+        const paramPosition = this.getParameterPositionInLine(document, location.line, location.index, "THETA");
+        valuePosition = this.findThetaInitialValue(line, paramPosition);
+      } else {
+        const paramPositionInBlock = this.calculateParameterPositionInBlock(document, location.line, location.index);
+        valuePosition = this.findOmegaParameterValue(
+          document,
+          location.line,
+          paramPositionInBlock,
+          false
+          // Let findOmegaParameterValue determine block matrix state internally
+        );
+      }
+      if (valuePosition) {
+        location.startChar = valuePosition.start;
+        location.endChar = valuePosition.end;
+      }
+    }
+  }
+  /**
+   * Get the position of a parameter within its definition line
+   * For multi-parameter lines, determines which parameter on the line this refers to
+   */
+  getParameterPositionInLine(document, lineNum, paramIndex, paramType) {
+    const allParams = this.scanAllParameters(document);
+    const sameTypeParams = allParams.filter(
+      (param) => param.type === paramType && param.line <= lineNum
+    );
+    const paramsOnThisLine = sameTypeParams.filter((param) => param.line === lineNum);
+    for (let i = 0; i < paramsOnThisLine.length; i++) {
+      if (paramsOnThisLine[i]?.index === paramIndex) {
+        return i + 1;
+      }
+    }
+    return 1;
+  }
+  /**
+   * Calculate the position of a parameter within its BLOCK
+   * For BLOCK(1), always returns 1
+   * For BLOCK(n), calculates which diagonal position this parameter represents
+   */
+  calculateParameterPositionInBlock(document, lineNum, globalParamIndex) {
+    const lines = document.getText().split("\n");
+    const line = lines[lineNum];
+    if (!line) return 1;
+    const trimmed = line.trim();
+    const blockMatch = trimmed.match(PARAMETER_PATTERNS2.BLOCK);
+    if (blockMatch && blockMatch[1]) {
+      const blockSize = parseInt(blockMatch[1], 10);
+      if (blockSize === 1) {
+        return 1;
+      } else {
+        const allParams = this.scanAllParameters(document);
+        const blockStartParam = allParams.find(
+          (param) => param.line === lineNum && param.type === "ETA"
+        );
+        if (blockStartParam) {
+          const positionInBlock = globalParamIndex - blockStartParam.index + 1;
+          return positionInBlock;
+        }
+      }
+    }
+    return 1;
   }
   /**
    * Find the character position of the diagonal element in a BLOCK matrix line
@@ -9878,13 +10539,40 @@ var DefinitionService = class {
     return null;
   }
   /**
+   * Find diagonal element in a text string with a given offset
+   * Similar to findDiagonalElementPosition but works on a substring
+   */
+  findDiagonalElementInText(text, paramIndex, startOffset) {
+    const codePartEnd = text.indexOf(";");
+    const codePart = codePartEnd !== -1 ? text.substring(0, codePartEnd) : text;
+    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+    const matches = [];
+    let match;
+    while ((match = numericPattern.exec(codePart)) !== null) {
+      matches.push({
+        value: match[0],
+        start: match.index + startOffset,
+        end: match.index + match[0].length + startOffset
+      });
+    }
+    const diagonalPosition = NMTRANMatrixParser.getDiagonalPosition(paramIndex);
+    if (matches.length > diagonalPosition) {
+      const diagonalMatch = matches[diagonalPosition];
+      if (diagonalMatch) {
+        return { start: diagonalMatch.start, end: diagonalMatch.end };
+      }
+    }
+    return null;
+  }
+  /**
    * Find the character position of a parameter value in a regular OMEGA/SIGMA line
    * For the nth parameter on a line, find the nth numeric value
    */
   findParameterValuePosition(line, paramPosition) {
     const codePartEnd = line.indexOf(";");
     const codePart = codePartEnd !== -1 ? line.substring(0, codePartEnd) : line;
-    const contentPart = codePart.replace(/^\s*\$\w+\s*/i, "");
+    let contentPart = codePart.replace(/^\s*\$\w+\s*/i, "");
+    contentPart = contentPart.replace(/^BLOCK\(\d+\)\s*/i, "");
     const numericPattern = /[\d\-+][\d\-+.eE]*/g;
     const matches = [];
     let match;
@@ -9895,6 +10583,16 @@ var DefinitionService = class {
         start: match.index + searchOffset,
         end: match.index + match[0].length + searchOffset
       });
+    }
+    const isBlockLine = /BLOCK\(\d+\)/i.test(codePart);
+    if (isBlockLine) {
+      const diagonalPosition = NMTRANMatrixParser.getDiagonalPosition(paramPosition);
+      if (matches.length > diagonalPosition) {
+        const diagonalMatch = matches[diagonalPosition];
+        if (diagonalMatch) {
+          return { start: diagonalMatch.start, end: diagonalMatch.end };
+        }
+      }
     }
     if (matches.length >= paramPosition && paramPosition > 0) {
       const targetMatch = matches[paramPosition - 1];
@@ -10018,28 +10716,37 @@ var DefinitionService = class {
     const line = lines[lineNum];
     if (!line) return null;
     const trimmed = line.trim();
-    if (PARAMETER_PATTERNS.SAME.test(trimmed)) {
+    if (inBlockMatrix === void 0) {
+      inBlockMatrix = PARAMETER_PATTERNS2.BLOCK.test(trimmed);
+    }
+    if (PARAMETER_PATTERNS2.SAME.test(trimmed)) {
       return this.findSameKeywordPosition(line);
     }
-    if (PARAMETER_PATTERNS.BLOCK.test(trimmed) && inBlockMatrix) {
-      for (let i = lineNum + 1; i < lines.length; i++) {
-        const nextLine = lines[i];
-        if (!nextLine) continue;
-        const nextTrimmed = nextLine.trim();
-        if (nextTrimmed.startsWith(";") || nextTrimmed.length === 0) continue;
-        if (nextTrimmed.startsWith("$")) break;
-        return this.findDiagonalElementPosition(nextLine, paramIndex);
+    if (PARAMETER_PATTERNS2.BLOCK.test(trimmed)) {
+      const afterBlock = trimmed.replace(/^\$OMEGA\s+BLOCK\(\d+\)\s*/i, "").replace(/^\$SIGMA\s+BLOCK\(\d+\)\s*/i, "");
+      const hasInlineValues = afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+      if (hasInlineValues) {
+        const blockStartIndex = line.indexOf(afterBlock.trim());
+        return this.findDiagonalElementInText(afterBlock, paramIndex, blockStartIndex);
+      } else if (inBlockMatrix) {
+        for (let i = lineNum + 1; i < lines.length; i++) {
+          const nextLine = lines[i];
+          if (!nextLine) continue;
+          const nextTrimmed = nextLine.trim();
+          if (nextTrimmed.startsWith(";") || nextTrimmed.length === 0) continue;
+          if (nextTrimmed.startsWith("$")) break;
+          return this.findDiagonalElementPosition(nextLine, paramIndex);
+        }
+        return null;
       }
-      return null;
     }
-    const paramPosition = inBlockMatrix ? paramIndex : 1;
-    return this.findParameterValuePosition(line, paramPosition);
+    return this.findParameterValuePosition(line, 1);
   }
   /**
    * Find the position of the SAME keyword in a line
    */
   findSameKeywordPosition(line) {
-    const match = line.match(PARAMETER_PATTERNS.SAME);
+    const match = line.match(PARAMETER_PATTERNS2.SAME);
     if (match && match.index !== void 0) {
       return {
         start: match.index,
@@ -10146,21 +10853,37 @@ var DefinitionService = class {
       const trimmed = line.trim();
       if (trimmed.startsWith(";") || trimmed.length === 0) continue;
       if (/^\$OMEGA.*BLOCK\(\d+\)/i.test(trimmed) && !/\bSAME\b/i.test(trimmed)) {
-        for (let j = i + 1; j < lines.length; j++) {
-          const nextLine = lines[j];
-          if (!nextLine) continue;
-          const nextTrimmed = nextLine.trim();
-          if (nextTrimmed.startsWith(";") || nextTrimmed.length === 0) continue;
-          if (nextTrimmed.startsWith("$")) break;
-          const valuePosition = this.findDiagonalElementPosition(nextLine, 1);
+        const afterBlock = trimmed.replace(/^\$OMEGA\s+BLOCK\(\d+\)\s*/i, "");
+        const hasInlineValues = afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
+        if (hasInlineValues) {
+          const blockStartIndex = line.indexOf(afterBlock.trim());
+          const valuePosition = this.findDiagonalElementInText(afterBlock, 1, blockStartIndex);
           if (valuePosition) {
             return {
               uri: document.uri,
               range: {
-                start: { line: j, character: valuePosition.start },
-                end: { line: j, character: valuePosition.end }
+                start: { line: i, character: valuePosition.start },
+                end: { line: i, character: valuePosition.end }
               }
             };
+          }
+        } else {
+          for (let j = i + 1; j < lines.length; j++) {
+            const nextLine = lines[j];
+            if (!nextLine) continue;
+            const nextTrimmed = nextLine.trim();
+            if (nextTrimmed.startsWith(";") || nextTrimmed.length === 0) continue;
+            if (nextTrimmed.startsWith("$")) break;
+            const valuePosition = this.findDiagonalElementPosition(nextLine, 1);
+            if (valuePosition) {
+              return {
+                uri: document.uri,
+                range: {
+                  start: { line: j, character: valuePosition.start },
+                  end: { line: j, character: valuePosition.end }
+                }
+              };
+            }
           }
         }
         break;
@@ -10223,11 +10946,11 @@ var DefinitionService = class {
   isDefinitionLine(line, parameterType) {
     switch (parameterType) {
       case "THETA":
-        return PARAMETER_PATTERNS.THETA.test(line);
+        return PARAMETER_PATTERNS2.THETA.test(line);
       case "ETA":
-        return PARAMETER_PATTERNS.OMEGA.test(line);
+        return PARAMETER_PATTERNS2.OMEGA.test(line);
       case "EPS":
-        return PARAMETER_PATTERNS.SIGMA.test(line);
+        return PARAMETER_PATTERNS2.SIGMA.test(line);
       default:
         return false;
     }
@@ -10238,7 +10961,7 @@ var DefinitionService = class {
    */
   countParametersInLine(line, parameterType) {
     if (parameterType !== "THETA") {
-      const blockMatch = line.match(PARAMETER_PATTERNS.BLOCK);
+      const blockMatch = line.match(PARAMETER_PATTERNS2.BLOCK);
       if (blockMatch && blockMatch[1]) {
         return parseInt(blockMatch[1], 10);
       }
@@ -10274,7 +10997,7 @@ var DefinitionService = class {
    * Helper method to handle BLOCK matrix detection and eliminate code duplication
    */
   handleBlockMatrixDetection(line, callback) {
-    const blockMatch = line.match(PARAMETER_PATTERNS.BLOCK);
+    const blockMatch = line.match(PARAMETER_PATTERNS2.BLOCK);
     if (blockMatch && blockMatch[1]) {
       callback({
         inBlockMatrix: true,
@@ -10299,6 +11022,10 @@ var DEFAULT_SETTINGS = {
 
 // server/src/server.ts
 var connection = (0, import_node5.createConnection)(import_node5.ProposedFeatures.all);
+if (process.env.NODE_ENV === "development") {
+  connection.console.log(">>> NMTRAN LANGUAGE SERVER STARTING UP <<<");
+  connection.console.log(`Server started at ${(/* @__PURE__ */ new Date()).toISOString()}`);
+}
 var services = {
   document: new DocumentService(connection),
   diagnostics: new DiagnosticsService(connection),

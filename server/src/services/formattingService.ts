@@ -28,9 +28,11 @@ export class FormattingService {
       const edits: TextEdit[] = [];
       
       // Create indentation strings (always use spaces for NMTRAN)
-      // const baseIndent = ' '.repeat(indentSize); // TODO: Use for basic continuation indentation if needed
+      const baseIndent = ' '.repeat(indentSize);
+      const continuationIndent = baseIndent; // For line continuations
 
       let currentIndentLevel = 0;
+      let inContinuation = false;
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];

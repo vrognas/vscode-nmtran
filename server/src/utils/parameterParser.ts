@@ -160,8 +160,8 @@ export class ParameterParserFactory {
       };
     }
     
-    // Handle simple numeric value
-    const numericMatch = trimmed.match(/^\s*([\d.-]+)/);
+    // Handle simple numeric value (including negative numbers and scientific notation)
+    const numericMatch = trimmed.match(/^\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/);
     if (numericMatch && numericMatch[1]) {
       return {
         start: 0,

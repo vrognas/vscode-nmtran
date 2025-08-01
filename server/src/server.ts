@@ -1,12 +1,12 @@
 /**
  * NMTRAN Language Server - Modernized Architecture
- * 
+ *
  * This is the smart part that provides all the NMTRAN language features:
  * - Hover explanations (when you hover over $THETA, shows what it means)
  * - Error checking (highlights invalid control records in red)
  * - Quick fixes (suggests $ESTIMATION when you type $EST)
  * - Document outline (shows all control records in sidebar)
- * 
+ *
  * ARCHITECTURE:
  * - Service-based architecture for better maintainability
  * - Proper error handling throughout
@@ -48,6 +48,12 @@ import {
 // =================================================================
 
 const connection = createConnection(ProposedFeatures.all);
+
+// Log server startup (only in debug mode)
+if (process.env.NODE_ENV === 'development') {
+  connection.console.log('>>> NMTRAN LANGUAGE SERVER STARTING UP <<<');
+  connection.console.log(`Server started at ${new Date().toISOString()}`);
+}
 
 // Initialize services
 const services = {
@@ -123,12 +129,13 @@ function getDocumentSettings(resource: string): Thenable<NMTRANSettings> {
 connection.onInitialize((_params: InitializeParams): InitializeResult => {
   // _params prefixed with underscore to indicate intentionally unused
   // (required by LSP interface but our simple implementation doesn't need it)
-  
+
   // Debug logging
   connection.console.log('🚀 NMTRAN Language Server initializing...');
   connection.console.log('📁 Workspace folder: ' + (_params.workspaceFolders?.[0]?.uri || 'none'));
   connection.console.log('🔧 Using service-based architecture for better maintainability');
-  
+
+
   return {
     capabilities: {
       textDocumentSync: {
@@ -283,6 +290,7 @@ connection.onCompletion(({ textDocument, position }) => {
  */
 connection.onDefinition(({ textDocument, position }) => {
   try {
+
     const doc = services.document.getDocument(textDocument.uri);
     if (!doc) {
       connection.console.error(`❌ Document not found for definition: ${textDocument.uri}`);
@@ -335,16 +343,16 @@ connection.onDocumentFormatting(async ({ textDocument }, token) => {
     // Always get fresh settings for formatting to pick up changes
     documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
-    
+
     // Check for cancellation after async operation
     if (token.isCancellationRequested) {
       return [];
     }
-    
+
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format document request for: ${textDocument.uri}`);
     connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
-    
+
     return services.formatting.formatDocument(doc, indentSize);
   } catch (error) {
     connection.console.error(`❌ Error in formatting handler: ${error}`);
@@ -372,16 +380,16 @@ connection.onDocumentRangeFormatting(async ({ textDocument, range }, token) => {
     // Always get fresh settings for formatting to pick up changes
     documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
-    
+
     // Check for cancellation after async operation
     if (token.isCancellationRequested) {
       return [];
     }
-    
+
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
     connection.console.log(`🎨 Format range request for: ${textDocument.uri}`);
     connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
-    
+
     return services.formatting.formatRange(doc, range, indentSize);
   } catch (error) {
     connection.console.error(`❌ Error in range formatting handler: ${error}`);
@@ -412,7 +420,7 @@ connection.onDidOpenTextDocument((params) => {
       params.textDocument.version,
       params.textDocument.text
     );
-    
+
     services.document.setDocument(doc);
     services.diagnostics.validateDocument(doc);
   } catch (error) {
@@ -425,12 +433,12 @@ connection.onDidChangeTextDocument((change) => {
   try {
     // Get the current document from cache
     let doc = services.document.getDocument(change.textDocument.uri);
-    
+
     if (!doc) {
       connection.console.warn(`⚠️  Document not found in cache: ${change.textDocument.uri}`);
       return;
     }
-    
+
     // Apply incremental changes
     for (const contentChange of change.contentChanges) {
       if ('range' in contentChange) {
@@ -446,7 +454,7 @@ connection.onDidChangeTextDocument((change) => {
         );
       }
     }
-    
+
     services.document.setDocument(doc);
     scheduleDebouncedDiagnostics(change.textDocument.uri, doc);
   } catch (error) {
@@ -458,18 +466,18 @@ connection.onDidChangeTextDocument((change) => {
 connection.onDidCloseTextDocument((params) => {
   try {
     services.document.removeDocument(params.textDocument.uri);
-    
+
     // Clear any pending diagnostics timeout
     const timeout = diagnosticsTimeouts.get(params.textDocument.uri);
     if (timeout) {
       clearTimeout(timeout);
       diagnosticsTimeouts.delete(params.textDocument.uri);
     }
-    
+
     // Clear diagnostics for closed document
-    connection.sendDiagnostics({ 
-      uri: params.textDocument.uri, 
-      diagnostics: [] 
+    connection.sendDiagnostics({
+      uri: params.textDocument.uri,
+      diagnostics: []
     });
   } catch (error) {
     connection.console.error(`❌ Error handling document close: ${error}`);
@@ -487,9 +495,11 @@ connection.onShutdown(() => {
   connection.console.log(`📊 Final stats: ${stats.documentCount} documents, ${stats.totalSize} chars`);
 });
 
+
 // Start listening for requests
 connection.listen();
 
 // Startup confirmation
 connection.console.log('✅ NMTRAN Language Server is ready and listening for requests!');
 connection.console.log('🏗️  Service-based architecture initialized for better maintainability');
+
