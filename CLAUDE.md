@@ -128,20 +128,46 @@ export class NewService {
 
 ### Important Constraints
 
-**NMTRAN Parameter Rules**:
-- THETA/ETA/EPS must have strict sequential numbering (no gaps)
-- Control records start with `$` and have specific validation rules
-- BLOCK matrices require special parsing for diagonal/off-diagonal elements
+**NMTRAN Language Constraints**:
+- **Abbreviated Code**: NMTRAN is essentially FORTRAN with special semantics
+- **Left-hand quantities**: Mandatory (Y) and optional (COM(n)) reserved variables
+- **Right-hand quantities**: Data items, THETA(n), ETA(n), EPS(n), reserved variables
+- **Random variables**: Any variable depending on ETA/EPS becomes a random variable
+- **Sequential numbering**: THETA/ETA/EPS must be sequential with no gaps
+- **Conditional restrictions**: Random variables cannot be defined in nested conditionals
+- **ICALL contexts**: Different execution blocks (0=run init, 1=problem init, 2=analysis, 3=finalization, 4=simulation, 5=expectation, 6=data average)
+- **BLOCK matrices**: Multi-line matrix definitions with SAME keyword support
 
 **Performance Requirements**:
 - Use debounced validation (500ms) for diagnostics
 - Implement document caching through DocumentService
 - Follow incremental text synchronization patterns
 
+### NMTRAN Syntax Rules
+
+**Abbreviated Code Structure**:
+- Nearly every statement is syntactically FORTRAN with special semantics
+- Assignment statements, conditional statements, arithmetic/logical expressions allowed
+- Limited FORTRAN constructs: IF/THEN/ELSE/ENDIF, DO WHILE/ENDDO, CALL, WRITE, PRINT
+- No GOTO, READ, FORMAT statements allowed
+- Continuation lines use `&` character (FORTRAN 95 style)
+
+**Reserved Elements**:
+- **ICALL**: Execution context (0-6 for different phases)
+- **NEWIND**: Individual record tracking (0=first, 1=new individual, 2=continuation)
+- **ERR(n)**: Alternative to ETA(n)/EPS(n) for clarity
+- **Verbatim code**: FORTRAN code inserted with `"` prefix (bypasses NM-TRAN processing)
+
 ### Common Development Tasks
 
 **Adding Control Records**: Update `constants.ts` and `hoverInfo.ts`
 **Adding Services**: Follow dependency injection pattern, register in `server.ts`
 **Validation Changes**: Modify `utils/validateControlRecords.ts` with tests
+
+**NMTRAN Validation Patterns**:
+- **Random Variable Tracking**: Variables using ETA/EPS become random variables
+- **Function Restrictions**: Some functions (INT, MOD, MIN, MAX) don't compute derivatives
+- **Protective Functions**: PLOG, PEXP, etc. prevent domain violations (NONMEM 7.4+)
+- **SAME Keyword Resolution**: Reference previous parameter blocks in validation
 
 **References**: See `MAINTENANCE.md` for step-by-step procedures and `ARCHITECTURE.md` for detailed design patterns.
