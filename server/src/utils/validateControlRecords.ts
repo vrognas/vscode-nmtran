@@ -121,8 +121,74 @@ function generateDiagnosticForControlRecord(match: RegExpExecArray, textDocument
   }
 }
 
+/**
+ * Validates continuation marker (&) usage in NMTRAN files.
+ * 
+ * Why:
+ * NMTRAN uses FORTRAN-style continuation markers which have specific rules:
+ * - & must appear at the end of lines (after content, before comments)
+ * - Continuation lines should be properly structured
+ * - No orphaned & markers
+ */
+function validateContinuationMarkers(document: TextDocument): { 
+  isValid: boolean; 
+  errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+} {
+  const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+  const lines = document.getText().split('\n');
+  
+  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+    const line = lines[lineNum];
+    if (!line) continue;
+    
+    // Find all & characters in the line
+    for (let charPos = 0; charPos < line.length; charPos++) {
+      if (line.charAt(charPos) === '&') {
+        // Check if & is at the end of the line (ignoring trailing whitespace and comments)
+        const afterAmpersand = line.substring(charPos + 1);
+        const isAtLineEnd = /^\s*(;.*)?$/.test(afterAmpersand);
+        
+        if (!isAtLineEnd) {
+          // & is not at the end of line - this is invalid
+          errors.push({
+            message: 'Continuation marker (&) must appear at the end of the line',
+            line: lineNum,
+            startChar: charPos,
+            endChar: charPos + 1
+          });
+        } else {
+          // Valid & at end of line - check if there's a continuation line
+          if (lineNum === lines.length - 1) {
+            // & at end of last line - orphaned continuation marker
+            errors.push({
+              message: 'Orphaned continuation marker (&) at end of file',
+              line: lineNum,
+              startChar: charPos,
+              endChar: charPos + 1
+            });
+          } else {
+            // Check if next line exists and is not empty/comment-only
+            const nextLine = lines[lineNum + 1];
+            if (!nextLine || nextLine.trim() === '' || nextLine.trim().startsWith(';')) {
+              errors.push({
+                message: 'Continuation marker (&) not followed by continuation content',
+                line: lineNum,
+                startChar: charPos,
+                endChar: charPos + 1
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return { isValid: errors.length === 0, errors };
+}
+
 export {
   locateControlRecordsInText,
   generateDiagnosticForControlRecord,
-  getFullControlRecordName
+  getFullControlRecordName,
+  validateContinuationMarkers
 };
