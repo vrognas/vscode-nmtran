@@ -20,14 +20,14 @@ describe('DefinitionService', () => {
   describe('BLOCK matrix handling', () => {
     it('should find correct diagonal elements in BLOCK(2) with inline values', async () => {
       const content = '$OMEGA  BLOCK(2) 0.0444 0.027 0.0241    ; IIV (CL-V)';
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Test ETA(1) - should point to 0.0444
-      const eta1Def = await service.provideDefinition(doc, Position.create(0, 17)); // Position of 0.0444
+      const eta1Def = await service.provideDefinition(_doc, Position.create(0, 17)); // Position of 0.0444
       expect(eta1Def).toBeDefined();
       
       // Test ETA(2) - should point to 0.0241
-      const eta2Def = await service.provideDefinition(doc, Position.create(0, 31)); // Position of 0.0241
+      const eta2Def = await service.provideDefinition(_doc, Position.create(0, 31)); // Position of 0.0241
       expect(eta2Def).toBeDefined();
     });
 
@@ -37,7 +37,7 @@ describe('DefinitionService', () => {
 0.05 0.2   ; OMEGA(2,1) OMEGA(2,2) 
 0.01 0.03 0.15  ; OMEGA(3,1) OMEGA(3,2) OMEGA(3,3)`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // The service should identify:
       // ETA(1) -> line 1, value 0.1
@@ -49,7 +49,7 @@ describe('DefinitionService', () => {
       const content = `$OMEGA  BLOCK(1) 0.0165           ; IOV CL
 $OMEGA  BLOCK(1)  SAME         ; IOV CL`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // When checking ETA with SAME, it should find both:
       // 1. The SAME keyword
@@ -61,7 +61,7 @@ $OMEGA  BLOCK(1)  SAME         ; IOV CL`;
 $OMEGA  0.5   ; Simple diagonal
 $OMEGA  BLOCK(1) 3.0`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Should correctly identify:
       // ETA(1) -> 0.0444 (from BLOCK(2))
@@ -77,10 +77,10 @@ $OMEGA  BLOCK(1) 3.0`;
 $PK
 CL = THETA(1) * EXP(ETA(1))`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Clicking on THETA(1) should navigate to 0.5
-      const def = await service.provideDefinition(doc, Position.create(2, 10)); // Position in THETA(1)
+      const def = await service.provideDefinition(_doc, Position.create(2, 10)); // Position in THETA(1)
       expect(def).toBeDefined();
       expect(def).toHaveLength(1);
     });
@@ -90,10 +90,10 @@ CL = THETA(1) * EXP(ETA(1))`;
 $ERROR
 Y = F + F*ERR(1)`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Clicking on ERR(1) should navigate to 0.01 in $SIGMA
-      const def = await service.provideDefinition(doc, Position.create(2, 10)); // Position in ERR(1)
+      const def = await service.provideDefinition(_doc, Position.create(2, 10)); // Position in ERR(1)
       expect(def).toBeDefined();
       expect(def).toHaveLength(1);
     });
@@ -102,7 +102,7 @@ Y = F + F*ERR(1)`;
       const content = `$THETA (0.01, 0.5, 10)   ; Bounded CL
 $THETA 2.5 FIX           ; Fixed V`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // THETA(1) should point to 0.5 (initial value in bounded syntax)
       // THETA(2) should point to 2.5
@@ -111,20 +111,20 @@ $THETA 2.5 FIX           ; Fixed V`;
     it('should handle FIXED/FIX keywords with THETA parameters', async () => {
       const content = `$THETA  (0,3) 2 FIXED (0,.6,1) 10 (-INF,-2.7,0) (37 FIXED) 4 FIX`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Test THETA(2) - should highlight both "2" and "FIXED"
-      const theta2Def = await service.provideDefinition(doc, Position.create(0, 14)); // Position on "2"
+      const theta2Def = await service.provideDefinition(_doc, Position.create(0, 14)); // Position on "2"
       expect(theta2Def).toBeDefined();
       expect(theta2Def).toHaveLength(2); // Should have both value and FIXED keyword
       
       // Test THETA(6) - should highlight both "37" and "FIXED" inside parentheses
-      const theta6Def = await service.provideDefinition(doc, Position.create(0, 49)); // Position on "37"
+      const theta6Def = await service.provideDefinition(_doc, Position.create(0, 49)); // Position on "37"
       expect(theta6Def).toBeDefined();
       expect(theta6Def).toHaveLength(2); // Should have both value and FIXED keyword
       
       // Test THETA(7) - should highlight both "4" and "FIX"
-      const theta7Def = await service.provideDefinition(doc, Position.create(0, 59)); // Position on "4"  
+      const theta7Def = await service.provideDefinition(_doc, Position.create(0, 59)); // Position on "4"  
       expect(theta7Def).toBeDefined();
       expect(theta7Def).toHaveLength(2); // Should have both value and FIX keyword
     });
@@ -134,14 +134,14 @@ $THETA 2.5 FIX           ; Fixed V`;
 0.1
 0.01 0.1`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Both ETA(1) and ETA(2) should highlight their values AND the FIX keyword
-      const eta1Def = await service.provideDefinition(doc, Position.create(1, 0)); // Position on first "0.1"
+      const eta1Def = await service.provideDefinition(_doc, Position.create(1, 0)); // Position on first "0.1"
       expect(eta1Def).toBeDefined();
       expect(eta1Def).toHaveLength(2); // Should have both value and FIX keyword
       
-      const eta2Def = await service.provideDefinition(doc, Position.create(2, 5)); // Position on second "0.1"  
+      const eta2Def = await service.provideDefinition(_doc, Position.create(2, 5)); // Position on second "0.1"  
       expect(eta2Def).toBeDefined();
       expect(eta2Def).toHaveLength(2); // Should have both value and FIX keyword
     });
@@ -150,14 +150,14 @@ $THETA 2.5 FIX           ; Fixed V`;
       const content = `$OMEGA  BLOCK(2) FIXED
   0.0444 0.027 0.0241    ; IIV (CL-V)`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Both ETA(1) and ETA(2) should highlight their values AND the FIXED keyword from line 0
-      const eta1Def = await service.provideDefinition(doc, Position.create(1, 2)); // Position on "0.0444"
+      const eta1Def = await service.provideDefinition(_doc, Position.create(1, 2)); // Position on "0.0444"
       expect(eta1Def).toBeDefined();
       expect(eta1Def).toHaveLength(2); // Should have both value and FIXED keyword
       
-      const eta2Def = await service.provideDefinition(doc, Position.create(1, 17)); // Position on "0.0241"  
+      const eta2Def = await service.provideDefinition(_doc, Position.create(1, 17)); // Position on "0.0241"  
       expect(eta2Def).toBeDefined();
       expect(eta2Def).toHaveLength(2); // Should have both value and FIXED keyword
     });
@@ -166,14 +166,14 @@ $THETA 2.5 FIX           ; Fixed V`;
       const content = `$OMEGA  BLOCK(2) FIXED 0.0444
   0.027 0.0241    ; IIV (CL-V)`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Both ETA(1) and ETA(2) should highlight their values AND the FIXED keyword from line 0
-      const eta1Def = await service.provideDefinition(doc, Position.create(0, 23)); // Position on "0.0444" on first line
+      const eta1Def = await service.provideDefinition(_doc, Position.create(0, 23)); // Position on "0.0444" on first line
       expect(eta1Def).toBeDefined();
       expect(eta1Def).toHaveLength(2); // Should have both value and FIXED keyword
       
-      const eta2Def = await service.provideDefinition(doc, Position.create(1, 8)); // Position on "0.0241" on second line
+      const eta2Def = await service.provideDefinition(_doc, Position.create(1, 8)); // Position on "0.0241" on second line
       expect(eta2Def).toBeDefined();
       expect(eta2Def).toHaveLength(2); // Should have both value and FIXED keyword
     });
@@ -182,24 +182,24 @@ $THETA 2.5 FIX           ; Fixed V`;
   describe('Error handling', () => {
     it('should handle malformed BLOCK syntax gracefully', async () => {
       const content = '$OMEGA  BLOCK(';
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Should not throw error
-      const result = await service.provideDefinition(doc, Position.create(0, 10));
+      const result = await service.provideDefinition(_doc, Position.create(0, 10));
       expect(result).toBeDefined(); // Should return null or empty array, not throw
     });
 
-    it('should handle empty documents', async () => {
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, '');
-      const result = await service.provideDefinition(doc, Position.create(0, 0));
+    it('should handle empty _documents', async () => {
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, '');
+      const result = await service.provideDefinition(_doc, Position.create(0, 0));
       expect(result).toBeNull();
     });
 
     it('should handle out of bounds positions', async () => {
       const content = '$THETA 0.5';
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
-      const result = await service.provideDefinition(doc, Position.create(10, 0));
+      const result = await service.provideDefinition(_doc, Position.create(10, 0));
       expect(result).toBeNull();
     });
   });
@@ -230,7 +230,7 @@ $SIGMA 0.01
 
 $ESTIMATION METHOD=1 MAXEVAL=9999`;
       
-      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+      const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
       
       // Test various parameter references
       // THETA(1) in $PK should navigate to 0.5

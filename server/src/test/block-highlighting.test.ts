@@ -55,9 +55,6 @@ describe('BLOCK(1) Highlighting Test', () => {
       // Extract the highlighted text to verify it's correct
       const highlightedText = line.substring(result?.start || 0, result?.end || 0);
       expect(highlightedText).toBe('3.0');
-      
-      console.log(`Working case (line 2) - Line: "${line}"`);
-      console.log(`Working case (line 2) - Highlighted: "${highlightedText}" at positions ${result?.start}-${result?.end}`);
     });
 
     it('should correctly handle BLOCK(1) with extra spaces before comment (failing case - line 4)', () => {
@@ -72,9 +69,6 @@ describe('BLOCK(1) Highlighting Test', () => {
       // Extract the highlighted text to verify it's correct
       const highlightedText = line.substring(result?.start || 0, result?.end || 0);
       expect(highlightedText).toBe('0.0165');
-      
-      console.log(`Failing case (line 4) - Line: "${line}"`);
-      console.log(`Failing case (line 4) - Highlighted: "${highlightedText}" at positions ${result?.start}-${result?.end}`);
     });
 
     it('should correctly handle BLOCK(1) with double space after BLOCK(1) (failing case - line 7)', () => {
@@ -89,9 +83,6 @@ describe('BLOCK(1) Highlighting Test', () => {
       // Extract the highlighted text to verify it's correct
       const highlightedText = line.substring(result?.start || 0, result?.end || 0);
       expect(highlightedText).toBe('0.495');
-      
-      console.log(`Failing case (line 7) - Line: "${line}"`);
-      console.log(`Failing case (line 7) - Highlighted: "${highlightedText}" at positions ${result?.start}-${result?.end}`);
     });
   });
 

@@ -3,10 +3,9 @@
  */
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position, Location } from 'vscode-languageserver';
+import { Position } from 'vscode-languageserver';
 import { DefinitionService } from '../../services/definitionService';
 import { DocumentService } from '../../services/documentService';
-import { createConnection } from 'vscode-languageserver/node';
 
 describe('Definition Flow Integration', () => {
   let definitionService: DefinitionService;

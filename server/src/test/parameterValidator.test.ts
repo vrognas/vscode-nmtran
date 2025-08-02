@@ -1,6 +1,5 @@
 import { ParameterValidator } from '../utils/parameterValidator';
 import { ParameterFactory } from '../factories/parameterFactory';
-import { ScannerState } from '../services/ParameterScanner';
 
 describe('ParameterValidator', () => {
   describe('validateScannerState', () => {
