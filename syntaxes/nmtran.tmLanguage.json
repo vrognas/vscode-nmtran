@@ -56,7 +56,12 @@
       "patterns": [{
         "comment": "subroutines",
         "name": "storage.modifier.subroutines.nmtran",
-        "match": "(?i:\\b(ADVAN(\\=)?[\\d]+|TRANS(\\=)?\\d+)|((TN|NW)PRI))"
+        "match": "(?i:\\b(ADVAN(\\=)?[\\d]+|TRANS(\\=)?\\d+)|((TN|NW)PRI)))"
+      },
+      {
+        "comment": "generated subroutines",
+        "name": "storage.modifier.subroutines.generated.nmtran",
+        "match": "(?i:\\b(MUMODEL2|FSIZESR|CONTR|DERSIZESR|MIXSIZESR|CVTSUMSR|MULEVEL1|SINFN|MODEL|AESINITIAL|COMSAV|INITAL|FINMIXPK|FINMIXPK2|AESI|EACPKS|EACDOS|GENEXPN|CMTDATA|CMTSIZEK)\\b)"
       },
       {
         "comment": "General control record options",
