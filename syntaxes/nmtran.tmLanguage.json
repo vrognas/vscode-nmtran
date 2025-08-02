@@ -5,6 +5,7 @@
   "patterns": [
     { "include": "#verbatim" },
     { "include": "#comments" },
+    { "include": "#continuation" },
     { "include": "#constants" },
     { "include": "#control-records" },
     { "include": "#control-record-syntax" },
@@ -24,6 +25,13 @@
       "patterns": [{
         "name": "comment.line.semicolon.nmtran",
         "match": ";.*$"
+      }]
+    },
+    "continuation": {
+      "patterns": [{
+        "comment": "FORTRAN-style continuation lines",
+        "name": "keyword.operator.continuation.nmtran",
+        "match": "&\\s*$"
       }]
     },
     "constants": {
@@ -174,7 +182,7 @@
       {
         "comment": "reserved variables used internally by NMTRAN",
         "name": "support.variable.reserved.internal.nmtran",
-        "match": "(?i:\\b(CALL|CMT|PCMT|CONT|NTHETA|NTHP|NPROB|IPROB|MODE|R|PRED_IGNORE_DATA_TEST|PRED_IGNORE_DATA|VECTR[A-Z]{1,3}|FUNC[A-Z]{1,3}|GETETA|SIMETA|SIMEPS|NWIND|ETEXT|IERPRD|IERPRDU|MSEC|MFIRST|NETEXT|(A|B|C|D|E|F|P|Q)\\d{5}|M(C|E|G|T)\\d{4}|MXSTEP)\\b)"
+        "match": "(?i:\\b(CALL|CMT|PCMT|CONT|NTHETA|NTHP|NPROB|IPROB|MODE|R|PRED_IGNORE_DATA_TEST|PRED_IGNORE_DATA|VECTR[A-Z]|FUNC[A-Z]|PLOG|PEXP|PSQRT|PSIN|PCOS|PTAN|ICALL|NEWIND|GETETA|SIMETA|SIMEPS|NWIND|ETEXT|IERPRD|IERPRDU|MSEC|MFIRST|NETEXT|(A|B|C|D|E|F|P|Q)\\d{5}|M(C|E|G|T)\\d{4}|MXSTEP)\\b)"
       }]
     },
     "operators" : {
