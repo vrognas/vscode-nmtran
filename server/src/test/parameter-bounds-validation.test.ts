@@ -150,26 +150,26 @@ $THETA (0,abc,0.346)     ; Invalid: non-numeric initial value
       expect(validation.errors[0]?.message).toContain('Invalid initial value: abc');
     });
 
-    it('should reject empty initial values for OMEGA and SIGMA', () => {
+    it('should reject bound syntax for OMEGA and SIGMA', () => {
       const content = `
-$OMEGA (0.001,,1.0)      ; Invalid: OMEGA requires initial value
-$SIGMA (1E-6,,0.1)       ; Invalid: SIGMA requires initial value
+$OMEGA (0.001,0.1,1.0)   ; Invalid: OMEGA doesn't support bounds
+$SIGMA (1E-6,0.01,0.1)   ; Invalid: SIGMA doesn't support bounds
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
       
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toHaveLength(2);
-      expect(validation.errors[0]?.message).toContain('Invalid initial value:');
-      expect(validation.errors[1]?.message).toContain('Invalid initial value:');
+      expect(validation.errors[0]?.message).toContain('does not support bound syntax');
+      expect(validation.errors[1]?.message).toContain('does not support bound syntax');
     });
   });
 
   describe('OMEGA Parameter Validation', () => {
-    it('should accept valid OMEGA bounds', () => {
+    it('should accept valid OMEGA values', () => {
       const content = `
-$OMEGA (0,0.1,1)         ; Valid variance bounds
-$OMEGA 0.2               ; Simple variance
+$OMEGA 0.1               ; Valid variance value
+$OMEGA 0.2               ; Another variance value
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
@@ -178,21 +178,21 @@ $OMEGA 0.2               ; Simple variance
       expect(validation.errors).toHaveLength(0);
     });
 
-    it('should warn about negative OMEGA initial values', () => {
+    it('should warn about negative OMEGA values', () => {
       const content = `
-$OMEGA (0,-0.1,1)        ; Negative initial variance
+$OMEGA -0.1              ; Negative variance (unusual but allowed)
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
       
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toHaveLength(2); // Bound error + negative variance warning
-      expect(validation.errors.some(e => e.message.includes('OMEGA initial value (-0.1) should generally be positive'))).toBe(true);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]?.message).toContain('should generally be positive');
     });
 
     it('should handle OMEGA BLOCK matrices', () => {
       const content = `
-$OMEGA BLOCK(2) (0,0.1,1) (0,0.05,0.5) (0,0.2,2)
+$OMEGA BLOCK(2) 0.1 0.05 0.2
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
@@ -203,9 +203,9 @@ $OMEGA BLOCK(2) (0,0.1,1) (0,0.05,0.5) (0,0.2,2)
   });
 
   describe('SIGMA Parameter Validation', () => {
-    it('should accept valid SIGMA bounds', () => {
+    it('should accept valid SIGMA values', () => {
       const content = `
-$SIGMA (0,0.01,0.1)      ; Valid residual error bounds
+$SIGMA 0.01              ; Valid residual error value
 $SIGMA 1 FIX             ; Fixed residual error
 `;
       const document = createDocument(content);
@@ -215,29 +215,29 @@ $SIGMA 1 FIX             ; Fixed residual error
       expect(validation.errors).toHaveLength(0);
     });
 
-    it('should warn about negative SIGMA initial values', () => {
+    it('should warn about negative SIGMA values', () => {
       const content = `
-$SIGMA (0,-0.5,1)        ; Negative initial residual error
+$SIGMA -0.5              ; Negative residual error (unusual)
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
       
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toHaveLength(2); // Bound error + negative variance warning
-      expect(validation.errors.some(e => e.message.includes('SIGMA initial value (-0.5) should generally be positive'))).toBe(true);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]?.message).toContain('should generally be positive');
     });
   });
 
   describe('Complex Parameter Scenarios', () => {
     it('should handle multiple parameters with mixed validity', () => {
       const content = `
-$THETA (0,27.5,100)      ; Valid
+$THETA (0,27.5,100)      ; Valid THETA with bounds
 $THETA (10,5,20)         ; Invalid - lower > initial  
-$THETA 2.1               ; Valid
+$THETA 2.1               ; Valid THETA simple value
 $THETA (-INF,abc,INF)    ; Invalid - bad initial value
-$OMEGA (0,0.1,1)         ; Valid
-$OMEGA (0,-0.2,1)        ; Warning - negative variance
-$SIGMA 1 FIX             ; Valid (no bounds to check)
+$OMEGA 0.1               ; Valid OMEGA value  
+$OMEGA -0.2              ; Warning - negative variance
+$SIGMA 1 FIX             ; Valid SIGMA (no bounds to check)
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
@@ -255,7 +255,7 @@ $SIGMA 1 FIX             ; Valid (no bounds to check)
       const content = `
 $THETA (0,27.5,100)    ; TVCL - typical clearance
 $THETA (10,5,20)       ; Invalid bound - lower > initial
-$OMEGA (0,0.1,1)       ; IIV on CL
+$OMEGA 0.1             ; IIV on CL
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
@@ -267,9 +267,9 @@ $OMEGA (0,0.1,1)       ; IIV on CL
 
     it('should handle parameters across multiple control records', () => {
       const content = `
-$THETA (0,1,10)          ; Valid THETA
-$OMEGA (0,0.1,1)         ; Valid OMEGA
-$SIGMA (0,0.01,0.1)      ; Valid SIGMA
+$THETA (0,1,10)          ; Valid THETA with bounds
+$OMEGA 0.1               ; Valid OMEGA value
+$SIGMA 0.01              ; Valid SIGMA value  
 $THETA (20,5,10)         ; Invalid THETA - multiple bound violations
 `;
       const document = createDocument(content);
