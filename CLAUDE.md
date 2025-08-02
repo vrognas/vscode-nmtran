@@ -4,117 +4,144 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Visual Studio Code extension for NMTRAN (NONMEM) language support.
-It provides syntax highlighting, snippets, diagnostics, hover information, and other language features for NMTRAN control stream files used in pharmacometric modeling.
+This is a VSCode extension providing comprehensive language support for NMTRAN (NONMEM Translator) files used in pharmacometric modeling.
 
 ### About NMTRAN
 
-NMTRAN (NM-TRAN stands for NONMEM Translator) is a Fortran-flavor language that is custom built to work with a program called NONMEM.
-It is a preprocessor to NONMEM which translates user-inputs into:
+NMTRAN is a specialized language for pharmacokinetic/pharmacodynamic modeling:
+- **Control stream files** (`.mod`, `.ctl`) contain modeling instructions
+- **Control records** start with `$` (e.g., `$THETA`, `$OMEGA`, `$PK`)
+- **Parameter types** with strict sequential numbering:
+  - `THETA(1)`, `THETA(2)`, etc. - Fixed effects (no gaps allowed)
+  - `ETA(1)`, `ETA(2)`, etc. - Random inter-individual effects  
+  - `EPS(1)`, `EPS(2)`, etc. - Residual variabilities
 
-1. A NONMEM data set
-2. A NONMEM control stream
-3. Various subroutines which must be included in a NONMEM load module
+### Key Extension Features
 
-NMTRAN is a separate computer program written in FORTRAN 90/95, and one precedes a NONMEM run by first running it.
-The language combines Fortran syntax with specialized control records and pharmacometric modeling constructs for population pharmacokinetic and pharmacodynamic analysis.
+- Syntax highlighting and code folding for control records
+- IntelliSense: hover info, go-to-definition, auto-completion
+- Real-time validation of control records and parameter sequences
+- Support for BLOCK matrices and SAME keyword references
 
-NONMEM is a computer program written in FORTRAN to analyze population type pharmacokinetic (PopPK) data using a nonlinear mixed effects model.
-The control records (eg `$PK`) contain the instructions to NONMEM.
-The sequence of control records is called the "control stream" (this is essentially the model file, ".mod").
-
-In the NMTRAN language:
-- **Fixed effects** are denoted by `THETA(1)`, `THETA(2)`, etc.
-The numbering sequence is strict - there cannot be a gap in the numbering (eg `THETA(1)`, `THETA(3)` without a `THETA(2)` in the control stream).
-- **Random interindividual (IIV) effects** are denoted by `ETA(1)`, `ETA(2)`, etc.
-The numbering sequence is strict with no gaps allowed. Their variance-covariance matrix is denoted `OMEGA` in the NONMEM printout.
-- **Residual variabilities** are denoted by `EPS(1)`, `EPS(2)`, etc.
-The numbering sequence is strict with no gaps allowed. Their variance-covariance matrix is denoted by `SIGMA` in the NONMEM printout.
-
-Documentation on NMTRAN/NONMEM can be found on sub-URLs of this website: <https://nmhelp.tingjieguo.com>
+**Reference**: Full NMTRAN documentation at <https://nmhelp.tingjieguo.com>
 
 ## Architecture
 
-The extension follows a client-server architecture using the Language Server Protocol (LSP):
+**Client-Server LSP Design** with service-based architecture for maintainability.
 
-### Client (`client/src/extension.ts`)
+### Core Pattern
+- **Client** (`client/src/`): VSCode integration, folding provider, extension lifecycle
+- **Server** (`server/src/`): Language intelligence via specialized services
+- **Services** (`server/src/services/`): Each feature (hover, diagnostics, completion) in separate service
+- **Document Lifecycle**: Centralized caching and debounced validation (500ms)
 
-- VSCode extension entry point that activates when NMTRAN files are opened
-- Registers a folding range provider for control records (lines starting with `$`)
-- Starts and manages the language server connection
-- Handles extension lifecycle (activate/deactivate)
+### Key Services
+- **DocumentService**: Document caching and lifecycle management
+- **DiagnosticsService**: Control record and parameter validation
+- **HoverService**: Explanations for control records and parameters
+- **DefinitionService**: Go-to-definition and find-references for parameters
+- **ParameterScanner**: THETA/ETA/EPS tracking with BLOCK matrix support
 
-### Server (`server/src/server.ts`)
-
-- Language server that provides IntelliSense features via LSP
-- Implements hover, diagnostics, code actions, and document symbols
-- Validates NMTRAN control records against known valid records
-- Suggests corrections for abbreviated or invalid control records
-
-### Key Components
-
-- `server/src/hoverInfo.ts`: Contains detailed explanations for each NMTRAN control record
-- `server/src/constants.ts`: Defines allowed control records and their abbreviations
-- `server/src/utils/validateControlRecords.ts`: Validation logic for control records
-- `syntaxes/nmtran.tmLanguage.json`: TextMate grammar for syntax highlighting
-- `snippets/snippets.json`: Code snippets for common NMTRAN patterns
+### Important Files
+- `server/src/constants.ts`: Valid control records and abbreviations
+- `server/src/hoverInfo.ts`: Control record explanations
+- `server/src/utils/validateControlRecords.ts`: Validation logic
+- `syntaxes/nmtran.tmLanguage.json`: Syntax highlighting grammar
 
 ## Development Commands
 
-### Build and Compile
-
+### Essential Commands
 ```bash
-npm run compile          # Compile TypeScript for both client and server
-npm run watch           # Watch mode for development
+npm run build           # Production build (esbuild to dist/)
+npm test               # Run all tests (client + server)
+npm run test:server    # Jest unit tests only
+npm run validate       # All quality checks (lint + compile + test)
+npm run lint           # ESLint code style check
 ```
 
-### Linting
-
+### Development Workflow
 ```bash
-npm run lint            # Run ESLint on client and server source files
+npm run compile:watch   # TypeScript compilation in watch mode
+npm run bundle:watch    # esbuild bundling in watch mode  
+cd server && npm run test:watch  # Jest tests in watch mode
 ```
 
-### Package Management
+**Reference**: See `MAINTENANCE.md` for detailed debugging and troubleshooting procedures.
 
-```bash
-npm run postinstall     # Install dependencies for both client and server
-```
+## Key File Locations
 
-### Extension Packaging
+### Client Code
+- `client/src/extension.ts` - Extension entry point
+- `client/src/features/foldingProvider.ts` - Code folding implementation
 
-```bash
-npm run vscode:prepublish   # Prepare extension for publishing (runs compile)
-```
+### Server Code  
+- `server/src/server.ts` - Language server main entry
+- `server/src/services/` - All language feature services
+- `server/src/constants.ts` - Valid control records list
+- `server/src/hoverInfo.ts` - Control record explanations
 
-## File Structure
+### Configuration & Assets
+- `syntaxes/nmtran.tmLanguage.json` - Syntax highlighting
+- `snippets/snippets.json` - Code completion templates
+- `test/` - Sample NMTRAN files for testing
 
-- `client/`: VSCode extension client code
-- `server/`: Language server implementation
-- `syntaxes/`: TextMate grammar files for syntax highlighting
-- `snippets/`: Code completion snippets
-- `test/`: Sample NMTRAN files for testing
-- `images/`: Extension icons and demo images
+**Reference**: See `ARCHITECTURE.md` for complete directory structure.
 
 ## Language Features
 
-The extension supports these NMTRAN file extensions: `.mod`, `.ctl`, `.lst`, `.modt`, `.phi`, `.coi`, `.cor`, `.cov`, `.cnv`, `.scm`, `.ext`
+**Supported file extensions**: `.mod`, `.ctl`, `.lst`, `.modt`, `.phi`, `.coi`, `.cor`, `.cov`, `.cnv`, `.scm`, `.ext`
 
-### Key Features
+### Core Capabilities
+- **Syntax highlighting** and **code folding** for control records
+- **Hover explanations** for control records and parameters  
+- **Go-to-definition** and **find-references** for THETA/ETA/EPS parameters
+- **Auto-completion** for control records and common patterns
+- **Real-time validation** with error highlighting and quick fixes
+- **Document formatting** with configurable indentation
+- **Code snippets** for common NMTRAN structures
 
-- **Syntax Highlighting**: TextMate grammar-based tokenization
-- **Folding**: Automatic folding by control records (lines starting with `$`)
-- **Hover Info**: Detailed explanations for control records
-- **Diagnostics**: Validation of control record names
-- **Code Actions**: Quick fixes for abbreviated control records
-- **Document Symbols**: Outline view of control records
-- **Snippets**: Pre-built templates for common NMTRAN patterns
+### Parameter Intelligence
+- **THETA/ETA/EPS tracking** with strict sequential numbering validation
+- **BLOCK matrix support** including multi-line definitions
+- **SAME keyword resolution** for parameter references
+- **Parameter navigation** throughout the document
 
-## Development Notes
+## Development Guidelines
 
-- The project uses TypeScript with strict mode enabled
-- Client and server are separate npm packages with their own dependencies
-- The language server validates control records against a predefined list in `constants.ts`
-- Hover information is maintained in `hoverInfo.ts` with detailed explanations for each control record
-- The extension uses VSCode's Language Server Protocol for optimal performance and separation of concerns
-- IMPORTANT: We're doing test-driven development so avoid mock implementations, even for functionality that doesn’t exist yet in the codebase.
-- IMPORTANT: Make a plan before coding. DO NOT code until you've got confirmation that the plan looks good.
+### Key Patterns to Follow
+
+**Service-Based Architecture**: Each language feature is a separate service with dependency injection
+```typescript
+export class NewService {
+  constructor(private connection: Connection) {}
+  
+  provideFeature(document: TextDocument, position: Position) {
+    // Implementation following existing patterns
+  }
+}
+```
+
+**Testing Approach**: Jest-based test-driven development with 80% coverage requirement
+- Write tests first, avoid mocks for actual functionality
+- Use `npm run test:watch` during development
+- Follow existing test patterns in `server/src/test/`
+
+### Important Constraints
+
+**NMTRAN Parameter Rules**:
+- THETA/ETA/EPS must have strict sequential numbering (no gaps)
+- Control records start with `$` and have specific validation rules
+- BLOCK matrices require special parsing for diagonal/off-diagonal elements
+
+**Performance Requirements**:
+- Use debounced validation (500ms) for diagnostics
+- Implement document caching through DocumentService
+- Follow incremental text synchronization patterns
+
+### Common Development Tasks
+
+**Adding Control Records**: Update `constants.ts` and `hoverInfo.ts`
+**Adding Services**: Follow dependency injection pattern, register in `server.ts`
+**Validation Changes**: Modify `utils/validateControlRecords.ts` with tests
+
+**References**: See `MAINTENANCE.md` for step-by-step procedures and `ARCHITECTURE.md` for detailed design patterns.
