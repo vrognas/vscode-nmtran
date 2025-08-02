@@ -81,7 +81,10 @@ export const reservedVariables = [
   'ICALL',    // Execution context indicator
   'NEWIND',   // Individual record indicator  
   'Y',        // Mandatory left-hand quantity for PRED
-  'ERR'       // Alternative to ETA/EPS arrays
+  'ERR',      // Alternative to ETA/EPS arrays
+  'BAYES_EXTRA_REQUEST', // Bayes extra request indicator (NONMEM 7.6.0+)
+  'BAYES_EXTRA',         // Bayes extra information (NONMEM 7.6.0+)
+  'ITER_REPORT'          // Iteration reporting indicator (NONMEM 7.6.0+)
 ];
 
 /**
