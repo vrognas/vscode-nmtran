@@ -1085,20 +1085,41 @@ export class ParameterScanner {
       }
       
       // Validate bounds if in a parameter block
-      if (currentBlockType && lineWithoutComment.includes('(')) {
-        const boundExpressions = this.extractBoundExpressions(lineWithoutComment);
-        
-        for (const expr of boundExpressions) {
-          const validation = this.validateSingleParameterBound(expr.text, currentBlockType);
-          if (!validation.isValid) {
-            for (const error of validation.errors) {
-              const absoluteStart = line.indexOf(expr.text, expr.startPos);
-              if (absoluteStart !== -1) {
+      if (currentBlockType) {
+        if (lineWithoutComment.includes('(')) {
+          // Handle parenthesized expressions (bounds for THETA, invalid for OMEGA/SIGMA)
+          const boundExpressions = this.extractBoundExpressions(lineWithoutComment);
+          
+          for (const expr of boundExpressions) {
+            const validation = this.validateSingleParameterBound(expr.text, currentBlockType);
+            if (!validation.isValid) {
+              for (const error of validation.errors) {
+                const absoluteStart = line.indexOf(expr.text, expr.startPos);
+                if (absoluteStart !== -1) {
+                  errors.push({
+                    message: error,
+                    line: lineNum,
+                    startChar: absoluteStart,
+                    endChar: absoluteStart + expr.text.length
+                  });
+                }
+              }
+            }
+          }
+        } else if (currentBlockType === 'OMEGA' || currentBlockType === 'SIGMA') {
+          // Handle simple values for OMEGA/SIGMA (no parentheses)
+          // Extract numeric values from the line (excluding BLOCK syntax and SAME keywords)
+          const simpleValues = this.extractSimpleParameterValues(lineWithoutComment, currentBlockType);
+          
+          for (const value of simpleValues) {
+            const validation = this.validateSimpleParameterValue(value.text, currentBlockType);
+            if (!validation.isValid) {
+              for (const error of validation.errors) {
                 errors.push({
                   message: error,
                   line: lineNum,
-                  startChar: absoluteStart,
-                  endChar: absoluteStart + expr.text.length
+                  startChar: value.startPos,
+                  endChar: value.endPos
                 });
               }
             }
@@ -1169,62 +1190,91 @@ export class ParameterScanner {
     // Split by commas (but not inside nested parentheses)
     const parts = this.splitBoundComponents(content);
     
-    if (parts.length === 1) {
-      // Single value: (init) - validate the value
-      const firstPart = parts[0];
-      if (firstPart) {
-        const value = this.parseNumericValue(firstPart.trim());
-        if (value === null) {
-          errors.push(`Invalid ${paramType} value: ${firstPart.trim()}`);
+    // OMEGA and SIGMA only support single values, not bounds
+    if (paramType === 'OMEGA' || paramType === 'SIGMA') {
+      if (parts.length === 1) {
+        // Single value: (init) - validate the value
+        const firstPart = parts[0];
+        if (firstPart) {
+          const value = this.parseNumericValue(firstPart.trim());
+          if (value === null) {
+            errors.push(`Invalid ${paramType} value: ${firstPart.trim()}`);
+          } else if (value < 0) {
+            errors.push(`${paramType} value (${value}) should generally be positive (variance parameter)`);
+          }
         }
+      } else {
+        errors.push(`${paramType} does not support bound syntax. Use single value only: ${paramType} value`);
       }
-    } else if (parts.length === 3) {
-      // Three values: (low, init, high)
-      const lowStr = parts[0]?.trim() || '';
-      const initStr = parts[1]?.trim() || '';
-      const highStr = parts[2]?.trim() || '';
-      
-      const low = this.parseNumericValue(lowStr);
-      const init = this.parseNumericValue(initStr);
-      const high = this.parseNumericValue(highStr);
-      
-      // Validate individual values
-      if (low === null && !this.isInfinity(lowStr)) {
-        errors.push(`Invalid lower bound: ${lowStr}`);
-      }
-      // Initial value can be empty (omitted) only for THETA: (lower,,upper)
-      // OMEGA and SIGMA always require initial values
-      if (init === null && (paramType !== 'THETA' || initStr !== '')) {
-        errors.push(`Invalid initial value: ${initStr}`);
-      }
-      if (high === null && !this.isInfinity(highStr)) {
-        errors.push(`Invalid upper bound: ${highStr}`);
-      }
-      
-      // Validate bound relationships
-      // Always check lower vs upper bound
-      if (low !== null && high !== null && low > high) {
-        errors.push(`Lower bound (${low}) cannot be greater than upper bound (${high})`);
-      }
-      
-      // Check initial value bounds only if initial value is provided
-      if (init !== null) {
-        if (low !== null && low > init) {
-          errors.push(`Lower bound (${low}) cannot be greater than initial value (${init})`);
+    } else if (paramType === 'THETA') {
+      // THETA supports: (init), (low,init), or (low,init,high)
+      if (parts.length === 1) {
+        // Single value: (init)
+        const firstPart = parts[0];
+        if (firstPart) {
+          const value = this.parseNumericValue(firstPart.trim());
+          if (value === null) {
+            errors.push(`Invalid ${paramType} value: ${firstPart.trim()}`);
+          }
         }
-        if (high !== null && init > high) {
-          errors.push(`Initial value (${init}) cannot be greater than upper bound (${high})`);
+      } else if (parts.length === 2) {
+        // Two values: (low, init)
+        const lowStr = parts[0]?.trim() || '';
+        const initStr = parts[1]?.trim() || '';
+        
+        const low = this.parseNumericValue(lowStr);
+        const init = this.parseNumericValue(initStr);
+        
+        if (low === null && !this.isInfinity(lowStr)) {
+          errors.push(`Invalid lower bound: ${lowStr}`);
+        }
+        if (init === null) {
+          errors.push(`Invalid initial value: ${initStr}`);
         }
         
-        // Special validation for OMEGA/SIGMA (variance parameters should generally be positive)
-        if ((paramType === 'OMEGA' || paramType === 'SIGMA') && init < 0) {
-          errors.push(`${paramType} initial value (${init}) should generally be positive (variance parameter)`);
+        // Validate bound relationship
+        if (low !== null && init !== null && low > init) {
+          errors.push(`Lower bound (${low}) cannot be greater than initial value (${init})`);
         }
+      } else if (parts.length === 3) {
+        // Three values: (low, init, high)
+        const lowStr = parts[0]?.trim() || '';
+        const initStr = parts[1]?.trim() || '';
+        const highStr = parts[2]?.trim() || '';
+        
+        const low = this.parseNumericValue(lowStr);
+        const init = this.parseNumericValue(initStr);
+        const high = this.parseNumericValue(highStr);
+        
+        // Validate individual values
+        if (low === null && !this.isInfinity(lowStr)) {
+          errors.push(`Invalid lower bound: ${lowStr}`);
+        }
+        // Initial value can be empty (omitted) for THETA: (lower,,upper)
+        if (init === null && initStr !== '') {
+          errors.push(`Invalid initial value: ${initStr}`);
+        }
+        if (high === null && !this.isInfinity(highStr)) {
+          errors.push(`Invalid upper bound: ${highStr}`);
+        }
+        
+        // Validate bound relationships
+        if (low !== null && high !== null && low > high) {
+          errors.push(`Lower bound (${low}) cannot be greater than upper bound (${high})`);
+        }
+        
+        // Check initial value bounds only if initial value is provided
+        if (init !== null) {
+          if (low !== null && low > init) {
+            errors.push(`Lower bound (${low}) cannot be greater than initial value (${init})`);
+          }
+          if (high !== null && init > high) {
+            errors.push(`Initial value (${init}) cannot be greater than upper bound (${high})`);
+          }
+        }
+      } else {
+        errors.push(`Invalid THETA format: expected (value), (low,init), or (low,init,high), found ${parts.length} components`);
       }
-      
-    } else if (parts.length !== 2) {
-      // Invalid number of components
-      errors.push(`Invalid bound format: expected (value), (low,init,high), found ${parts.length} components`);
     }
     
     return { isValid: errors.length === 0, errors };
@@ -1285,5 +1335,71 @@ export class ParameterScanner {
     const trimmed = valueStr.trim().toUpperCase();
     return trimmed === 'INF' || trimmed === '-INF' || trimmed === '+INF' || 
            trimmed === 'INFINITY' || trimmed === '-INFINITY' || trimmed === '+INFINITY';
+  }
+
+  /**
+   * Extract simple parameter values from OMEGA/SIGMA lines (no parentheses)
+   */
+  private static extractSimpleParameterValues(line: string, paramType: 'OMEGA' | 'SIGMA'): Array<{ text: string; startPos: number; endPos: number }> {
+    const values: Array<{ text: string; startPos: number; endPos: number }> = [];
+    let content = line;
+    
+    // Remove control record prefix
+    const controlMatch = content.match(/^\s*\$(OMEGA|SIGMA)\s*/i);
+    if (controlMatch) {
+      content = content.substring(controlMatch[0].length);
+    }
+    
+    // Skip BLOCK declarations and SAME keywords
+    content = content.replace(/^BLOCK\(\d+\)\s*/i, '');
+    if (content.trim().toUpperCase() === 'SAME') {
+      return values; // No values to validate in SAME lines
+    }
+    
+    // Find numeric values (but not FIXED keywords)
+    const numericPattern = /([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)/g;
+    let match;
+    
+    while ((match = numericPattern.exec(content)) !== null) {
+      const value = match[1];
+      if (!value) continue;
+      const startInContent = match.index;
+      const endInContent = startInContent + value.length;
+      
+      // Find the absolute position in the original line
+      const prefixLength = line.length - content.length;
+      const absoluteStart = prefixLength + startInContent;
+      const absoluteEnd = prefixLength + endInContent;
+      
+      // Verify this is actually a numeric value and not part of a keyword
+      const beforeChar = absoluteStart > 0 ? line.charAt(absoluteStart - 1) : ' ';
+      const afterChar = absoluteEnd < line.length ? line.charAt(absoluteEnd) : ' ';
+      
+      if (/\s/.test(beforeChar) && (/\s/.test(afterChar) || afterChar === ';' || absoluteEnd === line.length)) {
+        values.push({
+          text: value,
+          startPos: absoluteStart,
+          endPos: absoluteEnd
+        });
+      }
+    }
+    
+    return values;
+  }
+
+  /**
+   * Validate a simple parameter value for OMEGA/SIGMA
+   */
+  private static validateSimpleParameterValue(valueStr: string, paramType: 'OMEGA' | 'SIGMA'): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    const value = this.parseNumericValue(valueStr);
+    if (value === null) {
+      errors.push(`Invalid ${paramType} value: ${valueStr}`);
+    } else if (value < 0) {
+      errors.push(`${paramType} initial value (${value}) should generally be positive (variance parameter)`);
+    }
+    
+    return { isValid: errors.length === 0, errors };
   }
 }
