@@ -865,4 +865,425 @@ export class ParameterScanner {
     
     return null;
   }
+
+  /**
+   * Validate BLOCK matrix syntax and structure
+   */
+  static validateBlockMatrixSyntax(document: TextDocument): { 
+    isValid: boolean; 
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const lines = document.getText().split('\n');
+    let currentBlockType: 'OMEGA' | 'SIGMA' | null = null;
+    let currentBlockSize = 0;
+    let currentBlockStartLine = 0;
+    let expectedElements = 0;
+    let actualElements = 0;
+    let inBlockMatrix = false;
+
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      
+      const trimmed = line.trim();
+      if (trimmed.startsWith(';')) continue; // Skip comments
+      
+      // Remove inline comments
+      const commentIndex = trimmed.indexOf(';');
+      const lineWithoutComment = commentIndex !== -1 ? trimmed.substring(0, commentIndex).trim() : trimmed;
+      
+      // Check for OMEGA/SIGMA BLOCK declarations
+      const omegaBlockMatch = lineWithoutComment.match(/^\$OMEGA\s+BLOCK\((\d+)\)/i);
+      const sigmaBlockMatch = lineWithoutComment.match(/^\$SIGMA\s+BLOCK\((\d+)\)/i);
+      
+      if (omegaBlockMatch || sigmaBlockMatch) {
+        const blockMatch = omegaBlockMatch || sigmaBlockMatch;
+        if (!blockMatch || !blockMatch[1]) continue;
+        const blockSize = parseInt(blockMatch[1], 10);
+        currentBlockType = omegaBlockMatch ? 'OMEGA' : 'SIGMA';
+        currentBlockSize = blockSize;
+        currentBlockStartLine = lineNum;
+        inBlockMatrix = true;
+        actualElements = 0;
+        
+        // Validate BLOCK size
+        if (blockSize < 1) {
+          errors.push({
+            message: `Invalid BLOCK size: BLOCK(${blockSize}). Size must be >= 1`,
+            line: lineNum,
+            startChar: blockMatch!.index! + blockMatch![0].indexOf(`(${blockSize})`),
+            endChar: blockMatch!.index! + blockMatch![0].indexOf(`(${blockSize})`) + `(${blockSize})`.length
+          });
+          continue;
+        }
+        
+        // BLOCK(1) is valid NONMEM syntax - no warning needed
+        
+        // Calculate expected elements for symmetric matrix: n*(n+1)/2
+        expectedElements = (blockSize * (blockSize + 1)) / 2;
+        
+        // Check for SAME keyword on declaration line
+        if (PARAMETER_PATTERNS.SAME.test(lineWithoutComment)) {
+          // SAME is valid - skip element counting for this block
+          inBlockMatrix = false;
+          continue;
+        }
+        
+        // Check for inline values on BLOCK declaration line
+        const afterBlock = lineWithoutComment.replace(/^\$\w+\s+BLOCK\(\d+\)\s*/i, '');
+        if (afterBlock.trim().length > 0) {
+          const inlineValues = afterBlock.match(PARAMETER_PATTERNS.NUMERIC);
+          if (inlineValues) {
+            actualElements += inlineValues.length;
+          }
+        }
+        
+      } else if (inBlockMatrix && currentBlockType) {
+        // Processing matrix data lines
+        if (lineWithoutComment.startsWith('$')) {
+          // New control record - validate current block
+          this.validateBlockElementCount(currentBlockType, currentBlockSize, expectedElements, actualElements, currentBlockStartLine, errors);
+          inBlockMatrix = false;
+          currentBlockType = null;
+        } else {
+          // Count numeric values on this line
+          const numericValues = lineWithoutComment.match(PARAMETER_PATTERNS.NUMERIC);
+          if (numericValues) {
+            actualElements += numericValues.length;
+          }
+        }
+      }
+    }
+    
+    // Validate final block if document ends while in a block
+    if (inBlockMatrix && currentBlockType) {
+      this.validateBlockElementCount(currentBlockType, currentBlockSize, expectedElements, actualElements, currentBlockStartLine, errors);
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Validate BLOCK matrix element count
+   */
+  private static validateBlockElementCount(
+    blockType: 'OMEGA' | 'SIGMA',
+    blockSize: number,
+    expectedElements: number,
+    actualElements: number,
+    startLine: number,
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
+  ): void {
+    if (blockSize === 1) {
+      // BLOCK(1) should have exactly 1 element
+      if (actualElements !== 1) {
+        errors.push({
+          message: `${blockType} BLOCK(1) expects 1 element, found ${actualElements}`,
+          line: startLine,
+          startChar: 0,
+          endChar: 0
+        });
+      }
+    } else {
+      // True matrix blocks
+      if (actualElements < expectedElements) {
+        errors.push({
+          message: `${blockType} BLOCK(${blockSize}) incomplete: expected ${expectedElements} elements, found ${actualElements}`,
+          line: startLine,
+          startChar: 0,
+          endChar: 0
+        });
+      } else if (actualElements > expectedElements) {
+        errors.push({
+          message: `${blockType} BLOCK(${blockSize}) has too many elements: expected ${expectedElements}, found ${actualElements}`,
+          line: startLine,
+          startChar: 0,
+          endChar: 0
+        });
+      }
+    }
+  }
+
+  /**
+   * Validate SAME keyword usage in BLOCK context
+   */
+  static validateSameKeywordUsage(document: TextDocument): { 
+    isValid: boolean; 
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const lines = document.getText().split('\n');
+    
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      
+      const trimmed = line.trim();
+      if (trimmed.startsWith(';')) continue; // Skip comments
+      
+      // Remove inline comments
+      const commentIndex = trimmed.indexOf(';');
+      const lineWithoutComment = commentIndex !== -1 ? trimmed.substring(0, commentIndex).trim() : trimmed;
+      
+      // Check for SAME keyword usage
+      if (PARAMETER_PATTERNS.SAME.test(lineWithoutComment)) {
+        const sameMatch = lineWithoutComment.match(PARAMETER_PATTERNS.SAME);
+        if (sameMatch) {
+          // Check if SAME is used in a valid BLOCK context
+          const isInBlockDeclaration = /^\$\w+\s+BLOCK\(\d+\)\s+.*SAME/i.test(lineWithoutComment);
+          const isStandaloneBlock = /^\$\w+\s+BLOCK\(\d+\)\s+SAME\s*$/i.test(lineWithoutComment);
+          
+          if (!isInBlockDeclaration && !isStandaloneBlock) {
+            // SAME used outside proper BLOCK context
+            const startPos = line.indexOf(sameMatch[0]);
+            errors.push({
+              message: `SAME keyword should only be used with BLOCK matrices to reference previous block structure`,
+              line: lineNum,
+              startChar: startPos,
+              endChar: startPos + sameMatch[0].length
+            });
+          }
+        }
+      }
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Validate parameter bounds for THETA, OMEGA, and SIGMA parameters
+   */
+  static validateParameterBounds(document: TextDocument): { 
+    isValid: boolean; 
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const lines = document.getText().split('\n');
+    let currentBlockType: 'THETA' | 'OMEGA' | 'SIGMA' | null = null;
+
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      
+      const trimmed = line.trim();
+      if (trimmed.startsWith(';')) continue; // Skip comments
+      
+      // Remove inline comments
+      const commentIndex = trimmed.indexOf(';');
+      const lineWithoutComment = commentIndex !== -1 ? trimmed.substring(0, commentIndex).trim() : trimmed;
+      
+      // Detect parameter block type
+      if (PARAMETER_PATTERNS.THETA.test(lineWithoutComment)) {
+        currentBlockType = 'THETA';
+      } else if (PARAMETER_PATTERNS.OMEGA.test(lineWithoutComment)) {
+        currentBlockType = 'OMEGA';
+      } else if (PARAMETER_PATTERNS.SIGMA.test(lineWithoutComment)) {
+        currentBlockType = 'SIGMA';
+      } else if (lineWithoutComment.startsWith('$')) {
+        currentBlockType = null; // Different control record
+      }
+      
+      // Validate bounds if in a parameter block
+      if (currentBlockType && lineWithoutComment.includes('(')) {
+        const boundExpressions = this.extractBoundExpressions(lineWithoutComment);
+        
+        for (const expr of boundExpressions) {
+          const validation = this.validateSingleParameterBound(expr.text, currentBlockType);
+          if (!validation.isValid) {
+            for (const error of validation.errors) {
+              const absoluteStart = line.indexOf(expr.text, expr.startPos);
+              if (absoluteStart !== -1) {
+                errors.push({
+                  message: error,
+                  line: lineNum,
+                  startChar: absoluteStart,
+                  endChar: absoluteStart + expr.text.length
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Extract bound expressions from a parameter line
+   */
+  private static extractBoundExpressions(line: string): Array<{ text: string; startPos: number }> {
+    const expressions = [];
+    let i = 0;
+    
+    // Remove control record prefix
+    const controlMatch = line.match(/^\s*\$\w+\s*/i);
+    if (controlMatch) {
+      i = controlMatch[0].length;
+    }
+    
+    // Skip BLOCK declarations
+    const blockMatch = line.substring(i).match(/^BLOCK\(\d+\)\s*/i);
+    if (blockMatch) {
+      i += blockMatch[0].length;
+    }
+    
+    // Find parenthesized expressions
+    while (i < line.length) {
+      if (line.charAt(i) === '(') {
+        const startPos = i;
+        let depth = 1;
+        i++; // Skip opening paren
+        
+        while (i < line.length && depth > 0) {
+          if (line.charAt(i) === '(') depth++;
+          else if (line.charAt(i) === ')') depth--;
+          i++;
+        }
+        
+        if (depth === 0) {
+          const expr = line.substring(startPos, i);
+          expressions.push({ text: expr, startPos });
+        }
+      } else {
+        i++;
+      }
+    }
+    
+    return expressions;
+  }
+
+  /**
+   * Validate a single parameter bound expression
+   */
+  private static validateSingleParameterBound(
+    boundExpr: string, 
+    paramType: 'THETA' | 'OMEGA' | 'SIGMA'
+  ): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    // Remove outer parentheses
+    const content = boundExpr.substring(1, boundExpr.length - 1).trim();
+    
+    // Split by commas (but not inside nested parentheses)
+    const parts = this.splitBoundComponents(content);
+    
+    if (parts.length === 1) {
+      // Single value: (init) - validate the value
+      const firstPart = parts[0];
+      if (firstPart) {
+        const value = this.parseNumericValue(firstPart.trim());
+        if (value === null) {
+          errors.push(`Invalid ${paramType} value: ${firstPart.trim()}`);
+        }
+      }
+    } else if (parts.length === 3) {
+      // Three values: (low, init, high)
+      const lowStr = parts[0]?.trim() || '';
+      const initStr = parts[1]?.trim() || '';
+      const highStr = parts[2]?.trim() || '';
+      
+      const low = this.parseNumericValue(lowStr);
+      const init = this.parseNumericValue(initStr);
+      const high = this.parseNumericValue(highStr);
+      
+      // Validate individual values
+      if (low === null && !this.isInfinity(lowStr)) {
+        errors.push(`Invalid lower bound: ${lowStr}`);
+      }
+      // Initial value can be empty (omitted) only for THETA: (lower,,upper)
+      // OMEGA and SIGMA always require initial values
+      if (init === null && (paramType !== 'THETA' || initStr !== '')) {
+        errors.push(`Invalid initial value: ${initStr}`);
+      }
+      if (high === null && !this.isInfinity(highStr)) {
+        errors.push(`Invalid upper bound: ${highStr}`);
+      }
+      
+      // Validate bound relationships
+      // Always check lower vs upper bound
+      if (low !== null && high !== null && low > high) {
+        errors.push(`Lower bound (${low}) cannot be greater than upper bound (${high})`);
+      }
+      
+      // Check initial value bounds only if initial value is provided
+      if (init !== null) {
+        if (low !== null && low > init) {
+          errors.push(`Lower bound (${low}) cannot be greater than initial value (${init})`);
+        }
+        if (high !== null && init > high) {
+          errors.push(`Initial value (${init}) cannot be greater than upper bound (${high})`);
+        }
+        
+        // Special validation for OMEGA/SIGMA (variance parameters should generally be positive)
+        if ((paramType === 'OMEGA' || paramType === 'SIGMA') && init < 0) {
+          errors.push(`${paramType} initial value (${init}) should generally be positive (variance parameter)`);
+        }
+      }
+      
+    } else if (parts.length !== 2) {
+      // Invalid number of components
+      errors.push(`Invalid bound format: expected (value), (low,init,high), found ${parts.length} components`);
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Split bound components by commas, respecting nested parentheses
+   */
+  private static splitBoundComponents(content: string): string[] {
+    const parts = [];
+    let current = '';
+    let depth = 0;
+    
+    for (let i = 0; i < content.length; i++) {
+      const char = content.charAt(i);
+      
+      if (char === '(') {
+        depth++;
+        current += char;
+      } else if (char === ')') {
+        depth--;
+        current += char;
+      } else if (char === ',' && depth === 0) {
+        parts.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    if (current.trim()) {
+      parts.push(current);
+    }
+    
+    return parts;
+  }
+
+  /**
+   * Parse a numeric value, handling NONMEM special values
+   */
+  private static parseNumericValue(valueStr: string): number | null {
+    const trimmed = valueStr.trim();
+    
+    // Handle infinity values
+    if (this.isInfinity(trimmed)) {
+      return trimmed.startsWith('-') ? -Infinity : Infinity;
+    }
+    
+    // Try to parse as number
+    const num = parseFloat(trimmed);
+    return isNaN(num) ? null : num;
+  }
+
+  /**
+   * Check if a string represents infinity
+   */
+  private static isInfinity(valueStr: string): boolean {
+    const trimmed = valueStr.trim().toUpperCase();
+    return trimmed === 'INF' || trimmed === '-INF' || trimmed === '+INF' || 
+           trimmed === 'INFINITY' || trimmed === '-INFINITY' || trimmed === '+INFINITY';
+  }
 }
