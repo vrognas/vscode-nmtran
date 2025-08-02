@@ -1340,7 +1340,7 @@ export class ParameterScanner {
   /**
    * Extract simple parameter values from OMEGA/SIGMA lines (no parentheses)
    */
-  private static extractSimpleParameterValues(line: string, paramType: 'OMEGA' | 'SIGMA'): Array<{ text: string; startPos: number; endPos: number }> {
+  private static extractSimpleParameterValues(line: string, _paramType: 'OMEGA' | 'SIGMA'): Array<{ text: string; startPos: number; endPos: number }> {
     const values: Array<{ text: string; startPos: number; endPos: number }> = [];
     let content = line;
     
