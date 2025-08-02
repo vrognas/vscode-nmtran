@@ -71,3 +71,36 @@ export const allowedControlRecords = [
   '$TTDF',
   '$WARNINGS'
 ];
+
+/**
+ * NMTRAN Reserved Variables
+ * 
+ * Special variables with predefined meanings in NMTRAN abbreviated code.
+ */
+export const reservedVariables = [
+  'ICALL',    // Execution context indicator
+  'NEWIND',   // Individual record indicator  
+  'Y',        // Mandatory left-hand quantity for PRED
+  'ERR'       // Alternative to ETA/EPS arrays
+];
+
+/**
+ * NMTRAN Reserved Functions and Vectors (NONMEM 7.4+)
+ * 
+ * Reserved function names FUNCA through FUNCZ and vector names VECTRA through VECTRZ.
+ */
+export const reservedFunctions = [
+  // Reserved functions A-Z
+  ...Array.from({length: 26}, (_, i) => `FUNC${String.fromCharCode(65 + i)}`),
+  // Reserved vectors A-Z  
+  ...Array.from({length: 26}, (_, i) => `VECTR${String.fromCharCode(65 + i)}`)
+];
+
+/**
+ * NMTRAN Protective Functions (NONMEM 7.4+)
+ * 
+ * Functions that protect against domain violations and floating point errors.
+ */
+export const protectiveFunctions = [
+  'PLOG', 'PEXP', 'PSQRT', 'PSIN', 'PCOS', 'PTAN'
+];
