@@ -707,7 +707,7 @@ export class DefinitionService {
   /**
    * Determine which parameter index the cursor is positioned on based on parameter locations
    */
-  private getParameterIndexFromCursorPosition(document: TextDocument, lineNum: number, cursorChar: number, parameterType: string, baseParameterCount: number): number | null {
+  private getParameterIndexFromCursorPosition(document: TextDocument, lineNum: number, cursorChar: number, parameterType: string, _baseParameterCount: number): number | null {
     // Get all scanned parameters for this line
     const allParams = this.scanAllParameters(document);
     const paramsOnLine = allParams.filter(param => 

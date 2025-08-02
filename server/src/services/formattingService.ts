@@ -30,10 +30,10 @@ export class FormattingService {
       
       // Create indentation strings (always use spaces for NMTRAN)
       const baseIndent = ' '.repeat(indentSize);
-      const continuationIndent = baseIndent; // For line continuations
+      const _continuationIndent = baseIndent; // For line continuations
 
       let currentIndentLevel = 0;
-      let inContinuation = false;
+      const _inContinuation = false;
       let currentControlRecord = '';
 
       for (let i = 0; i < lines.length; i++) {
@@ -132,7 +132,7 @@ export class FormattingService {
   private formatAssignmentOperators(line: string): string {
     return this.preserveLeadingWhitespace(line, (content) => {
       // Assignment operator: = (but not ==, !=, <=, >=)
-      return content.replace(/(?<![\=\!\<\>])\s*\=\s*(?!\=)/g, ' = ');
+      return content.replace(/(?<![=!<>])\s*=\s*(?!=)/g, ' = ');
     });
   }
 

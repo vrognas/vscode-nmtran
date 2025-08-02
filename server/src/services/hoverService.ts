@@ -156,7 +156,7 @@ export class HoverService {
     }
     
     // Extract FIXED keywords from additional ranges
-    let fixedKeywords: string[] = [];
+    const fixedKeywords: string[] = [];
     if (definition.additionalRanges) {
       for (const range of definition.additionalRanges) {
         if (range.line !== undefined && range.line !== definition.line) {
@@ -258,7 +258,7 @@ export class HoverService {
       return null;
     }
     
-    let previousValue = previousLine.substring(previousParam.startChar, previousParam.endChar).trim();
+    const previousValue = previousLine.substring(previousParam.startChar, previousParam.endChar).trim();
     
     // If the previous value is also SAME, recursively resolve it
     if (previousValue === 'SAME') {

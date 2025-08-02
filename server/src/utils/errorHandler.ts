@@ -157,7 +157,7 @@ export class ErrorHandler {
   /**
    * Get appropriate default return value based on function signature (legacy method)
    */
-  private getDefaultReturnValue(fn: Function): any {
+  private getDefaultReturnValue(fn: (...args: any[]) => any): any {
     const fnString = fn.toString();
     
     // Check return type hints in function signature
