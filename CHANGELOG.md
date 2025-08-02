@@ -1,3 +1,38 @@
+## [0.2.13] 2 Aug, 2025
+
+### Added
+
+* **NONMEM 7.6.0 Support**: Added function highlighting for new NONMEM 7.6.0 functions (PLOG, PEXP, PSQRT, PSIGN, PSIND, PCOSD, PSIND1, PCOSD1)
+* **Parameter Bounds Validation**: Comprehensive validation for THETA, OMEGA, and SIGMA parameter bounds syntax
+* **Continuation Marker Validation**: Proper validation of `&` continuation characters in NMTRAN code
+* **BLOCK Matrix Validation**: Enhanced validation for BLOCK matrix syntax in OMEGA and SIGMA records
+* **NMTRAN Parameter Examples**: Added comprehensive parameter syntax reference examples for documentation
+* **ERR/EPS Equivalence**: Full support for ERR() as synonym for EPS() parameters throughout the extension
+
+### Enhanced
+
+* **Syntax Highlighting**: Improved highlighting for generated subroutines (ADVAN/TRANS combinations)
+* **Performance Optimization**: Enhanced ERR/EPS equivalence processing for better responsiveness
+* **FormattingService**: Refactored for improved maintainability and code organization
+* **Error Handling**: Added structured error context and enhanced parameter validation utilities
+* **Test Coverage**: Comprehensive test suites for NONMEM 7.6.0 features, edge cases, and validation scenarios
+* **Code Organization**: Better utility class structure and improved parameter scanning architecture
+
+### Fixed
+
+* **Parameter Bounds**: Resolved OMEGA/SIGMA parameter bounds validation edge cases
+* **THETA Hover**: Fixed hover functionality for THETA parameters in complex syntax scenarios
+* **TypeScript Compliance**: Resolved strict mode compliance issues for reliable builds
+* **Test Reliability**: Fixed various test cases and TypeScript compilation errors
+* **Build Management**: Added dist/ directory to .gitignore for cleaner repository state
+* **Code Quality**: Fixed unused parameter lint error in ParameterScanner service
+
+### Updated
+
+* **Reserved Variables**: Updated for NONMEM 7.6.0 compatibility
+* **Documentation**: Enhanced CLAUDE.md, MAINTENANCE.md, and ARCHITECTURE.md with current practices
+* **Development Tools**: Improved pre-release scripts and build configuration
+
 ## [0.2.12] 31 Jul, 2025
 
 ### Enhanced
