@@ -146,9 +146,9 @@ $PK
 
   F1 = THETA(14) ; 1 FIX
 
-  D1 = DUR ; Infusion duration, (this parameters is called INF in Karaiskos et al 2016, https://doi.org/10.1016/j.ijantimicag.2016.06.008).
+  D1 = DUR ; Infusion duration, (this parameters is called INF in Karaiskos et al).
   f_u     = 0.34 ; To calculate the unbound colistin concentration
-  CONVcol = 1.163000 ; Conversion factor umol/L to mg/L for colistin(1163 g/mol), Karaiskos et al. 2016, https://doi.org/10.1016/j.ijantimicag.2016.06.008
+  CONVcol = 1.163000 ; Conversion factor umol/L to mg/L for colistin(1163 g/mol), Karaiskos et al. 2016
 
 $DES
   DADT(1) =  K21*A(2) - K12*A(1) - K43*A(1) - K10* A(1)             ;CMS1c
@@ -193,7 +193,7 @@ $ERROR
     IWRES = IRES/W
 
   Y = IPRED + W * EPS(1)
-
+m3
   ;Sim_start
   BCMS = LOG(0.120*1000/1628)
   BMS = 0
@@ -256,7 +256,6 @@ $OMEGA  0  FIX  ; 1          V2
 $OMEGA  0.260981  ; 2 Res err col
 $OMEGA  BLOCK(1)
  0.0676983  ; 3       IOVCL
-$OMEGA  BLOCK(1) SAME  ; 4       IOV_CL_OCC2
 $OMEGA  BLOCK(1) SAME
 $OMEGA  BLOCK(1) SAME
 $OMEGA  BLOCK(1) SAME
