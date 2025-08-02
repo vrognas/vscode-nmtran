@@ -19,12 +19,12 @@ describe('ParameterValidator', () => {
 
     it('should detect counter limit violations', () => {
       const state = ParameterFactory.createScannerState();
-      state.counters.THETA = 100; // Exceeds limit
+      state.counters.THETA = 10000; // Exceeds limit of 9999
       
       const result = ParameterValidator.validateScannerState(state);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('THETA count 100 exceeds maximum 50');
+      expect(result.errors).toContain('THETA count 10000 exceeds maximum 9999');
     });
 
     it('should detect invalid block matrix size', () => {

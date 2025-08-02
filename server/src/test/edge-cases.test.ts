@@ -30,7 +30,7 @@ describe('ParameterScanner Edge Cases', () => {
       const locations = ParameterScanner.scanDocument(doc);
       // Should treat as regular parameter due to malformed BLOCK syntax
       expect(locations).toHaveLength(1);
-      expect(locations[0].type).toBe('ETA');
+      expect(locations[0]?.type).toBe('ETA');
     });
 
     it('should handle BLOCK with invalid size', () => {
@@ -113,22 +113,22 @@ $THETA 3.0
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(3);
       // Check that FIXED ranges are captured
-      expect(locations[0].additionalRanges).toBeDefined();
-      expect(locations[1].additionalRanges).toBeDefined();
+      expect(locations[0]?.additionalRanges).toBeDefined();
+      expect(locations[1]?.additionalRanges).toBeDefined();
     });
 
     it('should handle FIX abbreviation', () => {
       const doc = createDocument('$THETA 1.0 FIX 2.0 FIX');
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(2);
-      expect(locations[0].additionalRanges).toBeDefined();
-      expect(locations[1].additionalRanges).toBeDefined();
+      expect(locations[0]?.additionalRanges).toBeDefined();
+      expect(locations[1]?.additionalRanges).toBeDefined();
     });
   });
 
   describe('whitespace handling', () => {
     it('should handle irregular whitespace', () => {
-      const doc = createDocument('$THETA\\t\\t1.0   \\t2.0\\n\\t\\t3.0');
+      const doc = createDocument('$THETA\t\t1.0   \t2.0\n\t\t3.0');
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(3);
     });
@@ -152,20 +152,20 @@ $THETA 1.0
       const doc = createDocument('$OMEGA SAME FIXED');
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(1);
-      expect(locations[0].type).toBe('ETA');
+      expect(locations[0]?.type).toBe('ETA');
     });
 
     it('should handle SAME in BLOCK context', () => {
       const doc = createDocument('$OMEGA BLOCK(2) SAME');
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(1);
-      expect(locations[0].type).toBe('ETA');
+      expect(locations[0]?.type).toBe('ETA');
     });
   });
 
   describe('comment handling', () => {
     it('should handle inline comments', () => {
-      const doc = createDocument('$THETA 1.0 ; Initial value\\n2.0 ; Second parameter');
+      const doc = createDocument('$THETA 1.0 ; Initial value\n$THETA 2.0 ; Second parameter');
       const locations = ParameterScanner.scanDocument(doc);
       expect(locations).toHaveLength(2);
     });
@@ -210,8 +210,8 @@ $OMEGA BLOCK(5)
     });
 
     it('should handle many lines efficiently', () => {
-      const manyLines = Array(1000).fill('1.0').map((val, i) => `${val} ; Line ${i}`).join('\\n');
-      const content = `$THETA\\n${manyLines}`;
+      const manyLines = Array(1000).fill('1.0').map((val, i) => `${val} ; Line ${i}`).join('\n');
+      const content = `$THETA\n${manyLines}`;
       const doc = createDocument(content);
       
       const start = performance.now();

@@ -181,7 +181,7 @@ describe('ErrorHandler', () => {
       
       errorHandler.logWarning('Test', context);
       
-      expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Test [operation=]');
+      expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Test');
     });
 
     it('should convert line numbers to 1-based', () => {
