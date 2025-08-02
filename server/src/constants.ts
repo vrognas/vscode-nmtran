@@ -113,3 +113,24 @@ export const protectiveFunctions = [
 export const generatedFiles = [
   'FDATA', 'FCON', 'FSTREAM', 'FREPORT', 'FLIB', 'LINK'
 ];
+
+/**
+ * FORTRAN Format Codes (NONMEM v7.6.0+)
+ * 
+ * Format specifiers used in $DATA record format specifications for numeric data formatting.
+ * 
+ * @example
+ * // Format specification: (3(F3.1,2X),E6.2)
+ * // Reads: 3 groups of [fixed-point number width 3 with 1 decimal, 2 spaces], then scientific notation width 6 with 2 decimals
+ * 
+ * Format codes:
+ * - E: Scientific notation (exponential) - e.g., E13.4 = field width 13, 4 decimal places
+ * - F: Fixed-point decimal notation - e.g., F8.3 = field width 8, 3 decimal places  
+ * - X: Horizontal spacing/skip - e.g., 2X = skip 2 character positions
+ * - D: Double precision exponential - similar to E but for double precision
+ * - G: General format (chooses E or F based on magnitude) - e.g., G12.4
+ * - I: Integer format - e.g., I4 = integer field width 4
+ */
+export const formatCodes = [
+  'E', 'F', 'X', 'D', 'G', 'I'
+];
