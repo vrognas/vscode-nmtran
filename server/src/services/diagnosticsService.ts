@@ -9,7 +9,8 @@ import { Connection, Diagnostic, DiagnosticSeverity } from 'vscode-languageserve
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   locateControlRecordsInText,
-  generateDiagnosticForControlRecord
+  generateDiagnosticForControlRecord,
+  validateContinuationMarkers
 } from '../utils/validateControlRecords';
 import { ParameterScanner } from './ParameterScanner';
 
@@ -80,6 +81,78 @@ export class DiagnosticsService {
           };
           diagnostics.push(diagnostic);
           this.connection.console.log(`⚠️  Parameter reference validation: ${error.message}`);
+        }
+      }
+
+      // Validate BLOCK matrix syntax and structure
+      const blockMatrixValidation = ParameterScanner.validateBlockMatrixSyntax(document);
+      if (!blockMatrixValidation.isValid) {
+        for (const error of blockMatrixValidation.errors) {
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: { line: error.line, character: error.startChar },
+              end: { line: error.line, character: error.endChar }
+            },
+            message: error.message,
+            source: 'nmtran'
+          };
+          diagnostics.push(diagnostic);
+          this.connection.console.log(`⚠️  BLOCK matrix validation: ${error.message}`);
+        }
+      }
+
+      // Validate SAME keyword usage in BLOCK context
+      const sameKeywordValidation = ParameterScanner.validateSameKeywordUsage(document);
+      if (!sameKeywordValidation.isValid) {
+        for (const error of sameKeywordValidation.errors) {
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Warning,
+            range: {
+              start: { line: error.line, character: error.startChar },
+              end: { line: error.line, character: error.endChar }
+            },
+            message: error.message,
+            source: 'nmtran'
+          };
+          diagnostics.push(diagnostic);
+          this.connection.console.log(`⚠️  SAME keyword validation: ${error.message}`);
+        }
+      }
+
+      // Validate continuation marker usage
+      const continuationValidation = validateContinuationMarkers(document);
+      if (!continuationValidation.isValid) {
+        for (const error of continuationValidation.errors) {
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: { line: error.line, character: error.startChar },
+              end: { line: error.line, character: error.endChar }
+            },
+            message: error.message,
+            source: 'nmtran'
+          };
+          diagnostics.push(diagnostic);
+          this.connection.console.log(`⚠️  Continuation marker validation: ${error.message}`);
+        }
+      }
+
+      // Validate parameter bounds
+      const parameterBoundsValidation = ParameterScanner.validateParameterBounds(document);
+      if (!parameterBoundsValidation.isValid) {
+        for (const error of parameterBoundsValidation.errors) {
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: { line: error.line, character: error.startChar },
+              end: { line: error.line, character: error.endChar }
+            },
+            message: error.message,
+            source: 'nmtran'
+          };
+          diagnostics.push(diagnostic);
+          this.connection.console.log(`⚠️  Parameter bounds validation: ${error.message}`);
         }
       }
 
