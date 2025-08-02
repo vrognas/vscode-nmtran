@@ -25,6 +25,18 @@ NMTRAN is a specialized language for pharmacokinetic/pharmacodynamic modeling:
 
 **Reference**: Full NMTRAN documentation at <https://nmhelp.tingjieguo.com>
 
+### NONMEM Workflow (v7.6.0+)
+
+NONMEM executes through six fundamental program steps:
+1. **Simulation Step**: Generate simulated data under specified model
+2. **Initial Estimation Step**: Compute initial parameter estimates  
+3. **Estimation Step**: Obtain final parameter estimates via objective function minimization
+4. **Covariance Step**: Calculate parameter estimate covariance matrix
+5. **Tables Step**: Generate output tables of data items and predictions
+6. **Scatterplot Step**: Create diagnostic plots and visualizations
+
+**Data Formatting Heritage**: NMTRAN inherits FORTRAN I/O formatting (E, F, X format codes) for `$DATA` record specifications, enabling precise control over numeric data reading and formatting.
+
 ## Architecture
 
 **Client-Server LSP Design** with service-based architecture for maintainability.
