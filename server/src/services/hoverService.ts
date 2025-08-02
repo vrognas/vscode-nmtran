@@ -34,6 +34,12 @@ export class HoverService {
         return parameterHover;
       }
       
+      // Check for reserved variables
+      const reservedVariableHover = this.getReservedVariableHover(text, offset);
+      if (reservedVariableHover) {
+        return reservedVariableHover;
+      }
+      
       // Then check for control records
       return this.getControlRecordHover(text, offset, document);
 
@@ -260,5 +266,45 @@ export class HoverService {
     }
     
     return { value: previousValue, originalIndex: previousParam.index };
+  }
+
+  /**
+   * Get hover information for reserved variables like ICALL, NEWIND, Y
+   */
+  private getReservedVariableHover(text: string, offset: number): Hover | null {
+    // Check for reserved variables at the cursor position
+    const reservedVariables = {
+      'ICALL': 'Reserved variable - Execution context: 0=run init, 1=problem init, 2=analysis, 3=finalization, 4=simulation, 5=expectation, 6=data average',
+      'NEWIND': 'Reserved variable - Individual record indicator: 0=first record, 1=new individual, 2=continuation record',
+      'Y': 'Mandatory left-hand quantity for PRED - represents the predicted value or observation under the statistical model',
+      'ERR': 'Reserved array - Alternative to ETA(n)/EPS(n) for random intra-individual effects'
+    };
+
+    // Find word boundaries around the offset
+    const beforeOffset = Math.max(0, offset - 10);
+    const afterOffset = Math.min(text.length, offset + 10);
+    const searchText = text.substring(beforeOffset, afterOffset);
+    
+    for (const [variable, description] of Object.entries(reservedVariables)) {
+      const regex = new RegExp(`\\b${variable}\\b`, 'i');
+      const match = regex.exec(searchText);
+      
+      if (match) {
+        const matchStart = beforeOffset + match.index;
+        const matchEnd = matchStart + match[0].length;
+        
+        // Check if the cursor is within the match
+        if (offset >= matchStart && offset <= matchEnd) {
+          return {
+            contents: {
+              kind: MarkupKind.Markdown,
+              value: description
+            } as MarkupContent
+          } as Hover;
+        }
+      }
+    }
+
+    return null;
   }
 }
