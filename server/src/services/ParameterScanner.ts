@@ -45,9 +45,22 @@ const PARAMETER_PATTERNS = {
   BLOCK: /BLOCK\((\d+)\)/i,
   SAME: /\bSAME\b/i,
   FIXED: /\b(FIX|FIXED)\b/gi,
+  FIXED_CASE_INSENSITIVE: /\b(FIX|FIXED)\b/i,
+  FIXED_START: /^(FIX|FIXED)\b/i,
   NUMERIC: /[\d\-+][\d\-+.eE]*/g,
+  NUMERIC_SINGLE: /[\d\-+][\d\-+.eE]*/,
   CONTROL_RECORD: /^\s*\$\w+\s*/i,
-  COMMENT: /;.*$/
+  COMMENT: /;.*$/,
+  COMMENT_END: /;.*$/,
+  PARAMETER_REFERENCE: /\b(THETA|ETA|EPS|ERR)\((\d+)\)/g,
+  WHITESPACE: /\s/,
+  WHITESPACE_OR_PAREN: /[\s(]/,
+  BLOCK_INLINE: /^\s*\$\w+\s+BLOCK\(\d+\)\s*/i,
+  OMEGA_BLOCK_PREFIX: /^\$OMEGA\s+BLOCK\(\d+\)\s*/i,
+  SIGMA_BLOCK_PREFIX: /^\$SIGMA\s+BLOCK\(\d+\)\s*/i,
+  BLOCK_PREFIX: /^BLOCK\(\d+\)\s*/i,
+  PARAMETER_KEYWORDS: /\b(FIX|FIXED|STANDARD|VARIANCE|CORRELATION|CHOLESKY|DIAGONAL|SAME|VALUES|NAMES)\b/gi,
+  COMMENT_START: /^;/
 } as const;
 
 export class ParameterScanner {
@@ -114,17 +127,21 @@ export class ParameterScanner {
    * Update scanner state based on control record
    */
   private static updateStateForControlRecord(trimmed: string, state: ScannerState, lineNum: number): void {
-    if (PARAMETER_PATTERNS.THETA.test(trimmed)) {
+    // Remove inline comments before checking control records
+    const commentIndex = trimmed.indexOf(';');
+    const lineWithoutComment = commentIndex !== -1 ? trimmed.substring(0, commentIndex).trim() : trimmed;
+    
+    if (PARAMETER_PATTERNS.THETA.test(lineWithoutComment)) {
       state.currentBlockType = 'THETA';
       state.inBlockMatrix = false;
       state.blockMatrixRemaining = 0;
-    } else if (PARAMETER_PATTERNS.OMEGA.test(trimmed)) {
+    } else if (PARAMETER_PATTERNS.OMEGA.test(lineWithoutComment)) {
       state.currentBlockType = 'ETA';
-      const matrixState = this.detectBlockMatrix(trimmed);
+      const matrixState = this.detectBlockMatrix(lineWithoutComment);
       state.inBlockMatrix = matrixState.inBlockMatrix;
       state.blockMatrixRemaining = matrixState.blockMatrixRemaining;
       // Extract block size from BLOCK(n)
-      const blockMatch = trimmed.match(PARAMETER_PATTERNS.BLOCK);
+      const blockMatch = lineWithoutComment.match(PARAMETER_PATTERNS.BLOCK);
       state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
       state.blockElementsSeen = 0;  // Reset element counter for new block
       state.blockDiagonalsSeen = 0; // Reset diagonal counter for new block
@@ -132,15 +149,15 @@ export class ParameterScanner {
       
       // Check for FIXED keywords on the BLOCK declaration line
       if (state.inBlockMatrix) {
-        this.detectBlockFixedKeywords(trimmed, lineNum, state);
+        this.detectBlockFixedKeywords(lineWithoutComment, lineNum, state);
       }
-    } else if (PARAMETER_PATTERNS.SIGMA.test(trimmed)) {
+    } else if (PARAMETER_PATTERNS.SIGMA.test(lineWithoutComment)) {
       state.currentBlockType = 'EPS';
-      const matrixState = this.detectBlockMatrix(trimmed);
+      const matrixState = this.detectBlockMatrix(lineWithoutComment);
       state.inBlockMatrix = matrixState.inBlockMatrix;
       state.blockMatrixRemaining = matrixState.blockMatrixRemaining;
       // Extract block size from BLOCK(n)
-      const blockMatch = trimmed.match(PARAMETER_PATTERNS.BLOCK);
+      const blockMatch = lineWithoutComment.match(PARAMETER_PATTERNS.BLOCK);
       state.blockMatrixSize = blockMatch && blockMatch[1] ? parseInt(blockMatch[1], 10) : 0;
       state.blockElementsSeen = 0;  // Reset element counter for new block
       state.blockDiagonalsSeen = 0; // Reset diagonal counter for new block
@@ -148,9 +165,9 @@ export class ParameterScanner {
       
       // Check for FIXED keywords on the BLOCK declaration line
       if (state.inBlockMatrix) {
-        this.detectBlockFixedKeywords(trimmed, lineNum, state);
+        this.detectBlockFixedKeywords(lineWithoutComment, lineNum, state);
       }
-    } else if (trimmed.startsWith('$')) {
+    } else if (lineWithoutComment.startsWith('$')) {
       // Different control record - reset state
       state.currentBlockType = null;
       state.inBlockMatrix = false;
@@ -162,9 +179,8 @@ export class ParameterScanner {
    * Detect and store FIXED keywords from BLOCK declaration line
    */
   private static detectBlockFixedKeywords(line: string, lineNum: number, state: ScannerState): void {
-    const fixedPattern = /\b(FIX|FIXED)\b/gi;
     let match;
-    while ((match = fixedPattern.exec(line)) !== null) {
+    while ((match = PARAMETER_PATTERNS.FIXED.exec(line)) !== null) {
       state.blockFixedKeywords.push({
         startChar: match.index,
         endChar: match.index + match[0].length,
@@ -302,10 +318,10 @@ export class ParameterScanner {
           }
           
           // Check for FIXED keyword on this line (simpler approach for OMEGA/SIGMA)
-          const fixedPattern = /\b(FIX|FIXED)\b/gi;
+          PARAMETER_PATTERNS.FIXED.lastIndex = 0; // Reset global regex
           const fixedMatches = [];
           let match;
-          while ((match = fixedPattern.exec(line)) !== null) {
+          while ((match = PARAMETER_PATTERNS.FIXED.exec(line)) !== null) {
             fixedMatches.push({
               startChar: match.index,
               endChar: match.index + match[0].length
@@ -410,15 +426,14 @@ export class ParameterScanner {
     cleanedPrefix = cleanedPrefix.replace(/^BLOCK\(\d+\)\s*/i, '');
     
     // Remove parameter keywords but keep numeric values
-    return cleanedPrefix.replace(/\b(FIX|FIXED|STANDARD|VARIANCE|CORRELATION|CHOLESKY|DIAGONAL|SAME|VALUES|NAMES)\b/gi, '').trim();
+    return cleanedPrefix.replace(PARAMETER_PATTERNS.PARAMETER_KEYWORDS, '').trim();
   }
 
   /**
    * Count numeric values in a string
    */
   private static countNumericValues(content: string): number {
-    const numericPattern = /[\d\-+][\d\-+.eE]*/g;
-    const matches = content.match(numericPattern);
+    const matches = content.match(PARAMETER_PATTERNS.NUMERIC);
     return matches ? matches.length : 0;
   }
 
@@ -525,7 +540,7 @@ export class ParameterScanner {
     let i = 0;
     while (i < content.length) {
       // Skip whitespace
-      while (i < content.length && /\s/.test(content.charAt(i))) {
+      while (i < content.length && PARAMETER_PATTERNS.WHITESPACE.test(content.charAt(i))) {
         i++;
         currentPos++;
       }
@@ -545,7 +560,7 @@ export class ParameterScanner {
         }
         
         const expr = content.substring(startPos, i);
-        const fixedMatchInside = expr.match(/\b(FIX|FIXED)\b/i);
+        const fixedMatchInside = expr.match(PARAMETER_PATTERNS.FIXED_CASE_INSENSITIVE);
         
         const expression: {
           valueRange: { startChar: number; endChar: number };
@@ -564,13 +579,13 @@ export class ParameterScanner {
           // Check for FIXED keyword after the bounded expression
           // Skip whitespace after the closing parenthesis
           let afterParenPos = i;
-          while (afterParenPos < content.length && /\s/.test(content.charAt(afterParenPos))) {
+          while (afterParenPos < content.length && PARAMETER_PATTERNS.WHITESPACE.test(content.charAt(afterParenPos))) {
             afterParenPos++;
           }
           
           // Check for FIXED/FIX keyword after the bounded expression
           const remainingAfterParen = content.substring(afterParenPos);
-          const fixedMatchAfter = remainingAfterParen.match(/^(FIX|FIXED)\b/i);
+          const fixedMatchAfter = remainingAfterParen.match(PARAMETER_PATTERNS.FIXED_START);
           
           if (fixedMatchAfter) {
             expression.fixedRange = {
@@ -585,7 +600,7 @@ export class ParameterScanner {
       } else {
         // Simple value, possibly followed by FIXED
         // Read until next whitespace or parenthesis
-        while (i < content.length && !/[\s(]/.test(content.charAt(i))) {
+        while (i < content.length && !PARAMETER_PATTERNS.WHITESPACE_OR_PAREN.test(content.charAt(i))) {
           i++;
         }
         
@@ -593,13 +608,13 @@ export class ParameterScanner {
         const afterValue = i;
         
         // Skip whitespace
-        while (i < content.length && /\s/.test(content.charAt(i))) {
+        while (i < content.length && PARAMETER_PATTERNS.WHITESPACE.test(content.charAt(i))) {
           i++;
         }
         
         // Check for FIXED/FIX keyword
         const remaining = content.substring(i);
-        const fixedMatch = remaining.match(/^(FIX|FIXED)\b/i);
+        const fixedMatch = remaining.match(PARAMETER_PATTERNS.FIXED_START);
         
         const expression: {
           valueRange: { startChar: number; endChar: number };
@@ -623,6 +638,123 @@ export class ParameterScanner {
     }
     
     return expressions;
+  }
+
+  /**
+   * Validate sequential parameter numbering (THETA/ETA/EPS must be 1,2,3... with no gaps)
+   */
+  static validateSequentialNumbering(parameters: ParameterLocation[]): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    const groups: Record<'THETA' | 'ETA' | 'EPS', number[]> = { THETA: [], ETA: [], EPS: [] };
+    
+    // Group parameters by type and collect indices
+    for (const param of parameters) {
+      groups[param.type].push(param.index);
+    }
+    
+    // Check each parameter type for sequential numbering
+    for (const [type, indices] of Object.entries(groups)) {
+      if (indices.length === 0) continue;
+      
+      const sorted = [...indices].sort((a, b) => a - b);
+      const expected = Array.from({ length: sorted.length }, (_, i) => i + 1);
+      
+      for (let i = 0; i < expected.length; i++) {
+        if (sorted[i] !== expected[i]) {
+          errors.push(`Missing ${type}(${expected[i]}) - parameters must be sequential with no gaps`);
+        }
+      }
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Validate parameter references against definitions (optimized version with pre-scanned parameters)
+   */
+  static validateParameterReferencesWithParameters(
+    document: TextDocument, 
+    parameters: ParameterLocation[]
+  ): { 
+    isValid: boolean; 
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const text = document.getText();
+    const lines = text.split('\n');
+    
+    // Use pre-scanned parameters to get counts (no document re-scanning)
+    const maxCounts = { THETA: 0, ETA: 0, EPS: 0 };
+    
+    for (const param of parameters) {
+      maxCounts[param.type] = Math.max(maxCounts[param.type], param.index);
+    }
+    
+    // Track which parameters are actually referenced
+    const referencedParams = new Set<string>();
+    
+    // Then scan document for parameter references
+    // Reset global regex for reuse
+    PARAMETER_PATTERNS.PARAMETER_REFERENCE.lastIndex = 0;
+    
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+      
+      // Remove comments before scanning for references
+      const commentIndex = line.indexOf(';');
+      const lineWithoutComment = commentIndex !== -1 ? line.substring(0, commentIndex) : line;
+      
+      let match;
+      while ((match = PARAMETER_PATTERNS.PARAMETER_REFERENCE.exec(lineWithoutComment)) !== null) {
+        const rawParamType = match[1] as 'THETA' | 'ETA' | 'EPS' | 'ERR';
+        const paramIndex = parseInt(match[2]!, 10);
+        
+        // Normalize ERR to EPS since they are synonymous in NMTRAN
+        const paramType = rawParamType === 'ERR' ? 'EPS' : rawParamType;
+        
+        // Track this parameter as referenced (use normalized type)
+        referencedParams.add(`${paramType}:${paramIndex}`);
+        
+        if (paramIndex > maxCounts[paramType]) {
+          // Use appropriate type name in error message
+          const definitionType = paramType === 'EPS' ? 'EPS' : paramType;
+          errors.push({
+            message: `${rawParamType}(${paramIndex}) referenced but only ${maxCounts[paramType]} ${definitionType} parameters defined`,
+            line: lineNum,
+            startChar: match.index!,
+            endChar: match.index! + match[0].length
+          });
+        }
+      }
+    }
+    
+    // Check for unused parameters
+    for (const param of parameters) {
+      const key = `${param.type}:${param.index}`;
+      if (!referencedParams.has(key)) {
+        errors.push({
+          message: `${param.type}(${param.index}) defined but never referenced`,
+          line: param.line,
+          startChar: param.startChar || 0,
+          endChar: param.endChar || 0
+        });
+      }
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Validate parameter references against definitions (backward compatibility wrapper)
+   */
+  static validateParameterReferences(document: TextDocument): { 
+    isValid: boolean; 
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  } {
+    // Use optimized version with fresh parameter scan
+    const parameters = this.scanDocument(document);
+    return this.validateParameterReferencesWithParameters(document, parameters);
   }
 
   /**
@@ -679,11 +811,11 @@ export class ParameterScanner {
       // E.g., for BLOCK(2): line 1 has 1 value (diagonal pos 1), line 2 has 2 values (diagonal pos 2)
       
       // Find all numeric values on this line
-      const numericPattern = /[\d\-+][\d\-+.eE]*/g;
+      PARAMETER_PATTERNS.NUMERIC.lastIndex = 0; // Reset global regex
       const matches = [];
       let match;
       
-      while ((match = numericPattern.exec(searchText)) !== null) {
+      while ((match = PARAMETER_PATTERNS.NUMERIC.exec(searchText)) !== null) {
         matches.push({
           value: match[0],
           index: match.index
@@ -715,8 +847,7 @@ export class ParameterScanner {
       }
     } else {
       // For regular parameters or first diagonal element, find first numeric value
-      const numericPattern = /[\d\-+][\d\-+.eE]*/;
-      const match = searchText.match(numericPattern);
+      const match = searchText.match(PARAMETER_PATTERNS.NUMERIC_SINGLE);
       
       if (match && match.index !== undefined) {
         // Find the absolute position in the original line by searching for the numeric value
