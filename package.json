@@ -67,7 +67,13 @@
           ".cov",
           ".cnv",
           ".scm",
-          ".ext"
+          ".ext",
+          ".grd",
+          ".shk",
+          ".shm",
+          ".smt",
+          ".rmt",
+          ".phm"
         ],
         "configuration": "./language-configuration.json"
       }
