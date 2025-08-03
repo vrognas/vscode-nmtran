@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a VSCode extension providing comprehensive language support for NMTRAN (NONMEM Translator) files used in pharmacometric modeling.
 
+All notable changes to the NMTRAN VSCode extension will be documented in CHANGELOG.md.
+The format of the CHANGELOG adheres to [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and the project versioning adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ### About NMTRAN
 
 NMTRAN is a specialized language for pharmacokinetic/pharmacodynamic modeling:
@@ -13,7 +17,7 @@ NMTRAN is a specialized language for pharmacokinetic/pharmacodynamic modeling:
 - **Control records** start with `$` (e.g., `$THETA`, `$OMEGA`, `$PK`)
 - **Parameter types** with strict sequential numbering:
   - `THETA(1)`, `THETA(2)`, etc. - Fixed effects (no gaps allowed)
-  - `ETA(1)`, `ETA(2)`, etc. - Random inter-individual effects  
+  - `ETA(1)`, `ETA(2)`, etc. - Random inter-individual effects
   - `EPS(1)`, `EPS(2)`, etc. - Residual variabilities
 
 ### Key Extension Features
@@ -29,7 +33,7 @@ NMTRAN is a specialized language for pharmacokinetic/pharmacodynamic modeling:
 
 NONMEM executes through six fundamental program steps:
 1. **Simulation Step**: Generate simulated data under specified model
-2. **Initial Estimation Step**: Compute initial parameter estimates  
+2. **Initial Estimation Step**: Compute initial parameter estimates
 3. **Estimation Step**: Obtain final parameter estimates via objective function minimization
 4. **Covariance Step**: Calculate parameter estimate covariance matrix
 5. **Tables Step**: Generate output tables of data items and predictions
@@ -74,7 +78,7 @@ npm run lint           # ESLint code style check
 ### Development Workflow
 ```bash
 npm run compile:watch   # TypeScript compilation in watch mode
-npm run bundle:watch    # esbuild bundling in watch mode  
+npm run bundle:watch    # esbuild bundling in watch mode
 cd server && npm run test:watch  # Jest tests in watch mode
 ```
 
@@ -86,7 +90,7 @@ cd server && npm run test:watch  # Jest tests in watch mode
 - `client/src/extension.ts` - Extension entry point
 - `client/src/features/foldingProvider.ts` - Code folding implementation
 
-### Server Code  
+### Server Code
 - `server/src/server.ts` - Language server main entry
 - `server/src/services/` - All language feature services
 - `server/src/constants.ts` - Valid control records list
@@ -105,7 +109,7 @@ cd server && npm run test:watch  # Jest tests in watch mode
 
 ### Core Capabilities
 - **Syntax highlighting** and **code folding** for control records
-- **Hover explanations** for control records and parameters  
+- **Hover explanations** for control records and parameters
 - **Go-to-definition** and **find-references** for THETA/ETA/EPS parameters
 - **Auto-completion** for control records and common patterns
 - **Real-time validation** with error highlighting and quick fixes
@@ -126,7 +130,7 @@ cd server && npm run test:watch  # Jest tests in watch mode
 ```typescript
 export class NewService {
   constructor(private connection: Connection) {}
-  
+
   provideFeature(document: TextDocument, position: Position) {
     // Implementation following existing patterns
   }
