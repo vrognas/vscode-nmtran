@@ -10,7 +10,7 @@
 
 Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual Studio Code. Provides intelligent features for pharmacometric modeling with NONMEM control streams.
 
-> **Note**: This extension is actively maintained and supports NONMEM 7.6.0+ features including parameter validation, intelligent navigation, and real-time diagnostics.
+> **⚠️ Beta Software**: This extension is currently in active development. While feature-complete and stable for daily use, expect occasional breaking changes in API and language server behavior. Please report any issues to help improve the extension.
 
 ## What is NMTRAN?
 
