@@ -18,7 +18,7 @@ NMTRAN files (`.mod`, `.ctl`) define models for analyzing time-varying dose-conc
 
 ## Installation
 
-The NMTRAN extension is available for **VSCode** and **VSCode-based editors** including [Positron](https://github.com/posit-dev/positron), [VSCodium](https://vscodium.com/), and other VSCode clones.
+The NMTRAN extension is available for **VSCode** and **VSCode-based editors**, including [Positron](https://github.com/posit-dev/positron).
 
 **Install via Extensions View:**
 - Open your code editor
