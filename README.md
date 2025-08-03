@@ -1,86 +1,115 @@
-# VSCode extension for NMTRAN (NONMEM)
+# NMTRAN (NONMEM) Language Extension for VSCode et al.
 
-![GitHub](https://img.shields.io/github/license/vrognas/vscode-nmtran)
-![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/vrognas.nmtran)
+<img src="images/nmtran.png" align="right" height="140" alt="NMTRAN Logo" />
 
-A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with support for the NMTRAN language used in [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/) control streams.
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/vrognas/vscode-nmtran/ci.yml)
+![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vrognas.nmtran)
+![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/vrognas.nmtran)
+![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/vrognas.nmtran)
+![GitHub License](https://img.shields.io/github/license/vrognas/vscode-nmtran)
 
-## Requirements
+Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual Studio Code. Provides intelligent features for pharmacometric modeling with NONMEM control streams.
 
-VSCode v1.80.0+
+> **Note**: This extension is actively maintained and supports NONMEM 7.6.0+ features including parameter validation, intelligent navigation, and real-time diagnostics.
+
+## What is NMTRAN?
+
+[NMTRAN](https://nmhelp.tingjieguo.com) is the control language for [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/), the gold standard software for population pharmacokinetic/pharmacodynamic (PopPK/PD) modeling in pharmaceutical research.
+NMTRAN files (`.mod`, `.ctl`) define models for analyzing drug concentration-time data and dose-response relationships.
 
 ## Installation
 
-To install the extension, open the Extensions view, search for `nonmem` to filter results and select the NMTRAN extension.
+The NMTRAN extension is available for **VSCode** and **VSCode-compatible editors** including [Positron](https://github.com/posit-dev/positron), [VSCodium](https://vscodium.com/), and other VSCode clones.
 
-## Programmatic Language Features
+**Install via Extensions View:**
+- Open your editor (VSCode, Positron, etc.)
+- Make sure you have the latest version of the editor (requirement VSCode v1.102.0+)
+- Open the Extensions View
+- Search for `NMTRAN` or `nonmem`
+- Click "Install" on the NMTRAN extension by vrognas
 
-* Diagnostics
-* Code completion proposals
-* Hover info
+### Recommended Extensions
 
-## Declarative Language Features
+For an enhanced NMTRAN development experience, consider installing:
 
-* Comment toggling using the VS Code command `Toggle Line Comment` 
-* Folding (by control records)
-* Bracket matching
-* Bracket autoclosing
-* Bracket autosurrounding
+- **[ErrorLens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens)** (`usernamehw.errorlens`) - Turbo-charges language diagnostic features by making diagnostics stand out more prominently, highlighting the entire line wherever a diagnostic is generated and printing the message inline.
+Perfect for spotting NMTRAN validation errors at a glance.
 
-### Syntax Highlighting
+## Quick Start
 
-By tokenization according to [TextMate 1.5.1 naming conventions](https://macromates.com/manual/en/language_grammars#naming_conventions)
+Once installed, open any NMTRAN file (`.mod`, `.ctl`) to automatically activate the extension:
 
-![demo_syntax-highlight](images/demo_syntax-highlight.png)
+Try these features:
+- **Hover** over THETA/ETA/EPS to see definitions; control records to see explanations.
+- **Right-click** on `THETA(1)` → "Peek" → "Peek References"
+- Notice real-time **error highlighting** for invalid syntax
 
-### Snippet Completion
+## Features
 
-![demo_advan-snippets](images/demo_advan-snippets.gif)
+### 🧠 Language Intelligence
 
-#### Snippets
-* Subroutine selection
-  * ADVAN and TRANS
-* Modify `$DATA` on-the-fly (Credit: Simon Buatois)
-* RUV (normal or log-scale)
-  * RUV_add
-  * RUV_prop
-  * RUV_addprop
-* Creating an Xpose-friendly $TABLE scaffold (just type $TABLE).
-* MIXTURE-models (just type $MIX)
-  * 2-way mixture model
-  * 3-way mixture model
-* Including IIV on a parameter that is bound between 0 and 1 (type logit_iiv).
-* Baseline modeling (B1, B2, B3, B4) [Dansirikul et al., 2008](https://doi.org/10.1007/s10928-008-9088-2)
-* BQL modeling (M3) [Beal, 2001](https://doi.org/10.1023/a:1012299115260)
+- **Real-time Diagnostics**: Validation of control records, parameter sequences, and NMTRAN syntax
+- **Intelligent Hover**: Explanations for control records, parameters, and NONMEM functions
+- **Go to Definition**: Navigate from parameter usage (`THETA(1)`) to declaration (`$THETA`)
+- **Find All References**: Locate all usages of parameters throughout your model
 
-## Development
+### ✨ Code Enhancement
 
-### Building the Extension
+- **Syntax Highlighting**: Rich tokenization following TextMate conventions
+- **Code Folding**: Collapse control records for better file navigation
+- **Smart Formatting**: Configurable indentation and code organization
+- **Comment Toggling**: Quick comment/uncomment with standard VSCode commands
 
-This extension uses esbuild for bundling. There are two build systems:
+![Syntax Highlighting Demo](images/demo_syntax-highlight.png)
 
-1. **TypeScript Compilation** (`npm run compile`) - Compiles to `server/out` and `client/out`
-2. **Bundling** (`npm run build`) - Bundles everything to `dist/` for the extension to use
+### 📝 Code Snippets
 
-**Important:** Always use `npm run build` before testing your changes! The extension loads from `dist/`, not from the TypeScript output directories.
+Comprehensive snippet library for rapid model development:
 
-### Development Workflow
+![Snippet Demo](images/demo_advan-snippets.gif)
 
-1. Make your changes to TypeScript files
-2. Run `npm run build` to bundle the extension
-3. Press F5 to launch the Extension Development Host
-4. Test your changes
+**Available Snippets:**
+- **Subroutines**: ADVAN/TRANS combinations for PK modeling
+- **Data Handling**: `$DATA` record templates with common options
+- **Error Models**: Additive, proportional, and combined residual error models
+- **Tables**: Xpose-friendly `$TABLE` configurations
+- **Mixture Models**: 2-way and 3-way mixture model templates
+- **Special Modeling**:
+  - Logit-normal IIV for bounded parameters
+  - Baseline models (B1--B4) [Dansirikul et al., 2008](https://doi.org/10.1007/s10928-008-9088-2)
+  - BQL handling (M3 method) [Beal, 2001](https://doi.org/10.1023/a:1012299115260)
 
-For continuous development, you can use:
-- `npm run bundle:watch` - Watches and rebuilds the client bundle
-- `npm run compile:watch` - Watches TypeScript files (useful for type checking)
+## Supported File Types
+https://github.com/vrognas/vscode-nmtran/blob/main/README.md
+The extension activates for these NONMEM-related file extensions:
+
+- **Control Streams**: `.mod`, `.ctl`, `.modt`
+- **Output Files**: `.lst`, `.ext`, `.cov`, `.cor`, `.coi`, `.cnv`
+- **Special Files**: `.phi`, `.scm`, `.grd`, `.shk`, `.shm`, `.smt`, `.rmt`, `.phm`
+
+## Community & Support
+
+- **Documentation**: [NMTRAN Reference](https://nmhelp.tingjieguo.com)
+- **Issues & Feature Requests**: [GitHub Issues](https://github.com/vrognas/vscode-nmtran/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/vrognas/vscode-nmtran/discussions)
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Sponsor**: [Buy me a coffee ☕](https://buymeacoffee.com/vrognas)
 
 ## Contributing
 
-Your contribution to the project is encouraged.
-You can report issues and post suggestions of features via [GitHub issues](https://github.com/vrognas/vscode-nmtran/issues).
-Thank you!
+Whether you're fixing bugs, adding features, or improving documentation, your help makes this extension better for the pharmacometrics community.
+
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/vrognas/vscode-nmtran/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/vrognas/vscode-nmtran/discussions)
+- 🔧 **Pull Requests**: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
+- 📖 **Documentation**: Help improve our docs and examples
 
 ## License
 
-[MIT](LICENSE)
+[MIT License](LICENSE) - feel free to use this extension in your research and commercial projects.
+
+---
+
+**Enjoy enhanced NMTRAN development!** 🧬💊
+
+*Made with ❤️ for the pharmacometrics community*
