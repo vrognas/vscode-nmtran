@@ -50,6 +50,8 @@ Try these features:
 - **Go to Definition**: Navigate from parameter usage (`THETA(1)`) to declaration (`$THETA`)
 - **Find All References**: Locate all usages of parameters throughout your model
 
+![Hover peek demo](images/demo_hover-peek.gif)
+
 ### ✨ Code enhancement
 
 - **Syntax highlighting**: Rich tokenization following TextMate conventions
@@ -57,13 +59,13 @@ Try these features:
 - **Smart formatting**: Configurable indentation and code organization
 - **Comment toggling**: Quick comment/uncomment with standard VSCode commands
 
-![Syntax Highlighting Demo](images/demo_syntax-highlight.png)
+![Syntax highlighting demo](images/demo_syntax-highlight.png)
 
 ### 📝 Code snippets
 
 Comprehensive snippet library for rapid model development:
 
-![Snippet Demo](images/demo_advan-snippets.gif)
+![Snippet demo](images/demo_advan-snippets.gif)
 
 **Available snippets:**
 - **Subroutines**: ADVAN/TRANS combinations for PK modeling
