@@ -14,7 +14,7 @@ Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual St
 ## What is NMTRAN?
 
 [NMTRAN](https://nmhelp.tingjieguo.com) is the control language for [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/), the gold standard software for population pharmacokinetic/pharmacodynamic (PopPK/PD) modeling in pharmaceutical research.
-NMTRAN files (`.mod`, `.ctl`) define models for analyzing drug concentration-time data and dose-response relationships.
+NMTRAN files (`.mod`, `.ctl`) define models for analyzing time-varying dose-concentration and exposure-response relationships.
 
 ## Installation
 
