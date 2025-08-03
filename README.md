@@ -10,8 +10,10 @@
 
 Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual Studio Code. Provides intelligent features for pharmacometric modeling with NONMEM control streams.
 
-> **⚠️ Beta Software**: This extension is currently in active development. While feature-complete and stable for daily use, expect occasional breaking changes in API and language server behavior. Please report any issues to help improve the extension.
-
+> **⚠️ Beta Software**:
+> This extension is currently in active development.
+> While feature-complete and stable for daily use, expect occasional breaking changes.
+> Please report any issues to help improve the extension.
 ## What is NMTRAN?
 
 [NMTRAN](https://nmhelp.tingjieguo.com) is the control language for [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/), the gold standard software for population pharmacokinetic/pharmacodynamic (PopPK/PD) modeling in pharmaceutical research.
