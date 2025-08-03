@@ -33,7 +33,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment:**
  - OS: [e.g. macOS, Windows, Linux]
- - VSCode Version: [e.g. 1.80.0]
+ - VSCode Version: [e.g. 1.102.0]
  - Extension Version: [e.g. 0.2.3]
 
 **Additional context**
