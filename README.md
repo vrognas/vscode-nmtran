@@ -1,6 +1,4 @@
-# NMTRAN (NONMEM) Language Extension for VSCode et al.
-
-<img src="images/nmtran.png" align="right" height="140" alt="NMTRAN Logo" />
+# NMTRAN (NONMEM) Language Extension for VSCode <img src="images/nmtran.png" align="right" height="160" alt="NMTRAN Logo" />
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/vrognas/vscode-nmtran/ci.yml)
 ![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vrognas.nmtran)
@@ -8,12 +6,13 @@
 ![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/vrognas.nmtran)
 ![GitHub License](https://img.shields.io/github/license/vrognas/vscode-nmtran)
 
-Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual Studio Code. Provides intelligent features for pharmacometric modeling with NONMEM control streams.
-
-> **⚠️ Beta Software**:
+> [!NOTE]
 > This extension is currently in active development.
 > While feature-complete and stable for daily use, expect occasional breaking changes.
 > Please report any issues to help improve the extension.
+
+Comprehensive language support for NMTRAN (NONMEM Translator) files in Visual Studio Code. Provides intelligent features for pharmacometric modeling with NONMEM control streams.
+
 ## What is NMTRAN?
 
 [NMTRAN](https://nmhelp.tingjieguo.com) is the control language for [NONMEM](https://www.iconplc.com/solutions/technologies/nonmem/), the gold standard software for population pharmacokinetic/pharmacodynamic (PopPK/PD) modeling in pharmaceutical research.
@@ -21,21 +20,20 @@ NMTRAN files (`.mod`, `.ctl`) define models for analyzing drug concentration-tim
 
 ## Installation
 
-The NMTRAN extension is available for **VSCode** and **VSCode-compatible editors** including [Positron](https://github.com/posit-dev/positron), [VSCodium](https://vscodium.com/), and other VSCode clones.
+The NMTRAN extension is available for **VSCode** and **VSCode-based editors** including [Positron](https://github.com/posit-dev/positron), [VSCodium](https://vscodium.com/), and other VSCode clones.
 
 **Install via Extensions View:**
-- Open your editor (VSCode, Positron, etc.)
+- Open your code editor
 - Make sure you have the latest version of the editor (requirement VSCode v1.102.0+)
 - Open the Extensions View
 - Search for `NMTRAN` or `nonmem`
 - Click "Install" on the NMTRAN extension by vrognas
 
-### Recommended Extensions
-
-For an enhanced NMTRAN development experience, consider installing:
-
-- **[ErrorLens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens)** (`usernamehw.errorlens`) - Turbo-charges language diagnostic features by making diagnostics stand out more prominently, highlighting the entire line wherever a diagnostic is generated and printing the message inline.
-Perfect for spotting NMTRAN validation errors at a glance.
+> [!TIP]
+> For an enhanced NMTRAN development experience, consider installing:
+> **[ErrorLens](https://github.com/usernamehw/vscode-error-lens)**.
+> It makes diagnostics stand out more prominently, highlighting the entire line wherever a diagnostic is generated and printing the message inline.
+> Perfect for spotting NMTRAN validation errors at a glance.
 
 ## Quick Start
 
