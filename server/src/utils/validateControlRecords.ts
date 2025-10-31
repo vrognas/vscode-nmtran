@@ -140,7 +140,10 @@ function validateContinuationMarkers(document: TextDocument): {
   for (let lineNum = 0; lineNum < lines.length; lineNum++) {
     const line = lines[lineNum];
     if (!line) continue;
-    
+
+    // Skip comment lines - ampersands in comments should be ignored
+    if (line.trim().startsWith(';')) continue;
+
     // Find all & characters in the line
     for (let charPos = 0; charPos < line.length; charPos++) {
       if (line.charAt(charPos) === '&') {
