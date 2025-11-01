@@ -173,12 +173,29 @@ $SIGMA 1 FIX
 
     it('should handle ampersand in comments (should be ignored)', () => {
       const content = `
-$INPUT ID TIME DV 
-$THETA 1.5 
+; fish & chips
+$INPUT ID TIME DV
+; rock & roll
+$THETA 1.5
+; comments with & symbols should be ignored
 `;
       const document = createDocument(content);
       const validation = validateContinuationMarkers(document);
-      
+
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    it('should handle ampersand in inline comments (should be ignored)', () => {
+      const content = `
+$INPUT ID TIME DV   ; data & variables
+$THETA 1.5          ; parameter & bounds
+A = 1               ; This & should be ignored
+B = 2               ; foo & bar
+`;
+      const document = createDocument(content);
+      const validation = validateContinuationMarkers(document);
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });

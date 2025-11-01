@@ -140,9 +140,19 @@ function validateContinuationMarkers(document: TextDocument): {
   for (let lineNum = 0; lineNum < lines.length; lineNum++) {
     const line = lines[lineNum];
     if (!line) continue;
-    
-    // Find all & characters in the line
+
+    // Find the position of the first semicolon (start of comment)
+    // Any ampersand after this position should be ignored
+    const commentStart = line.indexOf(';');
+
+    // Skip lines that are entirely comments
+    if (line.trim().startsWith(';')) continue;
+
+    // Find all & characters in the line (before any comment)
     for (let charPos = 0; charPos < line.length; charPos++) {
+      // Skip ampersands that appear within comments
+      if (commentStart !== -1 && charPos >= commentStart) break;
+
       if (line.charAt(charPos) === '&') {
         // Check if & is at the end of the line (ignoring trailing whitespace and comments)
         const afterAmpersand = line.substring(charPos + 1);
