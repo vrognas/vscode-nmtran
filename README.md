@@ -79,7 +79,7 @@ Comprehensive snippet library for rapid model development:
   - BQL handling (M3 method) [Beal, 2001](https://doi.org/10.1023/a:1012299115260)
 
 ## Supported file types
-https://github.com/vrognas/vscode-nmtran/blob/main/README.md
+
 The extension activates for these NONMEM-related file extensions:
 
 - **Control streams**: `.mod`, `.ctl`, `.modt`
