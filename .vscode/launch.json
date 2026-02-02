@@ -1,5 +1,5 @@
 // NMTRAN Extension Debug Configuration
-// 
+//
 // Usage:
 // 1. Press F5 or select "Launch Extension" to start debugging
 // 2. For full debugging, use "Debug Extension + Server" compound
@@ -11,17 +11,33 @@
       "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",
+      "runtimeExecutable": "${execPath}",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--folder-uri=${workspaceFolder}/test",
-        "--disable-extension=vscode.git", // Prevent git repo notification popup
-        "--disable-extension=CoenraadS.bracket-pair-colorizer-2" // Fix Positron compatibility error
+        "--disable-extension",
+        "mark-wiemer.vscode-autohotkey-plus-plus",
+        "--disable-extension",
+        "activitywatch.aw-watcher-vscode",
+        "--disable-extension",
+        "ms-azuretools.vscode-containers",
+        "--disable-extension",
+        "posit.databot",
+        "--disable-extension",
+        "usernamehw.errorlens",
+        "--disable-extension",
+        "tamasfe.even-better-toml",
+        "--disable-extension",
+        "ms-vscode.hexeditor",
+        "--disable-extension",
+        "oderwat.indent-rainbow",
+        "--disable-extension",
+        "etiennebacher.jarl-vscode",
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionDevelopmentPath=C:/Users/viktor.rognas/git_repos/sven",
+        "--extensionDevelopmentPath=C:/Users/viktor.rognas/git_repos/redmyne",
+        "C:/Projects/test/Test-Viktor"
       ],
-      "outFiles": [
-        "${workspaceFolder}/client/out/**/*.js",
-        "${workspaceFolder}/server/out/**/*.js"
-      ],
-      "preLaunchTask": "npm: build",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/dist/**/*.js"],
       "env": {
         "VSCODE_DEBUG_MODE": "true"
       }
@@ -43,7 +59,7 @@
     },
     {
       "name": "Quick Test (No Server Debug)",
-      "type": "extensionHost", 
+      "type": "extensionHost",
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
