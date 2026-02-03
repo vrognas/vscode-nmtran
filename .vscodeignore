@@ -21,7 +21,7 @@ test_empty_initial_values.mod
 **/*.map
 .gitignore
 .gitattributes
-.eslintrc.json
+eslint.config.mjs
 .claude/
 .github/
 .vscode-test.mjs

@@ -155,7 +155,7 @@
     "compile:watch": "tsc -b -w",
     "bundle": "npm run esbuild",
     "bundle:watch": "npm run esbuild-base -- --sourcemap --watch",
-    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "lint": "eslint ./client/src ./server/src",
     "test": "vscode-test",
     "test:server": "cd server && npm run test",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
@@ -174,17 +174,17 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
     "@types/node": "^22.10.2",
     "@types/vscode": "^1.102.0",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.25.8",
-    "eslint": "^8.57.0",
+    "eslint": "^9.18.0",
     "js-yaml": "^4.1.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.38.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
   }
