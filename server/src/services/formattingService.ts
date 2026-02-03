@@ -27,13 +27,8 @@ export class FormattingService {
       const text = document.getText();
       const lines = text.split('\n');
       const edits: TextEdit[] = [];
-      
-      // Create indentation strings (always use spaces for NMTRAN)
-      const baseIndent = ' '.repeat(indentSize);
-      const _continuationIndent = baseIndent; // For line continuations
 
       let currentIndentLevel = 0;
-      const _inContinuation = false;
       let currentControlRecord = '';
 
       for (let i = 0; i < lines.length; i++) {

@@ -218,14 +218,6 @@ export class ParameterScanner {
   }
 
   /**
-   * Check if line has inline values after BLOCK declaration
-   */
-  private static hasInlineValues(line: string): boolean {
-    const afterBlock = line.replace(/^\s*\$\w+\s+BLOCK\(\d+\)\s*/i, '');
-    return afterBlock.trim().length > 0 && !/^;/.test(afterBlock.trim());
-  }
-
-  /**
    * Process a line containing parameters
    */
   private static processParameterLine(

@@ -1012,22 +1012,4 @@ export class DefinitionService {
 
     return paramCount;
   }
-
-  /**
-   * Helper method to handle BLOCK matrix detection and eliminate code duplication
-   */
-  private handleBlockMatrixDetection(line: string, callback: (state: { inBlockMatrix: boolean; blockMatrixRemaining: number }) => void): void {
-    const blockMatch = line.match(PARAMETER_PATTERNS.BLOCK);
-    if (blockMatch && blockMatch[1]) {
-      callback({
-        inBlockMatrix: true,
-        blockMatrixRemaining: parseInt(blockMatch[1], 10)
-      });
-    } else {
-      callback({
-        inBlockMatrix: false,
-        blockMatrixRemaining: 0
-      });
-    }
-  }
 }

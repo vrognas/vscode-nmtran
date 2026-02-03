@@ -52,7 +52,7 @@ export class HoverService {
   /**
    * Get hover information for parameter references like THETA(1), ETA(2), etc.
    */
-  private getParameterReferenceHover(document: TextDocument, position: { line: number; character: number }, offset: number): Hover | null {
+  private getParameterReferenceHover(document: TextDocument, _position: { line: number; character: number }, offset: number): Hover | null {
     const text = document.getText();
     
     // Reset regex state
@@ -194,7 +194,7 @@ export class HoverService {
   /**
    * Resolve SAME keyword by finding the previous parameter value
    */
-  private resolveSameKeyword(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): string | null {
+  private resolveSameKeyword(document: TextDocument, _definition: ParameterLocation, paramType: string, paramIndex: number): string | null {
     // Get all parameter locations for this type
     const parameterLocations = ParameterScanner.scanDocument(document);
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
@@ -236,7 +236,7 @@ export class HoverService {
   /**
    * Helper method to resolve SAME keyword and track the original parameter index
    */
-  private resolveSameKeywordWithReference(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): { value: string; originalIndex: number } | null {
+  private resolveSameKeywordWithReference(document: TextDocument, _definition: ParameterLocation, paramType: string, paramIndex: number): { value: string; originalIndex: number } | null {
     // Get all parameter locations for this type
     const parameterLocations = ParameterScanner.scanDocument(document);
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
