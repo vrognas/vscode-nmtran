@@ -1,3 +1,12 @@
+## [0.2.15] 3 Feb, 2026
+
+### Fixed
+
+* **Snippet Syntax**: Fixed VSCode warning about confusing snippet variables and placeholders
+  - Corrected extra brace in Surge model snippet (`THETA({${3:...})` → `THETA(${3:...})`)
+  - Fixed `$TM_FILENAME_BASE` variable syntax in FOCEI snippet
+  - Escaped literal `$TABLE` in Xpose TABLEs snippet comment
+
 ## [0.2.14] 3 Feb, 2026
 
 ### Fixed

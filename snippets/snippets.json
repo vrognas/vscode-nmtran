@@ -299,7 +299,7 @@
 	"Surge model": {
 	"prefix": ["surge"],
 	"body": [
-		"x = THETA(${1:amplitude}) / (((TIME - THETA(${2:peak_time})) * THETA({${3:peak_width}}))**SHAPE + 1)",
+		"x = THETA(${1:amplitude}) / (((TIME - THETA(${2:peak_time})) * THETA(${3:peak_width}))**SHAPE + 1)",
 		"${0}"
 	],
 	"description": "Surge model\n"
@@ -529,7 +529,7 @@
 	"body": [
 		"\n",
 		"\\$ESTIMATION METHOD=CONDITIONAL INTERACTION NOABORT MAXEVALS=99999 PRINT=1",
-		"            NSIG=3 MCETA=0 RANMETHOD=4P SEED=1337 MSFO=$TM_FILENAME_BASE.msf",
+		"            NSIG=3 MCETA=0 RANMETHOD=4P SEED=1337 MSFO=${TM_FILENAME_BASE}.msf",
 		"${0}"
 	],
 	"description": "FOCEI with sane defaults"
@@ -671,7 +671,7 @@
 	"prefix": ["$TABLE"],
 	"body": [
 		"; In addition to the requested items, NONMEM adds by default: DV, PRED, RES, WRES.",
-		"; If you do not want these additional items, add NOAPPEND to the $TABLE record.",
+		"; If you do not want these additional items, add NOAPPEND to the \\$TABLE record.",
 		"; Strictly, only sdtab* is needed for basic goodness-of-fit functionality,",
 		"; but patab*, cotab* and catab* are recommended to get full benefit from Xpose.",
 		"; Other variables you might need to have available to Xpose can be output into:",
