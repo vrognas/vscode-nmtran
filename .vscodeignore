@@ -15,11 +15,23 @@ server/src/**
 
 # Exclude test files
 test/**
+test_empty_initial_values.mod
 
 # Exclude development files
 **/*.map
 .gitignore
-vsc-extension-quickstart.md
+.gitattributes
+.eslintrc.json
+.claude/
+.github/
+.vscode-test.mjs
+scripts/
+package-lock.json
+
+# Exclude dev documentation
+ARCHITECTURE.md
+CLAUDE.md
+CONTRIBUTING.md
 
 # Exclude TypeScript files
 **/*.ts
@@ -27,6 +39,7 @@ vsc-extension-quickstart.md
 # Exclude config files
 tsconfig.json
 tsconfig.*.json
+**/jest.config.js
 
 # ESBuild excludes - keep bundled dist/ directory
 esbuild.js
