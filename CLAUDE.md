@@ -51,6 +51,7 @@ NMTRAN is FORTRAN-based with special semantics for pharmacokinetic modeling:
 | HoverService | Control record and parameter explanations |
 | DefinitionService | Go-to-definition, find-references |
 | CompletionService | Auto-completion suggestions |
+| FormattingService | Document and range formatting |
 | ParameterScanner | THETA/ETA/EPS tracking, BLOCK matrix support |
 
 **Data flow:** Document opened → cached → changes trigger debounced diagnostics → closed clears cache
