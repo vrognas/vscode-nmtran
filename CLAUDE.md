@@ -20,7 +20,7 @@ npm test           # All tests
 npm run validate   # Lint + compile + test
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow and [ARCHITECTURE.md](ARCHITECTURE.md) for design details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow.
 
 ## NMTRAN Language
 
@@ -34,10 +34,28 @@ NMTRAN is FORTRAN-based with special semantics for pharmacokinetic modeling:
 
 ## Architecture
 
-Client-server LSP design with service-based architecture:
-- **Client** (`client/src/`): VSCode integration, folding
-- **Server** (`server/src/`): Language intelligence
-- **Services**: DocumentService, DiagnosticsService, HoverService, DefinitionService, CompletionService
+```
+┌─────────────────┐         LSP          ┌─────────────────┐
+│     Client      │ ◄──────────────────► │     Server      │
+│  (VS Code API)  │                      │ (Language Intel)│
+└─────────────────┘                      └─────────────────┘
+```
+
+**Client** (`client/src/`): VSCode integration, folding
+**Server** (`server/src/`): Language intelligence via services
+
+| Service | Responsibility |
+|---------|---------------|
+| DocumentService | Document caching and lifecycle |
+| DiagnosticsService | Validation with 500ms debounce |
+| HoverService | Control record and parameter explanations |
+| DefinitionService | Go-to-definition, find-references |
+| CompletionService | Auto-completion suggestions |
+| ParameterScanner | THETA/ETA/EPS tracking, BLOCK matrix support |
+
+**Data flow:** Document opened → cached → changes trigger debounced diagnostics → closed clears cache
+
+**Build:** `tsc -b` for type checking, `esbuild` bundles to `dist/` for production
 
 ## Common Tasks
 
@@ -51,3 +69,4 @@ Client-server LSP design with service-based architecture:
 - Document caching via DocumentService
 - 80% test coverage requirement
 - esbuild bundles to `dist/` (not TypeScript output)
+- No telemetry collected

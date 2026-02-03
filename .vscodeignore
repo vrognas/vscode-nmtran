@@ -29,7 +29,6 @@ scripts/
 package-lock.json
 
 # Exclude dev documentation
-ARCHITECTURE.md
 CLAUDE.md
 CONTRIBUTING.md
 

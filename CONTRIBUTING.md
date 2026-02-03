@@ -201,7 +201,7 @@ Use "Debug Extension + Server" launch configuration for full breakpoint debuggin
 
 - [GitHub Discussions](https://github.com/vrognas/vscode-nmtran/discussions) - Questions
 - [GitHub Issues](https://github.com/vrognas/vscode-nmtran/issues) - Bugs and features
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Technical design details
+- [CLAUDE.md](CLAUDE.md) - Technical design details
 
 ---
 
