@@ -9,7 +9,7 @@ export interface ErrorContext {
   lineNumber?: number;
   fileName?: string;
   parameterType?: string;
-  additionalInfo?: Record<string, any>;
+  additionalInfo?: Record<string, unknown>;
 }
 
 export class ErrorHandler {
@@ -111,7 +111,9 @@ export class ErrorHandler {
 
   /**
    * Wrap a function with error handling (legacy method)
+   * @deprecated Use createSafeResult instead for better type safety
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wrap<T extends (...args: any[]) => any>(
     fn: T,
     context: string
@@ -122,7 +124,8 @@ export class ErrorHandler {
       } catch (error) {
         this.handleException(error as Error, { operation: context });
         // Return appropriate default value based on function return type
-        return this.getDefaultReturnValue(fn);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.getDefaultReturnValue(fn as (...args: any[]) => any);
       }
     }) as T;
   }
@@ -157,6 +160,7 @@ export class ErrorHandler {
   /**
    * Get appropriate default return value based on function signature (legacy method)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getDefaultReturnValue(fn: (...args: any[]) => any): any {
     const fnString = fn.toString();
     

@@ -88,21 +88,16 @@ export class NMTRANMatrixParser {
    * @returns The parameter index if diagonal, null otherwise
    */
   static isDiagonalElement(position: number): number | null {
-    // Check common diagonal positions
-    if (position === 0) return 1;  // (1,1)
-    if (position === 2) return 2;  // (2,2)
-    if (position === 5) return 3;  // (3,3)
-    if (position === 9) return 4;  // (4,4)
-    if (position === 14) return 5; // (5,5)
-    
-    // For larger matrices, use reverse calculation
-    // This is approximate and may need refinement for very large matrices
-    for (let n = 1; n <= 20; n++) {
-      if (this.getDiagonalPosition(n) === position) {
-        return n;
-      }
+    // Diagonal positions follow formula: pos = n*(n+1)/2 - 1
+    // Solving for n: n = floor((sqrt(8*pos + 9) - 1) / 2)
+    // We add 1 to position since getDiagonalPosition returns n*(n+1)/2 - 1
+    const n = Math.floor((Math.sqrt(8 * (position + 1) + 1) - 1) / 2);
+
+    // Verify this n actually produces the given position
+    if (n >= 1 && this.getDiagonalPosition(n) === position) {
+      return n;
     }
-    
+
     return null;
   }
 

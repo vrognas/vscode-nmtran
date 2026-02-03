@@ -9,7 +9,7 @@ import { Connection, Hover, MarkupContent, MarkupKind } from 'vscode-languageser
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { explainControlRecordHover } from '../hoverInfo';
 import { getFullControlRecordName } from '../utils/validateControlRecords';
-import { ParameterScanner } from './ParameterScanner';
+import { ParameterScanner, ParameterLocation } from './ParameterScanner';
 
 export class HoverService {
   private connection: Connection;
@@ -133,7 +133,7 @@ export class HoverService {
   /**
    * Build hover content for parameter references by extracting definition text
    */
-  private buildParameterHoverContent(document: TextDocument, definition: any, paramType: string, paramIndex: number): string {
+  private buildParameterHoverContent(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): string {
     const lines = document.getText().split('\n');
     const definitionLine = lines[definition.line];
     
@@ -194,7 +194,7 @@ export class HoverService {
   /**
    * Resolve SAME keyword by finding the previous parameter value
    */
-  private resolveSameKeyword(document: TextDocument, definition: any, paramType: string, paramIndex: number): string | null {
+  private resolveSameKeyword(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): string | null {
     // Get all parameter locations for this type
     const parameterLocations = ParameterScanner.scanDocument(document);
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
@@ -236,7 +236,7 @@ export class HoverService {
   /**
    * Helper method to resolve SAME keyword and track the original parameter index
    */
-  private resolveSameKeywordWithReference(document: TextDocument, definition: any, paramType: string, paramIndex: number): { value: string; originalIndex: number } | null {
+  private resolveSameKeywordWithReference(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): { value: string; originalIndex: number } | null {
     // Get all parameter locations for this type
     const parameterLocations = ParameterScanner.scanDocument(document);
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
