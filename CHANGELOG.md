@@ -1,3 +1,18 @@
+## [0.2.16] 3 Feb, 2026
+
+### Changed
+
+* **TypeScript Configuration**: Consolidated tsconfig with shared base config
+  - Created `tsconfig.base.json` with unified strict settings
+  - Upgraded target from ES2020 to ES2022
+  - Added stricter checks: `noUnusedLocals`, `noUnusedParameters`, `noImplicitOverride`
+  - Added `forceConsistentCasingInFileNames`, `incremental`, `esModuleInterop`
+  - Client and server now extend base config for consistency
+
+### Fixed
+
+* **Dead Code Removal**: Removed unused variables and methods flagged by stricter checks
+
 ## [0.2.15] 3 Feb, 2026
 
 ### Fixed
