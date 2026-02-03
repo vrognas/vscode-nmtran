@@ -1,94 +1,62 @@
 # Contributing to NMTRAN Extension
 
-Thank you for your interest in contributing to the NMTRAN VSCode extension! 🎉
-
-We really appreciate that you'd like to contribute to this project. Whether you're fixing bugs, adding features, improving documentation, or sharing feedback, your contributions help make NMTRAN development better for the entire pharmacometrics community.
-
-This document provides guidelines for contributing to the project effectively.
+Thank you for your interest in contributing! Whether you're fixing bugs, adding features, or improving documentation, your contributions help make NMTRAN development better for the pharmacometrics community.
 
 ## Getting Started
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
+- **Node.js**: v20.8.0+ ([Download](https://nodejs.org/))
+- **VSCode**: v1.102.0+ ([Download](https://code.visualstudio.com/))
+- **Git**: For version control ([Download](https://git-scm.com/))
 
-- **Node.js**: v20.8.0 or higher ([Download here](https://nodejs.org/))
-- **VSCode**: v1.102.0 or higher ([Download here](https://code.visualstudio.com/))
-- **Git**: For version control ([Download here](https://git-scm.com/))
+Optional: TypeScript and ESLint VSCode extensions for better development experience.
 
-Optional but recommended:
-- **VSCode Extensions**: Install the TypeScript and ESLint extensions for better development experience
-- **NONMEM Knowledge**: Familiarity with NMTRAN syntax and pharmacometric modeling concepts
+### Setup
 
-### Development Setup
+```bash
+# Fork on GitHub, then clone
+git clone https://github.com/YOUR_USERNAME/vscode-nmtran.git
+cd vscode-nmtran
 
-1. **Fork and Clone**
-   ```bash
-   # Fork the repository on GitHub first, then:
-   git clone https://github.com/YOUR_USERNAME/vscode-nmtran.git
-   cd vscode-nmtran
-   ```
+# Install dependencies (includes client and server)
+npm install
 
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-   This installs dependencies for both client and server components.
+# Build extension
+npm run build
 
-3. **Build the Extension**
-   ```bash
-   npm run build
-   ```
-   **Important**: Always use `npm run build` (not `npm run compile`) as the extension loads from `dist/`, not TypeScript output directories.
+# Run tests
+npm test
+```
 
-4. **Run Tests**
-   ```bash
-   npm test                    # Run all tests
-   npm run test:server        # Run server tests only
-   cd server && npm run test:watch  # Watch mode for server tests
-   ```
+### Development Workflow
 
-5. **Launch Development Environment**
-   - Open the project in VSCode
-   - Press **F5** to launch the Extension Development Host
-   - Open NMTRAN files from the `test/` folder to test features
-   - Check "Developer: Show Logs" → "NMTRAN Language Server" for debugging
+```bash
+npm run dev              # Watch mode (client + server)
+npm run compile:watch    # TypeScript watch mode
+npm run bundle:watch     # esbuild watch mode
+npm run validate         # Lint + compile + test (run before commits)
+```
 
-6. **Development Workflow**
-   ```bash
-   npm run bundle:watch       # Auto-rebuild on file changes
-   npm run compile:watch      # TypeScript compilation with watching
-   npm run validate          # Run linting, compilation, and tests
-   ```
+**Launch Development Environment:**
+1. Open project in VSCode/Positron
+2. Press **F5** to launch Extension Development Host
+3. Open NMTRAN files from `test/` folder to test features
 
-## Architecture Overview
+## Commands Reference
 
-The extension follows a client-server architecture using the Language Server Protocol:
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Production build (esbuild to dist/) |
+| `npm run dev` | Watch mode for development |
+| `npm test` | Run all tests (client + server) |
+| `npm run test:server` | Jest unit tests only |
+| `npm run validate` | Lint + compile + test |
+| `npm run lint` | ESLint code style check |
 
-- **Client** (`client/src/extension.ts`): VSCode extension entry point, handles folding
-- **Server** (`server/src/server.ts`): Language server providing smart features
-- **Services** (`server/src/services/`): Modular services for maintainability
-  - `DiagnosticsService`: Validation and error reporting
-  - `HoverService`: Hover information for control records
-  - `DocumentService`: Document lifecycle management
-  - `FormattingService`: Code formatting
-  - `CompletionService`: Code completion
-
-## How to Contribute
-
-### Reporting Issues
-
-1. Check existing issues to avoid duplicates
-2. Use the issue template (if available)
-3. Include:
-   - VSCode version
-   - Extension version
-   - Sample NMTRAN file demonstrating the issue
-   - Expected vs actual behavior
+## Common Tasks
 
 ### Adding New Control Records
-
-To add support for new NMTRAN control records:
 
 1. **Add to constants** (`server/src/constants.ts`):
    ```typescript
@@ -104,182 +72,137 @@ To add support for new NMTRAN control records:
      return 'Description of what this control record does';
    ```
 
-3. **Run tests**:
-   ```bash
-   npm test
-   ```
+3. **Run tests**: `npm test`
 
 ### Adding New Features
 
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+Follow the service-based architecture pattern:
 
-2. **Implement the feature**
-   - Follow the service-based architecture
-   - Add proper error handling
-   - Include logging for debugging
+```typescript
+// server/src/services/newFeatureService.ts
+export class NewFeatureService {
+  constructor(private connection: Connection) {}
 
-3. **Add tests**
-   - Update existing tests if needed
-   - Add new test cases for your feature
-
-4. **Update documentation**
-   - Update MAINTENANCE.md if needed
-   - Add comments to complex code
-
-5. **Submit a pull request**
-
-### Code Style Guidelines
-
-- **TypeScript**: Use strict mode, proper typing
-- **Comments**: Explain why, not what
-- **Error Handling**: Always use try/catch in service methods
-- **Logging**: Use emoji-prefixed console.log for easy identification
-- **Naming**: Use descriptive names, follow existing patterns
-
-### Testing Strategy
-
-We use a comprehensive testing approach to ensure code quality:
-
-#### Unit Tests
-
-```bash
-npm run test:server        # Run Jest unit tests
-cd server && npm run test:watch  # Watch mode during development
+  provideFeature(document: TextDocument, position: Position) {
+    // Implementation
+  }
+}
 ```
 
-Our tests cover:
-- Parameter parsing and validation
-- NMTRAN syntax validation
-- Control record recognition
-- BLOCK matrix handling
-- SAME keyword resolution
+Register in `server/src/server.ts` and add tests in `server/src/test/`.
 
-#### Integration Tests
+### Fixing Validation Issues
+
+1. Check if record is in `server/src/constants.ts`
+2. Check validation logic in `server/src/utils/validateControlRecords.ts`
+3. Run tests: `npm test`
+
+## Testing
+
+### Automated Tests
 
 ```bash
-npm test                   # Runs both unit and integration tests
+npm test                           # Full test suite
+npm run test:server                # Server unit tests (Jest)
+cd server && npm run test:watch    # Watch mode
+cd server && npm test -- file.test.ts  # Specific test file
 ```
 
-#### Manual Testing
+Coverage thresholds: 80% for branches, functions, lines, statements.
 
-1. **Extension Development Host**
-   - Press **F5** to launch test environment
-   - Open files from `test/` directory
-   - Test specific features with real NMTRAN files
+### Manual Testing
 
-2. **Test Coverage Areas**
-   - **Basic functionality**: Syntax highlighting, code folding
-   - **Language features**: Hover, go-to-definition, diagnostics
-   - **Edge cases**: Empty files, large files (>1000 lines), invalid syntax
-   - **NONMEM versions**: Test with different NONMEM syntax versions
-   - **Performance**: Test with large models and rapid typing
-
-3. **Sample Test Files**
-   Use files in `test/` directory for manual testing:
+1. Press **F5** to launch Extension Development Host
+2. Test with files in `test/` directory:
    - `demo.mod` - Basic PopPK model
    - `maximal.mod` - Complex model with many features
    - `test-data.mod` - Edge cases and validation scenarios
+3. Test specific features:
+   - Hover on control records (`$THETA`, `$OMEGA`)
+   - Invalid records (`$INVALID`) should show red squiggle
+   - Go to Definition on `THETA(3)`
+   - Find References on parameters
+   - Code folding on control record sections
 
-#### Writing New Tests
+## Debugging
 
-When adding features, include tests that cover:
-- **Happy path**: Normal usage scenarios
-- **Edge cases**: Boundary conditions and error states
-- **Regression**: Ensure existing functionality isn't broken
-- **Performance**: Test with realistic file sizes
+### View Logs
 
-Example test structure:
-```typescript
-describe('New Feature', () => {
-  test('should handle normal case', () => {
-    // Test implementation
-  });
-  
-  test('should handle edge case', () => {
-    // Test edge cases
-  });
-});
+**Language Server Logs** (hover, validation, diagnostics):
+1. In Extension Development Host: `Cmd+Shift+P` / `Ctrl+Shift+P`
+2. "Developer: Show Logs" → "NMTRAN Language Server"
+
+**Extension/Client Logs** (activation, folding):
+1. "Developer: Show Logs" → "Extension Host"
+
+### Debug Breakpoints
+
+Use "Debug Extension + Server" launch configuration for full breakpoint debugging:
+- Client code: `client/src/extension.ts`, `client/src/features/`
+- Server code: `server/src/server.ts`, `server/src/services/`
+
+## File Organization
+
+```
+├── client/src/
+│   ├── extension.ts          # Extension entry point
+│   └── features/
+│       ├── foldingProvider.ts    # Code folding
+│       └── languageServer.ts     # Language server management
+├── server/src/
+│   ├── server.ts             # Language server main
+│   ├── constants.ts          # Valid control records
+│   ├── hoverInfo.ts          # Control record explanations
+│   ├── services/             # Feature services
+│   ├── utils/                # Utilities
+│   └── test/                 # Jest tests
+├── syntaxes/                 # TextMate grammar
+├── snippets/                 # Code snippets
+├── test/                     # Sample NMTRAN files
+└── dist/                     # Bundled output
 ```
 
-### Debugging
+## Troubleshooting
 
-1. **View Language Server logs**:
-   - Extension Development Host → Cmd+Shift+P → "Developer: Show Logs" → "NMTRAN Language Server"
+| Issue | Solution |
+|-------|----------|
+| Extension not loading | Run `npm run build`, check `dist/extension.js` exists |
+| Hover not working | Verify record in `constants.ts`, test with `npm run test:server -- hoverService.test.ts` |
+| False validation errors | Check spelling in `constants.ts`, verify regex in `validateControlRecords.ts` |
+| TypeScript errors | Run `npm run compile` for detailed errors |
+| Language server not responding | Check Language Server logs for crashes |
 
-2. **Set breakpoints**: 
-   - In TypeScript files for both client and server
-   - Use "Debug Extension + Server" configuration
+## Pull Request Process
 
-3. **Common issues**:
-   - Check MAINTENANCE.md for troubleshooting guide
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Make changes following existing patterns
+3. Add tests for new functionality
+4. Run `npm run validate` before committing
+5. Submit PR with clear description
 
-## Release Process
+## Release Process (Maintainers)
 
-For maintainers releasing new versions:
-
-1. **Prepare Release**
-   ```bash
-   npm run validate           # Ensure all tests pass
-   npm run build             # Verify production build
-   ```
-
-2. **Update Version and Documentation**
-   - Update version in `package.json`
-   - Update `CHANGELOG.md` with new features, fixes, and breaking changes
-   - Commit changes: `git commit -m "Bump version to X.Y.Z"`
-
-3. **Create and Push Tag**
-   ```bash
-   git tag vX.Y.Z
-   git push origin vX.Y.Z
-   ```
-
-4. **Automated Release**
-   - GitHub Actions automatically builds and publishes to VSCode Marketplace
-   - Monitor the release workflow for any issues
-
-## Getting Help
-
-If you need assistance:
-
-1. **Check Documentation**
-   - [ARCHITECTURE.md](ARCHITECTURE.md) - Technical architecture details
-   - [MAINTENANCE.md](MAINTENANCE.md) - Debugging and troubleshooting
-   - [CLAUDE.md](CLAUDE.md) - Development guidelines and patterns
-
-2. **Ask Questions**
-   - [GitHub Discussions](https://github.com/vrognas/vscode-nmtran/discussions) - General questions
-   - [GitHub Issues](https://github.com/vrognas/vscode-nmtran/issues) - Bug reports and feature requests
-
-3. **Review Existing Code**
-   - Look at existing services in `server/src/services/` for patterns
-   - Check test files for examples of testing approaches
-   - Review recent commits for coding style examples
+1. Run `npm run validate`
+2. Update version in `package.json`
+3. Update `CHANGELOG.md`
+4. Commit: `git commit -m "Bump version to X.Y.Z"`
+5. Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+6. GitHub Actions publishes to VSCode Marketplace
 
 ## Code of Conduct
 
-We are committed to providing a welcoming and inclusive environment for all contributors:
+- Be respectful and inclusive
+- Provide constructive feedback
+- Help newcomers learn
+- Follow existing patterns
+- Stay professional
 
-- **Be respectful and inclusive** - Welcome people of all backgrounds and experience levels
-- **Focus on constructive feedback** - Provide helpful suggestions and critique ideas, not people
-- **Help newcomers learn** - Share knowledge and guide new contributors through the codebase
-- **Follow existing patterns** - Maintain consistency with established code conventions
-- **Stay professional** - Keep discussions focused on technical matters and project improvement
+## Getting Help
 
-## Recognition
+- [GitHub Discussions](https://github.com/vrognas/vscode-nmtran/discussions) - Questions
+- [GitHub Issues](https://github.com/vrognas/vscode-nmtran/issues) - Bugs and features
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Technical design details
 
-Contributors who help improve this extension will be:
-- Acknowledged in release notes for significant contributions
-- Listed as contributors on the GitHub repository
-- Recognized for their expertise in the pharmacometrics community
+---
 
-## Thank You! 🎉
-
-Thank you for taking the time to contribute to the NMTRAN extension! Your efforts help make pharmacometric modeling more accessible and efficient for researchers worldwide.
-
-Whether you're fixing a typo, implementing a major feature, or helping other users, every contribution matters and is greatly appreciated.
-
-**Happy coding, and may your NONMEM models converge quickly!** 🧬💊
+**Thank you for contributing!** Your efforts help pharmacometric modeling become more accessible for researchers worldwide.
