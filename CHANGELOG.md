@@ -1,3 +1,22 @@
+## [0.2.14] 3 Feb, 2026
+
+### Fixed
+
+* **Security Vulnerabilities**: Resolved all npm audit vulnerabilities across root, client, and server packages
+* **ESLint Migration**: Upgraded from ESLint v8 to v9 with flat config format (eslint.config.mjs)
+
+### Updated
+
+* **eslint**: Updated from v8.57.0 to v9.18.0
+* **typescript-eslint**: Migrated from separate @typescript-eslint/* packages to unified typescript-eslint v8.38.0
+* **brace-expansion**: Patched ReDoS vulnerability
+* **diff**: Patched DoS vulnerability in parsePatch/applyPatch
+* **js-yaml**: Patched prototype pollution vulnerability
+
+### Changed
+
+* **Package Exclusions**: Improved .vscodeignore to exclude dev files from vsix package
+
 ## [0.2.13] 2 Aug, 2025
 
 ### Added
