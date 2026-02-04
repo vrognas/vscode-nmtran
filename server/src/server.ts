@@ -467,6 +467,9 @@ connection.onDidCloseTextDocument((params) => {
   try {
     services.document.removeDocument(params.textDocument.uri);
 
+    // Clear cached settings for closed document
+    documentSettings.delete(params.textDocument.uri);
+
     // Clear any pending diagnostics timeout
     const timeout = diagnosticsTimeouts.get(params.textDocument.uri);
     if (timeout) {

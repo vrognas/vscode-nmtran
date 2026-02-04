@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await startLanguageServer(context);
     
     // Setup configuration change handlers
-    setupConfigurationHandlers();
+    setupConfigurationHandlers(context);
     
     logger.completion('Activation completed successfully');
     
@@ -75,14 +75,16 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
 /**
  * Setup configuration change handlers
  */
-function setupConfigurationHandlers(): void {
+function setupConfigurationHandlers(context: vscode.ExtensionContext): void {
   const config = ConfigurationService.getInstance();
-  
-  vscode.workspace.onDidChangeConfiguration((event) => {
+
+  const configSubscription = vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration('nmtran')) {
       config.refresh();
     }
   });
+
+  context.subscriptions.push(configSubscription);
 }
 
 /**
