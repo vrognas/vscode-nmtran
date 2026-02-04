@@ -16,6 +16,7 @@ server/src/**
 # Exclude test files
 test/**
 test_empty_initial_values.mod
+**/run-tests.js
 
 # Exclude development files
 **/*.map
@@ -26,7 +27,8 @@ eslint.config.mjs
 .github/
 .vscode-test.mjs
 scripts/
-package-lock.json
+**/package-lock.json
+nul
 
 # Exclude dev documentation
 CLAUDE.md
@@ -36,9 +38,11 @@ CONTRIBUTING.md
 **/*.ts
 
 # Exclude config files
-tsconfig.json
-tsconfig.*.json
+**/tsconfig.json
+**/tsconfig.*.json
+**/*.tsbuildinfo
 **/jest.config.js
+**/vitest.config.ts
 
 # ESBuild excludes - keep bundled dist/ directory
 esbuild.js
