@@ -67,8 +67,9 @@ describe('ParameterValidator', () => {
     });
 
     it('should reject invalid line input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- testing invalid input handling
       const result = ParameterValidator.validateParameterLine(null as any);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid line input');
     });
@@ -128,8 +129,9 @@ describe('ParameterValidator', () => {
     });
 
     it('should reject null/undefined input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- testing invalid input handling
       const result = ParameterValidator.validateNumericValue(null as any);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid numeric value input');
     });

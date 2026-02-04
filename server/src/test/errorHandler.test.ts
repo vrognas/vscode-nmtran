@@ -1,22 +1,24 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ErrorHandler, ErrorContext } from '../utils/errorHandler';
+import { createMockConnection, asMockConnection, MockConnection } from './mocks/mockConnection';
 
 describe('ErrorHandler', () => {
   let errorHandler: ErrorHandler;
   beforeEach(() => {
     errorHandler = new ErrorHandler();
-    jest.spyOn(console, 'warn').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(console, 'log').mockImplementation();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('logWarning', () => {
     it('should log warning without context', () => {
       errorHandler.logWarning('Test warning');
-      
+
       expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Test warning');
     });
 
@@ -29,7 +31,7 @@ describe('ErrorHandler', () => {
       };
 
       errorHandler.logWarning('Test warning', context);
-      
+
       expect(console.warn).toHaveBeenCalledWith(
         '[NMTRAN Warning] Test warning [operation=testOp, file=test.mod, line=6, type=THETA]'
       );
@@ -42,7 +44,7 @@ describe('ErrorHandler', () => {
       };
 
       errorHandler.logWarning('Test warning', context);
-      
+
       expect(console.warn).toHaveBeenCalledWith(
         '[NMTRAN Warning] Test warning [operation=testOp, blockSize=2, matrixType="BLOCK"]'
       );
@@ -52,7 +54,7 @@ describe('ErrorHandler', () => {
   describe('logError', () => {
     it('should log error without context', () => {
       errorHandler.logError('Test error');
-      
+
       expect(console.error).toHaveBeenCalledWith('[NMTRAN Error] Test error');
     });
 
@@ -63,7 +65,7 @@ describe('ErrorHandler', () => {
       };
 
       errorHandler.logError('Test error', context);
-      
+
       expect(console.error).toHaveBeenCalledWith(
         '[NMTRAN Error] Test error [operation=testOp, line=11]'
       );
@@ -73,7 +75,7 @@ describe('ErrorHandler', () => {
   describe('logDebug', () => {
     it('should log debug without context', () => {
       errorHandler.logDebug('Test debug');
-      
+
       expect(console.log).toHaveBeenCalledWith('[NMTRAN Debug] Test debug');
     });
   });
@@ -84,7 +86,7 @@ describe('ErrorHandler', () => {
       const context: ErrorContext = { operation: 'testOp' };
 
       errorHandler.handleException(error, context);
-      
+
       expect(console.error).toHaveBeenCalledWith(
         '[NMTRAN Exception] Test error message [operation=testOp]'
       );
@@ -95,7 +97,7 @@ describe('ErrorHandler', () => {
       error.stack = 'Error: Test error\\n    at test';
 
       errorHandler.handleException(error);
-      
+
       expect(console.error).toHaveBeenCalledTimes(2);
       expect(console.error).toHaveBeenCalledWith('[NMTRAN Exception] Test error');
       expect(console.error).toHaveBeenCalledWith('Error: Test error\\n    at test');
@@ -108,7 +110,7 @@ describe('ErrorHandler', () => {
       const fallback = 'fallback';
 
       const result = errorHandler.createSafeResult(operation, fallback);
-      
+
       expect(result).toBe('success');
     });
 
@@ -117,7 +119,7 @@ describe('ErrorHandler', () => {
       const fallback = 'fallback';
 
       const result = errorHandler.createSafeResult(operation, fallback);
-      
+
       expect(result).toBe('fallback');
       expect(console.error).toHaveBeenCalled();
     });
@@ -128,7 +130,7 @@ describe('ErrorHandler', () => {
       const context: ErrorContext = { operation: 'testOp' };
 
       errorHandler.createSafeResult(operation, fallback, context);
-      
+
       expect(console.error).toHaveBeenCalledWith(
         '[NMTRAN Exception] Test error [operation=testOp]'
       );
@@ -141,7 +143,7 @@ describe('ErrorHandler', () => {
       const fallback = 'fallback';
 
       const result = await errorHandler.createSafeAsyncResult(operation, fallback);
-      
+
       expect(result).toBe('async success');
     });
 
@@ -150,7 +152,7 @@ describe('ErrorHandler', () => {
       const fallback = 'fallback';
 
       const result = await errorHandler.createSafeAsyncResult(operation, fallback);
-      
+
       expect(result).toBe('fallback');
       expect(console.error).toHaveBeenCalled();
     });
@@ -159,7 +161,7 @@ describe('ErrorHandler', () => {
   describe('static methods', () => {
     it('should work without instance', () => {
       ErrorHandler.logWarning('Static warning');
-      
+
       expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Static warning');
     });
 
@@ -168,7 +170,7 @@ describe('ErrorHandler', () => {
       const context: ErrorContext = { operation: 'staticOp' };
 
       ErrorHandler.handleException(error, context);
-      
+
       expect(console.error).toHaveBeenCalledWith(
         '[NMTRAN Exception] Static error [operation=staticOp]'
       );
@@ -178,18 +180,102 @@ describe('ErrorHandler', () => {
   describe('formatContext', () => {
     it('should handle empty context', () => {
       const context: ErrorContext = { operation: '' };
-      
+
       errorHandler.logWarning('Test', context);
-      
+
       expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Test');
     });
 
     it('should convert line numbers to 1-based', () => {
       const context: ErrorContext = { operation: 'test', lineNumber: 0 };
-      
+
       errorHandler.logWarning('Test', context);
-      
+
       expect(console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Test [operation=test, line=1]');
+    });
+  });
+
+  describe('with connection', () => {
+    let mockConnection: MockConnection;
+    let connectedHandler: ErrorHandler;
+
+    beforeEach(() => {
+      mockConnection = createMockConnection();
+      connectedHandler = new ErrorHandler(asMockConnection(mockConnection));
+    });
+
+    it('should use connection.console.warn for warnings', () => {
+      connectedHandler.logWarning('Connection warning');
+
+      expect(mockConnection.console.warn).toHaveBeenCalledWith('[NMTRAN Warning] Connection warning');
+    });
+
+    it('should use connection.console.error for errors', () => {
+      connectedHandler.logError('Connection error');
+
+      expect(mockConnection.console.error).toHaveBeenCalledWith('[NMTRAN Error] Connection error');
+    });
+
+    it('should use connection.console.log for debug', () => {
+      connectedHandler.logDebug('Connection debug');
+
+      expect(mockConnection.console.log).toHaveBeenCalledWith('[NMTRAN Debug] Connection debug');
+    });
+
+    it('should handle exceptions via connection', () => {
+      const error = new Error('Connection exception');
+      connectedHandler.handleException(error);
+
+      expect(mockConnection.console.error).toHaveBeenCalledWith('[NMTRAN Exception] Connection exception');
+    });
+  });
+
+  describe('wrap method', () => {
+    it('should wrap function and return result on success', () => {
+      const fn = (x: number) => x * 2;
+      const wrapped = errorHandler.wrap(fn, 'test');
+
+      expect(wrapped(5)).toBe(10);
+    });
+
+    it('should catch errors and log exception', () => {
+      const fn = () => {
+        throw new Error('Test error');
+      };
+      const wrapped = errorHandler.wrap(fn, 'test');
+
+      const result = wrapped();
+      expect(result).toBeNull(); // Default fallback
+      expect(console.error).toHaveBeenCalled();
+    });
+
+    it('should preserve function arguments', () => {
+      const fn = (a: number, b: string) => `${b}-${a}`;
+      const wrapped = errorHandler.wrap(fn, 'test');
+
+      expect(wrapped(42, 'hello')).toBe('hello-42');
+    });
+  });
+
+  describe('static logDebug', () => {
+    it('should work without instance', () => {
+      ErrorHandler.logDebug('Static debug');
+
+      expect(console.log).toHaveBeenCalledWith('[NMTRAN Debug] Static debug');
+    });
+
+    it('should work with context', () => {
+      ErrorHandler.logDebug('Static debug', { operation: 'staticOp' });
+
+      expect(console.log).toHaveBeenCalledWith('[NMTRAN Debug] Static debug [operation=staticOp]');
+    });
+  });
+
+  describe('static logError', () => {
+    it('should work without instance', () => {
+      ErrorHandler.logError('Static error');
+
+      expect(console.error).toHaveBeenCalledWith('[NMTRAN Error] Static error');
     });
   });
 });

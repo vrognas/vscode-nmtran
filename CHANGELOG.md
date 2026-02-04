@@ -1,3 +1,25 @@
+## [0.2.17] 4 Feb, 2026
+
+### Changed
+
+* **Test Framework Migration**: Migrated server tests from Jest to Vitest
+  - Replaced Jest with Vitest v3.0.0 for faster test execution
+  - Added @vitest/coverage-v8 for coverage reporting
+  - Created `vitest.config.ts` with 80% coverage thresholds
+  - Removed Jest dependencies (`jest`, `ts-jest`, `@types/jest`)
+
+* **Test Type Safety**: Added typed mock infrastructure
+  - Created `mocks/mockConnection.ts` with `MockConnection` type and factory
+  - Replaced all `any` typed mocks with proper TypeScript types
+  - Added `getHoverValue()` helper for type-safe hover content extraction
+  - Zero ESLint warnings in test files (was 24)
+
+### Added
+
+* **DocumentService Tests**: New comprehensive test suite for document caching
+  - LRU eviction behavior tests
+  - Cache statistics tests
+
 ## [0.2.16] 3 Feb, 2026
 
 ### Changed

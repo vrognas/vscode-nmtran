@@ -1,33 +1,40 @@
 /**
  * Test to understand BLOCK(1) highlighting behavior with different spacing patterns
- * 
+ *
  * This test focuses on the specific issue where:
  * Line 54: `$OMEGA  BLOCK(1) 0.0444    ; IIV (CL-V)` - works correctly
- * Line 57: `$OMEGA  BLOCK(1) 0.0165           ; IOV CL` - highlights entire line  
+ * Line 57: `$OMEGA  BLOCK(1) 0.0165           ; IOV CL` - highlights entire line
  * Line 59: `$OMEGA  BLOCK(1)  0.495           ; IOV KA` - highlights entire line
- * 
+ *
  * The difference appears to be in spacing patterns.
  */
 
 import { DefinitionService } from '../services/definitionService';
-import { Connection } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { createMockConnection, asMockConnection, MockConnection } from './mocks/mockConnection';
+
+// Type for parameter location returned by scanner
+interface ParameterLocation {
+  type: string;
+  index: number;
+  line: number;
+  startChar?: number;
+  endChar?: number;
+}
+
+// Type for character range
+interface CharacterRange {
+  start: number;
+  end: number;
+}
 
 describe('BLOCK(1) Highlighting Test', () => {
-  let mockConnection: Connection;
+  let mockConnection: MockConnection;
   let definitionService: DefinitionService;
 
   beforeEach(() => {
-    mockConnection = {
-      console: {
-        log: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn()
-      }
-    } as any;
-    
-    definitionService = new DefinitionService(mockConnection);
+    mockConnection = createMockConnection();
+    definitionService = new DefinitionService(asMockConnection(mockConnection));
   });
 
   // Helper function to create a test document
@@ -36,9 +43,9 @@ describe('BLOCK(1) Highlighting Test', () => {
   }
 
   // Test the private findParameterValuePosition method by accessing it via reflection
-  function testFindParameterValuePosition(line: string, paramPosition: number) {
+  function testFindParameterValuePosition(line: string, paramPosition: number): CharacterRange | null {
     // Access private method for testing
-    const method = (definitionService as any).findParameterValuePosition;
+    const method = (definitionService as unknown as Record<string, unknown>)['findParameterValuePosition'] as (line: string, pos: number) => CharacterRange | null;
     return method.call(definitionService, line, paramPosition);
   }
 
@@ -210,31 +217,31 @@ $OMEGA  BLOCK(1)  SAME         ; IOV`;
       
       const document = createTestDocument(documentContent);
       const lines = documentContent.split('\n');
-      
+
       // Access the private scanAllParameters method to see what it returns
-      const scanMethod = (definitionService as any).scanAllParameters;
+      const scanMethod = (definitionService as unknown as Record<string, unknown>)['scanAllParameters'] as (doc: TextDocument) => ParameterLocation[];
       const allParams = scanMethod.call(definitionService, document);
-      
+
       console.log(`\nAll scanned parameters:`, allParams);
-      
+
       // Look for the specific parameters we're interested in
-      const etaParams = allParams.filter((p: any) => p.type === 'ETA');
+      const etaParams = allParams.filter((p: ParameterLocation) => p.type === 'ETA');
       console.log(`\nETA parameters:`, etaParams);
-      
+
       // Verify the highlighted text for each parameter
-      etaParams.forEach((param: any) => {
+      etaParams.forEach((param: ParameterLocation) => {
         const line = lines[param.line];
         if (line) {
-          const highlightedText = line.substring(param.startChar, param.endChar);
+          const highlightedText = line.substring(param.startChar ?? 0, param.endChar ?? 0);
           console.log(`ETA(${param.index}) on line ${param.line}: "${highlightedText}" (positions ${param.startChar}-${param.endChar})`);
           console.log(`  Full line: "${line}"`);
         }
       });
-      
+
       // Test the enhanceLocationsWithValuePositions method
-      const enhanceMethod = (definitionService as any).enhanceLocationsWithValuePositions;
+      const enhanceMethod = (definitionService as unknown as Record<string, unknown>)['enhanceLocationsWithValuePositions'] as (doc: TextDocument, locs: ParameterLocation[]) => void;
       enhanceMethod.call(definitionService, document, etaParams);
-      
+
       console.log(`\nETA parameters after enhancement:`, etaParams);
     });
   });

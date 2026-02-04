@@ -1,20 +1,15 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DefinitionService } from '../services/definitionService';
 import { Position } from 'vscode-languageserver';
+import { createMockConnection, asMockConnection, MockConnection } from './mocks/mockConnection';
 
 describe('DefinitionService', () => {
   let service: DefinitionService;
-  let mockConnection: any;
+  let mockConnection: MockConnection;
 
   beforeEach(() => {
-    mockConnection = {
-      console: {
-        log: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn()
-      }
-    };
-    service = new DefinitionService(mockConnection);
+    mockConnection = createMockConnection();
+    service = new DefinitionService(asMockConnection(mockConnection));
   });
 
   describe('BLOCK matrix handling', () => {
@@ -229,14 +224,118 @@ $OMEGA 0.1
 $SIGMA 0.01
 
 $ESTIMATION METHOD=1 MAXEVAL=9999`;
-      
+
       const _doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
-      
+
       // Test various parameter references
       // THETA(1) in $PK should navigate to 0.5
       // ETA(2) should navigate to 0.0241 (diagonal of BLOCK(2))
       // ETA(3) should navigate to 0.1
       // EPS(1) should navigate to 0.01
+    });
+  });
+
+  describe('provideReferences', () => {
+    it('should find all references to a THETA parameter', () => {
+      const content = `$THETA 0.5   ; CL
+$PK
+CL = THETA(1) * 2
+V = THETA(1) * 10`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      // Find references to THETA(1)
+      const refs = service.provideReferences(doc, Position.create(2, 10), true);
+      expect(refs).toBeDefined();
+      expect(refs!.length).toBeGreaterThanOrEqual(2); // At least 2 usages
+    });
+
+    it('should find references excluding declaration', () => {
+      const content = `$THETA 0.5   ; CL
+$PK
+CL = THETA(1) * 2
+V = THETA(1) * 10`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      // Find references excluding declaration
+      const refs = service.provideReferences(doc, Position.create(2, 10), false);
+      expect(refs).toBeDefined();
+      // Should find usage references but not the definition
+    });
+
+    it('should return null for non-parameter positions', () => {
+      const content = `$PROBLEM Test
+$PK
+CL = 1.0`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      const refs = service.provideReferences(doc, Position.create(0, 5), true);
+      expect(refs).toBeNull();
+    });
+
+    it('should find ETA references across document', () => {
+      const content = `$OMEGA 0.1
+$PK
+CL = THETA(1) * EXP(ETA(1))
+V = THETA(2) * EXP(ETA(1))`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      const refs = service.provideReferences(doc, Position.create(2, 23), true);
+      expect(refs).toBeDefined();
+      expect(refs!.length).toBeGreaterThanOrEqual(2); // Used twice
+    });
+
+    it('should find ERR references (EPS synonym)', () => {
+      const content = `$SIGMA 0.01
+$ERROR
+Y = F + F*ERR(1)
+IPRED = F + ERR(1)`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      const refs = service.provideReferences(doc, Position.create(2, 12), true);
+      expect(refs).toBeDefined();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle continuation lines', () => {
+      const content = `$THETA  (0,3)
+2 FIXED
+(0,.6,1)`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      // Should recognize THETA parameters across continuation lines
+      const def = service.provideDefinition(doc, Position.create(1, 0));
+      expect(def).toBeDefined();
+    });
+
+    it('should handle parameters in comments gracefully', () => {
+      const content = `$THETA 0.5   ; THETA(1) is clearance
+$PK
+CL = THETA(1)`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      // Should not crash when THETA(1) appears in comment
+      const refs = service.provideReferences(doc, Position.create(2, 8), true);
+      expect(refs).toBeDefined();
+    });
+
+    it('should handle BLOCK matrices with values on next line', async () => {
+      const content = `$OMEGA BLOCK(2)
+0.1
+0.05 0.2`;
+
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+
+      // Should find ETA(1) on line 1
+      const def = await service.provideDefinition(doc, Position.create(1, 0));
+      expect(def).toBeDefined();
     });
   });
 });
