@@ -20,6 +20,13 @@
   - LRU eviction behavior tests
   - Cache statistics tests
 
+### Fixed
+
+* **Package Size**: Improved `.vscodeignore` to exclude dev files from vsix
+  - Excluded tsconfig files, tsbuildinfo, vitest config
+  - Excluded package-lock.json files and test runners
+  - Reduced package to 15 essential files
+
 ## [0.2.16] 3 Feb, 2026
 
 ### Changed
