@@ -38,10 +38,18 @@ CONTRIBUTING.md
 **/*.ts
 
 # Exclude config files
-**/tsconfig.json
-**/tsconfig.*.json
-**/*.tsbuildinfo
+tsconfig.json
+tsconfig.*.json
+client/tsconfig.json
+client/tsconfig.*.json
+server/tsconfig.json
+server/tsconfig.*.json
+*.tsbuildinfo
+client/*.tsbuildinfo
+server/*.tsbuildinfo
+jest.config.js
 **/jest.config.js
+vitest.config.ts
 **/vitest.config.ts
 
 # ESBuild excludes - keep bundled dist/ directory
