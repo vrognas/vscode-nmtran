@@ -1,3 +1,11 @@
+## [0.2.18] 5 Feb, 2026
+
+### Fixed
+
+* **Memory Leaks**: Fixed potential memory leaks in client and server
+  - Configuration change handler now properly disposed via context.subscriptions
+  - Document settings cache now cleared when documents close
+
 ## [0.2.17] 4 Feb, 2026
 
 ### Changed
