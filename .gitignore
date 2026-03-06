@@ -6,3 +6,5 @@ node_modules/
 *.vsix
 .vscode-test/
 guides/
+coverage/
+nul
