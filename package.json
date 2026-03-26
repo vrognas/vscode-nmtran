@@ -166,7 +166,7 @@
     "dev": "npm-run-all --parallel dev:client dev:server",
     "dev:client": "npm run esbuild-base -- --sourcemap --watch",
     "dev:server": "npm run esbuild-server -- --sourcemap --watch",
-    "vscode:prepublish": "npm run esbuild -- --minify",
+    "vscode:prepublish": "npm run esbuild-base -- --minify && npm run esbuild-server -- --minify",
     "pre-release": "./scripts/pre-release.sh",
     "validate": "npm run lint && npm run compile && npm test"
   },
