@@ -11,6 +11,7 @@ import { Connection } from 'vscode-languageserver/node';
 
 export class DocumentService {
   private documents: Map<string, TextDocument> = new Map();
+  private linesCache = new Map<string, { version: number; lines: string[] }>();
   private accessOrder: string[] = []; // Track access order for LRU
   private connection: Connection;
   private readonly maxCacheSize: number;
@@ -34,6 +35,7 @@ export class DocumentService {
       const oldest = this.accessOrder.shift();
       if (oldest && oldest !== uri) {
         this.documents.delete(oldest);
+        this.linesCache.delete(oldest);
         this.connection.console.log(`♻️  Document evicted (LRU): ${this.getFileName(oldest)}`);
       }
     }
@@ -65,10 +67,28 @@ export class DocumentService {
   }
 
   /**
+   * Returns pre-split lines for a document, cached by version.
+   */
+  getLines(uri: string): string[] | undefined {
+    const doc = this.documents.get(uri);
+    if (!doc) return undefined;
+
+    const cached = this.linesCache.get(uri);
+    if (cached && cached.version === doc.version) {
+      return cached.lines;
+    }
+
+    const lines = doc.getText().split('\n');
+    this.linesCache.set(uri, { version: doc.version, lines });
+    return lines;
+  }
+
+  /**
    * Removes a document from the cache
    */
   removeDocument(uri: string): boolean {
     const removed = this.documents.delete(uri);
+    this.linesCache.delete(uri);
     if (removed) {
       const idx = this.accessOrder.indexOf(uri);
       if (idx !== -1) {
