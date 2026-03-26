@@ -30,7 +30,6 @@ function evaluateControlRecord(record: string): {
   closestMatch?: string 
 } {
   let closestMatch: string | undefined;
-  let isAbbreviation = false;
 
   for (const validRecord of allowedControlRecords) {
     if (validRecord === record) {
@@ -38,9 +37,7 @@ function evaluateControlRecord(record: string): {
     }
 
     if (validRecord.startsWith(record)) {
-      isAbbreviation = true;
-      closestMatch = validRecord;
-      return { isValid: true, isAbbreviation, closestMatch };
+      return { isValid: true, isAbbreviation: true, closestMatch: validRecord };
     }
 
     if (!closestMatch && validRecord.startsWith(record.substring(0, 3))) {
