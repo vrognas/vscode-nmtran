@@ -2,6 +2,10 @@ import { ParameterScanner } from '../services/ParameterScanner';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 describe('SAME Keyword Handling', () => {
+  beforeEach(() => {
+    ParameterScanner.clearCache();
+  });
+
   it('should count SAME as one parameter', () => {
     const content = `$OMEGA  BLOCK(1) 0.0165
 $OMEGA  BLOCK(1)  SAME`;

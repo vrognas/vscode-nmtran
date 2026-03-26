@@ -6,6 +6,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position } from 'vscode-languageserver';
 import { DefinitionService } from '../../services/definitionService';
 import { DocumentService } from '../../services/documentService';
+import { ParameterScanner } from '../../services/ParameterScanner';
 import { createMockConnection, asMockConnection, MockConnection } from '../mocks/mockConnection';
 
 describe('Definition Flow Integration', () => {
@@ -14,6 +15,7 @@ describe('Definition Flow Integration', () => {
   let mockConnection: MockConnection;
 
   beforeEach(() => {
+    ParameterScanner.clearCache();
     mockConnection = createMockConnection();
     const connection = asMockConnection(mockConnection);
 
