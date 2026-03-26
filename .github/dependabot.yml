@@ -28,6 +28,39 @@ updates:
       - dependencies
       - automated
 
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    open-pull-requests-limit: 2
+    groups:
+      vscode:
+        patterns:
+          - "@vscode/*"
+          - "vscode-languageclient"
+          - "@types/vscode"
+    labels:
+      - dependencies
+      - automated
+
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    open-pull-requests-limit: 2
+    groups:
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+    labels:
+      - dependencies
+      - automated
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
