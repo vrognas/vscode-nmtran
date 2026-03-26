@@ -1,0 +1,41 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    open-pull-requests-limit: 3
+    groups:
+      typescript-ecosystem:
+        patterns:
+          - "typescript"
+          - "typescript-eslint"
+          - "@types/*"
+      vscode:
+        patterns:
+          - "@vscode/*"
+          - "vscode-languageclient"
+          - "vscode-languageserver"
+          - "vscode-languageserver-textdocument"
+      build-tools:
+        patterns:
+          - "esbuild"
+          - "eslint*"
+          - "@eslint/*"
+    labels:
+      - dependencies
+      - automated
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - automated
+      - ci
