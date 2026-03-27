@@ -10,6 +10,7 @@ import { ConfigurationService } from './config';
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 export class Logger {
+  private static readonly LOG_LEVELS: LogLevel[] = ['error', 'warn', 'info', 'debug'];
   private static instance: Logger;
   private config: ConfigurationService;
 
@@ -30,9 +31,8 @@ export class Logger {
     }
 
     const configLevel = this.config.get('debug').logLevel;
-    const levels: LogLevel[] = ['error', 'warn', 'info', 'debug'];
-    const configIndex = levels.indexOf(configLevel);
-    const messageIndex = levels.indexOf(level);
+    const configIndex = Logger.LOG_LEVELS.indexOf(configLevel);
+    const messageIndex = Logger.LOG_LEVELS.indexOf(level);
     
     return messageIndex <= configIndex;
   }
