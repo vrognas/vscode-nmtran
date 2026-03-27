@@ -213,6 +213,7 @@ export class ParameterScanner {
    * Detect and store FIXED keywords from BLOCK declaration line
    */
   private static detectBlockFixedKeywords(line: string, lineNum: number, state: ScannerState): void {
+    PARAMETER_PATTERNS.FIXED.lastIndex = 0;
     let match;
     while ((match = PARAMETER_PATTERNS.FIXED.exec(line)) !== null) {
       state.blockFixedKeywords.push({
