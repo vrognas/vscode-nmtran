@@ -36,12 +36,10 @@ export class DocumentService {
       if (oldest && oldest !== uri) {
         this.documents.delete(oldest);
         this.linesCache.delete(oldest);
-        this.connection.console.log(`♻️  Document evicted (LRU): ${this.getFileName(oldest)}`);
       }
     }
 
     this.documents.set(uri, document);
-    this.connection.console.log(`📝 Document cached: ${this.getFileName(uri)}`);
   }
 
   /**
@@ -94,7 +92,6 @@ export class DocumentService {
       if (idx !== -1) {
         this.accessOrder.splice(idx, 1);
       }
-      this.connection.console.log(`🗑️  Document removed: ${this.getFileName(uri)}`);
     }
     return removed;
   }
