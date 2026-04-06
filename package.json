@@ -175,7 +175,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "@types/vscode": "^1.108.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.4.1",
@@ -184,7 +184,7 @@
     "js-yaml": "^4.1.0",
     "npm-run-all2": "^8.0.4",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.38.0",
+    "typescript-eslint": "^8.58.0",
     "vitest": "^4.1.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
