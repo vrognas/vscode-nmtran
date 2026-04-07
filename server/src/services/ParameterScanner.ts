@@ -83,7 +83,7 @@ export class ParameterScanner {
   private static deepCopyLocations(locations: ParameterLocation[]): ParameterLocation[] {
     return locations.map(loc => ({
       ...loc,
-      additionalRanges: loc.additionalRanges?.map(r => ({ ...r }))
+      ...(loc.additionalRanges ? { additionalRanges: loc.additionalRanges.map(r => ({ ...r })) } : {})
     }));
   }
 
