@@ -13,11 +13,9 @@ export class DocumentService {
   private documents: Map<string, TextDocument> = new Map();
   private linesCache = new Map<string, { version: number; lines: string[] }>();
   private accessOrder: string[] = []; // Track access order for LRU
-  private connection: Connection;
   private readonly maxCacheSize: number;
 
-  constructor(connection: Connection, maxCacheSize = 50) {
-    this.connection = connection;
+  constructor(_connection: Connection, maxCacheSize = 50) {
     this.maxCacheSize = maxCacheSize;
   }
 
@@ -108,13 +106,6 @@ export class DocumentService {
    */
   createDocument(uri: string, languageId: string, version: number, content: string): TextDocument {
     return TextDocument.create(uri, languageId, version, content);
-  }
-
-  /**
-   * Gets the file name from a URI
-   */
-  private getFileName(uri: string): string {
-    return uri.split('/').pop() || 'unknown';
   }
 
   /**
