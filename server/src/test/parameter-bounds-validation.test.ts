@@ -9,6 +9,9 @@ import { ParameterScanner } from '../services/ParameterScanner';
 import { createDocument } from './test-helpers';
 
 describe('Parameter Bounds Validation', () => {
+  beforeEach(() => {
+    ParameterScanner.clearCache();
+  });
 
   describe('Valid THETA Bounds', () => {
     it('should accept valid bounded THETA parameters', () => {

@@ -15,6 +15,7 @@ describe('ParameterScanner BLOCK Matrix Tests', () => {
   let document: TextDocument;
 
   beforeEach(() => {
+    ParameterScanner.clearCache();
     document = TextDocument.create('test://test.mod', 'nmtran', 1, testContent);
   });
 
@@ -133,8 +134,8 @@ CL = THETA(1) * EXP(ETA(1))
 V = THETA(15)  ; Invalid - only 1 THETA defined
 KA = THETA(3) * EXP(ETA(5))  ; Invalid - only 1 ETA defined
 Y = F + F * EPS(2)  ; Invalid - no EPS defined`;
-    const invalidDocument = TextDocument.create('test://test.mod', 'nmtran', 1, invalidContent);
-    
+    const invalidDocument = TextDocument.create('test://test-invalid.mod', 'nmtran', 1, invalidContent);
+
     const invalidResult = ParameterScanner.validateParameterReferences(invalidDocument);
     expect(invalidResult.isValid).toBe(false);
     expect(invalidResult.errors).toHaveLength(4);

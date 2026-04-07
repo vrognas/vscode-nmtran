@@ -6,6 +6,10 @@ describe('ParameterScanner Edge Cases', () => {
     return TextDocument.create('test://test.mod', 'nmtran', 1, content);
   }
 
+  beforeEach(() => {
+    ParameterScanner.clearCache();
+  });
+
   describe('malformed input handling', () => {
     it('should handle empty documents', () => {
       const doc = createDocument('');

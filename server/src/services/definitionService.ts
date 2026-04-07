@@ -106,6 +106,14 @@ export class DefinitionService {
     }
   }
 
+  clearCacheForUri(uri: string): void {
+    const prefix = uri + ':';
+    for (const key of this.scanCache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.scanCache.delete(key);
+      }
+    }
+  }
 
   /**
    * Extracts parameter info from cursor position
@@ -172,13 +180,19 @@ export class DefinitionService {
     
     // Cache the result
     this.scanCache.set(cacheKey, locations);
-    
-    // Limit cache size
+
+    // Evict old versions for same URI
+    const uriPrefix = document.uri + ':';
+    for (const key of this.scanCache.keys()) {
+      if (key.startsWith(uriPrefix) && key !== cacheKey) {
+        this.scanCache.delete(key);
+      }
+    }
+
+    // Limit total cache size
     if (this.scanCache.size > 50) {
       const firstKey = this.scanCache.keys().next().value;
-      if (firstKey) {
-        this.scanCache.delete(firstKey);
-      }
+      if (firstKey) this.scanCache.delete(firstKey);
     }
     
     return locations;

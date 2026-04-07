@@ -1,3 +1,22 @@
+## [0.2.19] 26 Mar, 2026
+
+### Performance
+
+* **ParameterScanner caching**: version-keyed static scan cache eliminates redundant full-document scans across features
+* **HoverService optimization**: scan once per hover instead of 3+ times; pass results through call chain
+* **DefinitionService cache fix**: evict stale version entries; clean up on document close
+* **FormattingService**: format only the requested range instead of full document
+* **PerformanceMonitor**: replace O(n) `shift()` with circular buffer
+* **Reduced IPC logging**: removed 50+ verbose log messages per validation cycle; guard remaining logs behind debug check
+
+### Fixed
+
+* **Global regex state contamination**: factory functions for `/g`-flag regexes in HoverService; consistent `lastIndex` reset in ParameterScanner
+* **Resource leaks**: register LanguageClient as disposable, remove unused `.clientrc` file watcher, clear timeouts on shutdown
+* **ErrorHandler**: removed `fn.toString()` heuristic that breaks with esbuild bundling
+* **Settings cache**: stop invalidating settings on every format request
+* **Logger**: hoist levels array to static constant
+
 ## [0.2.18] 5 Feb, 2026
 
 ### Fixed

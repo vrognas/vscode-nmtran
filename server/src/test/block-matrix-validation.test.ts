@@ -9,7 +9,10 @@ import { ParameterScanner } from '../services/ParameterScanner';
 import { createDocument } from './test-helpers';
 
 describe('BLOCK Matrix Validation', () => {
-  
+  beforeEach(() => {
+    ParameterScanner.clearCache();
+  });
+
   describe('Valid BLOCK Matrix Structures', () => {
     it('should validate correct BLOCK(2) matrix with 3 elements', () => {
       const content = `

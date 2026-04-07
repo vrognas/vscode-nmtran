@@ -6,6 +6,7 @@ import { HoverService } from '../services/hoverService';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Hover, MarkupContent } from 'vscode-languageserver/node';
 import { createMockConnection, asMockConnection } from './mocks/mockConnection';
+import { ParameterScanner } from '../services/ParameterScanner';
 
 // Mock connection
 const mockConnection = asMockConnection(createMockConnection());
@@ -23,6 +24,7 @@ describe('SAME Keyword Hover', () => {
   let hoverService: HoverService;
 
   beforeEach(() => {
+    ParameterScanner.clearCache();
     hoverService = new HoverService(mockConnection);
   });
 
