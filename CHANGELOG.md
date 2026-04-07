@@ -1,10 +1,18 @@
-## [0.2.19] 26 Mar, 2026
+# Changelog
 
-### Performance
+All notable changes to vscode-nmtran are documented here.
+
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+
+## [Unreleased]
+
+## [0.2.19] - 2026-03-26
+
+### Changed
 
 * **ParameterScanner caching**: version-keyed static scan cache eliminates redundant full-document scans across features
 * **HoverService optimization**: scan once per hover instead of 3+ times; pass results through call chain
-* **DefinitionService cache fix**: evict stale version entries; clean up on document close
 * **FormattingService**: format only the requested range instead of full document
 * **PerformanceMonitor**: replace O(n) `shift()` with circular buffer
 * **Reduced IPC logging**: removed 50+ verbose log messages per validation cycle; guard remaining logs behind debug check
@@ -12,12 +20,13 @@
 ### Fixed
 
 * **Global regex state contamination**: factory functions for `/g`-flag regexes in HoverService; consistent `lastIndex` reset in ParameterScanner
+* **DefinitionService cache**: evict stale version entries; clean up on document close
 * **Resource leaks**: register LanguageClient as disposable, remove unused `.clientrc` file watcher, clear timeouts on shutdown
 * **ErrorHandler**: removed `fn.toString()` heuristic that breaks with esbuild bundling
 * **Settings cache**: stop invalidating settings on every format request
 * **Logger**: hoist levels array to static constant
 
-## [0.2.18] 5 Feb, 2026
+## [0.2.18] - 2026-02-05
 
 ### Fixed
 
@@ -25,7 +34,7 @@
   - Configuration change handler now properly disposed via context.subscriptions
   - Document settings cache now cleared when documents close
 
-## [0.2.17] 4 Feb, 2026
+## [0.2.17] - 2026-02-04
 
 ### Changed
 
@@ -54,7 +63,7 @@
   - Excluded package-lock.json files and test runners
   - Reduced package to 15 essential files
 
-## [0.2.16] 3 Feb, 2026
+## [0.2.16] - 2026-02-03
 
 ### Changed
 
@@ -69,7 +78,7 @@
 
 * **Dead Code Removal**: Removed unused variables and methods flagged by stricter checks
 
-## [0.2.15] 3 Feb, 2026
+## [0.2.15] - 2026-02-03
 
 ### Fixed
 
@@ -78,17 +87,20 @@
   - Fixed `$TM_FILENAME_BASE` variable syntax in FOCEI snippet
   - Escaped literal `$TABLE` in Xpose TABLEs snippet comment
 
-## [0.2.14] 3 Feb, 2026
+## [0.2.14] - 2026-02-03
+
+### Changed
+
+* **ESLint Migration**: Upgraded from ESLint v8 to v9 with flat config format (eslint.config.mjs)
+* **eslint**: Updated from v8.57.0 to v9.18.0
+* **typescript-eslint**: Migrated from separate @typescript-eslint/* packages to unified typescript-eslint v8.38.0
 
 ### Fixed
 
 * **Security Vulnerabilities**: Resolved all npm audit vulnerabilities across root, client, and server packages
-* **ESLint Migration**: Upgraded from ESLint v8 to v9 with flat config format (eslint.config.mjs)
 
-### Updated
+### Security
 
-* **eslint**: Updated from v8.57.0 to v9.18.0
-* **typescript-eslint**: Migrated from separate @typescript-eslint/* packages to unified typescript-eslint v8.38.0
 * **brace-expansion**: Patched ReDoS vulnerability
 * **diff**: Patched DoS vulnerability in parsePatch/applyPatch
 * **js-yaml**: Patched prototype pollution vulnerability
