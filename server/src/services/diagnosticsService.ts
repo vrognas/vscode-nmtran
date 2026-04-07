@@ -26,22 +26,14 @@ export class DiagnosticsService {
    */
   async validateDocument(document: TextDocument): Promise<void> {
     try {
-      const fileName = this.getFileName(document.uri);
-      this.connection.console.log(`🔍 Validating ${fileName}...`);
-      
       const text = document.getText();
       const controlRecords = locateControlRecordsInText(text);
       const diagnostics: Diagnostic[] = [];
-
-      this.connection.console.log(
-        `📄 Found ${controlRecords.length} control records: ${controlRecords.map(m => m[0]).join(', ')}`
-      );
 
       for (const match of controlRecords) {
         const diagnostic = generateDiagnosticForControlRecord(match, document);
         if (diagnostic) {
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  Issue with ${match[0]}: ${diagnostic.message}`);
         }
       }
 
@@ -62,7 +54,6 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  Parameter validation: ${error}`);
         }
       }
 
@@ -80,7 +71,6 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  Parameter reference validation: ${error.message}`);
         }
       }
 
@@ -98,7 +88,6 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  BLOCK matrix validation: ${error.message}`);
         }
       }
 
@@ -116,7 +105,6 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  SAME keyword validation: ${error.message}`);
         }
       }
 
@@ -134,7 +122,6 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  Continuation marker validation: ${error.message}`);
         }
       }
 
@@ -152,12 +139,10 @@ export class DiagnosticsService {
             source: 'nmtran'
           };
           diagnostics.push(diagnostic);
-          this.connection.console.log(`⚠️  Parameter bounds validation: ${error.message}`);
         }
       }
 
-      this.connection.console.log(`📊 Sending ${diagnostics.length} diagnostics for ${fileName}`);
-      this.connection.sendDiagnostics({ 
+      this.connection.sendDiagnostics({
         uri: document.uri, 
         diagnostics 
       });
@@ -170,9 +155,5 @@ export class DiagnosticsService {
         diagnostics: [] 
       });
     }
-  }
-
-  private getFileName(uri: string): string {
-    return uri.split('/').pop() || 'unknown';
   }
 }

@@ -12,6 +12,7 @@
 import { DefinitionService } from '../services/definitionService';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { createMockConnection, asMockConnection, MockConnection } from './mocks/mockConnection';
+import { ParameterScanner } from '../services/ParameterScanner';
 
 // Type for parameter location returned by scanner
 interface ParameterLocation {
@@ -33,6 +34,7 @@ describe('BLOCK(1) Highlighting Test', () => {
   let definitionService: DefinitionService;
 
   beforeEach(() => {
+    ParameterScanner.clearCache();
     mockConnection = createMockConnection();
     definitionService = new DefinitionService(asMockConnection(mockConnection));
   });

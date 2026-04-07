@@ -8,3 +8,5 @@ node_modules/
 guides/
 coverage/
 nul
+.claude/settings.local.json
+docs/superpowers/

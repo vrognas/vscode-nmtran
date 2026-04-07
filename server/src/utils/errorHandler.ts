@@ -158,29 +158,10 @@ export class ErrorHandler {
   }
 
   /**
-   * Get appropriate default return value based on function signature (legacy method)
+   * Get appropriate default return value (legacy method)
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getDefaultReturnValue(fn: (...args: any[]) => any): any {
-    const fnString = fn.toString();
-    
-    // Check return type hints in function signature
-    if (fnString.includes('Location[]') || fnString.includes('Array')) {
-      return [];
-    }
-    if (fnString.includes('Location') || fnString.includes('object')) {
-      return null;
-    }
-    if (fnString.includes('number')) {
-      return 0;
-    }
-    if (fnString.includes('string')) {
-      return '';
-    }
-    if (fnString.includes('boolean')) {
-      return false;
-    }
-    
+  private getDefaultReturnValue(_fn: (...args: any[]) => any): any {
     return null;
   }
 

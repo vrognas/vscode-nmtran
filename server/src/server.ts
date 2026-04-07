@@ -35,6 +35,7 @@ import { HoverService } from './services/hoverService';
 import { FormattingService } from './services/formattingService';
 import { CompletionService } from './services/completionService';
 import { DefinitionService } from './services/definitionService';
+import { ParameterScanner } from './services/ParameterScanner';
 
 // Import types and utilities
 import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
@@ -130,10 +131,10 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
   // _params prefixed with underscore to indicate intentionally unused
   // (required by LSP interface but our simple implementation doesn't need it)
 
-  // Debug logging
-  connection.console.log('🚀 NMTRAN Language Server initializing...');
-  connection.console.log('📁 Workspace folder: ' + (_params.workspaceFolders?.[0]?.uri || 'none'));
-  connection.console.log('🔧 Using service-based architecture for better maintainability');
+  if (process.env.NODE_ENV === 'development') {
+    connection.console.log('NMTRAN Language Server initializing...');
+    connection.console.log('Workspace folder: ' + (_params.workspaceFolders?.[0]?.uri || 'none'));
+  }
 
 
   return {
@@ -340,8 +341,6 @@ connection.onDocumentFormatting(async ({ textDocument }, token) => {
       return [];
     }
 
-    // Always get fresh settings for formatting to pick up changes
-    documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
 
     // Check for cancellation after async operation
@@ -350,8 +349,10 @@ connection.onDocumentFormatting(async ({ textDocument }, token) => {
     }
 
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
-    connection.console.log(`🎨 Format document request for: ${textDocument.uri}`);
-    connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
+    if (process.env.NODE_ENV === 'development') {
+      connection.console.log(`Format document request for: ${textDocument.uri}`);
+      connection.console.log(`Using ${indentSize}-space indentation`);
+    }
 
     return services.formatting.formatDocument(doc, indentSize);
   } catch (error) {
@@ -377,8 +378,6 @@ connection.onDocumentRangeFormatting(async ({ textDocument, range }, token) => {
       return [];
     }
 
-    // Always get fresh settings for formatting to pick up changes
-    documentSettings.delete(textDocument.uri);
     const settings = await getDocumentSettings(textDocument.uri);
 
     // Check for cancellation after async operation
@@ -387,8 +386,10 @@ connection.onDocumentRangeFormatting(async ({ textDocument, range }, token) => {
     }
 
     const indentSize = settings.formatting?.indentSize || DEFAULT_SETTINGS.formatting?.indentSize || 2;
-    connection.console.log(`🎨 Format range request for: ${textDocument.uri}`);
-    connection.console.log(`⚙️ Using ${indentSize}-space indentation`);
+    if (process.env.NODE_ENV === 'development') {
+      connection.console.log(`Format range request for: ${textDocument.uri}`);
+      connection.console.log(`Using ${indentSize}-space indentation`);
+    }
 
     return services.formatting.formatRange(doc, range, indentSize);
   } catch (error) {
@@ -404,7 +405,9 @@ connection.onDocumentRangeFormatting(async ({ textDocument, range }, token) => {
 connection.onDidChangeConfiguration((_change) => {
   // Clear document settings cache when configuration changes
   documentSettings.clear();
-  connection.console.log('🔄 Configuration changed, cleared settings cache');
+  if (process.env.NODE_ENV === 'development') {
+    connection.console.log('Configuration changed, cleared settings cache');
+  }
 });
 
 // =================================================================
@@ -467,6 +470,10 @@ connection.onDidCloseTextDocument((params) => {
   try {
     services.document.removeDocument(params.textDocument.uri);
 
+    // Clear parameter scan caches for closed document
+    ParameterScanner.clearCacheForUri(params.textDocument.uri);
+    services.definition.clearCacheForUri(params.textDocument.uri);
+
     // Clear cached settings for closed document
     documentSettings.delete(params.textDocument.uri);
 
@@ -493,9 +500,16 @@ connection.onDidCloseTextDocument((params) => {
 
 // Handle shutdown gracefully
 connection.onShutdown(() => {
-  connection.console.log('🛑 NMTRAN Language Server shutting down...');
-  const stats = services.document.getCacheStats();
-  connection.console.log(`📊 Final stats: ${stats.documentCount} documents, ${stats.totalSize} chars`);
+  // Clear all pending diagnostics timeouts
+  for (const timeout of diagnosticsTimeouts.values()) {
+    clearTimeout(timeout);
+  }
+  diagnosticsTimeouts.clear();
+
+  if (process.env.NODE_ENV === 'development') {
+    const stats = services.document.getCacheStats();
+    connection.console.log(`Shutting down. ${stats.documentCount} documents, ${stats.totalSize} chars`);
+  }
 });
 
 
@@ -503,6 +517,7 @@ connection.onShutdown(() => {
 connection.listen();
 
 // Startup confirmation
-connection.console.log('✅ NMTRAN Language Server is ready and listening for requests!');
-connection.console.log('🏗️  Service-based architecture initialized for better maintainability');
+if (process.env.NODE_ENV === 'development') {
+  connection.console.log('NMTRAN Language Server is ready');
+}
 

@@ -19,6 +19,7 @@ import { Logger } from '../logger';
 
 export class LanguageServerManager {
   private client: LanguageClient | null = null;
+  private autoShowTimeout: NodeJS.Timeout | null = null;
   private readonly config: ConfigurationService;
   private readonly logger: Logger;
 
@@ -42,6 +43,7 @@ export class LanguageServerManager {
       );
 
       await this.client.start();
+      context.subscriptions.push(this.client);
       this.logger.info('Language server started successfully');
       
       this.setupAutoShowLogs();
@@ -53,6 +55,11 @@ export class LanguageServerManager {
   }
 
   public async stop(): Promise<void> {
+    if (this.autoShowTimeout) {
+      clearTimeout(this.autoShowTimeout);
+      this.autoShowTimeout = null;
+    }
+
     if (!this.client) {
       return;
     }
@@ -96,10 +103,7 @@ export class LanguageServerManager {
 
   private createClientOptions(): LanguageClientOptions {
     return {
-      documentSelector: [{ scheme: 'file', language: 'nmtran' }],
-      synchronize: {
-        fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-      }
+      documentSelector: [{ scheme: 'file', language: 'nmtran' }]
     };
   }
 
@@ -113,8 +117,7 @@ export class LanguageServerManager {
       return;
     }
 
-    // Auto-show language server logs when debugging
-    setTimeout(() => {
+    this.autoShowTimeout = setTimeout(() => {
       vscode.commands.executeCommand('workbench.action.output.show.NMTRAN Language Server')
         .then(undefined, (error) => {
           this.logger.debug('Could not show language server output:', error.message);
@@ -123,6 +126,6 @@ export class LanguageServerManager {
   }
 
   public isRunning(): boolean {
-    return this.client !== null;
+    return this.client !== null && this.client.isRunning();
   }
 }

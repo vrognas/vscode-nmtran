@@ -1,6 +1,6 @@
 /**
  * Hover Service
- * 
+ *
  * Handles hover information for NMTRAN control records.
  * Separated from main server for better maintainability.
  */
@@ -13,8 +13,9 @@ import { ParameterScanner, ParameterLocation } from './ParameterScanner';
 
 export class HoverService {
   private connection: Connection;
-  private readonly CONTROL_RECORD_REGEX = /\$[A-Z]+\b/g;
-  private readonly PARAMETER_USAGE_REGEX = /\b(THETA|ETA|EPS|ERR)\((\d+)\)/g;
+
+  private createControlRecordRegex() { return /\$[A-Z]+\b/g; }
+  private createParameterUsageRegex() { return /\b(THETA|ETA|EPS|ERR)\((\d+)\)/g; }
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -27,24 +28,18 @@ export class HoverService {
     try {
       const text = document.getText();
       const offset = document.offsetAt(position);
-      
-      // First check for parameter references (THETA(1), ETA(2), etc.)
-      const parameterHover = this.getParameterReferenceHover(document, position, offset);
-      if (parameterHover) {
-        return parameterHover;
-      }
-      
-      // Check for reserved variables
-      const reservedVariableHover = this.getReservedVariableHover(text, offset);
-      if (reservedVariableHover) {
-        return reservedVariableHover;
-      }
-      
-      // Then check for control records
-      return this.getControlRecordHover(text, offset, document);
+      const lines = text.split('\n');
+      const parameterLocations = ParameterScanner.scanDocument(document);
 
+      const parameterHover = this.getParameterReferenceHover(document, position, offset, parameterLocations, lines);
+      if (parameterHover) return parameterHover;
+
+      const reservedVariableHover = this.getReservedVariableHover(text, offset);
+      if (reservedVariableHover) return reservedVariableHover;
+
+      return this.getControlRecordHover(text, offset, document);
     } catch (error) {
-      this.connection.console.error(`❌ Error providing hover: ${error}`);
+      this.connection.console.error(`Error providing hover: ${error}`);
       return null;
     }
   }
@@ -52,33 +47,36 @@ export class HoverService {
   /**
    * Get hover information for parameter references like THETA(1), ETA(2), etc.
    */
-  private getParameterReferenceHover(document: TextDocument, _position: { line: number; character: number }, offset: number): Hover | null {
+  private getParameterReferenceHover(
+    document: TextDocument,
+    _position: { line: number; character: number },
+    offset: number,
+    parameterLocations: ParameterLocation[],
+    lines: string[]
+  ): Hover | null {
     const text = document.getText();
-    
-    // Reset regex state
-    this.PARAMETER_USAGE_REGEX.lastIndex = 0;
+    const paramRegex = this.createParameterUsageRegex();
     let match: RegExpExecArray | null;
 
-    while ((match = this.PARAMETER_USAGE_REGEX.exec(text)) !== null) {
+    while ((match = paramRegex.exec(text)) !== null) {
       const start = match.index;
       const end = match.index + match[0].length;
-      
+
       if (start <= offset && offset <= end) {
         const paramType = match[1] as 'THETA' | 'ETA' | 'EPS' | 'ERR';
         const paramIndex = parseInt(match[2] || '0', 10);
-        
+
         // Convert ERR to EPS for consistency
         const normalizedType = paramType === 'ERR' ? 'EPS' : paramType;
-        
+
         // Find the parameter definition
-        const parameterLocations = ParameterScanner.scanDocument(document);
-        const definition = parameterLocations.find(loc => 
+        const definition = parameterLocations.find(loc =>
           loc.type === normalizedType && loc.index === paramIndex
         );
-        
+
         if (definition) {
-          const hoverContent = this.buildParameterHoverContent(document, definition, paramType, paramIndex);
-          
+          const hoverContent = this.buildParameterHoverContent(definition, paramType, paramIndex, parameterLocations, lines);
+
           return {
             contents: {
               kind: MarkupKind.Markdown,
@@ -92,7 +90,7 @@ export class HoverService {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -100,18 +98,17 @@ export class HoverService {
    * Get hover information for control records
    */
   private getControlRecordHover(text: string, offset: number, document: TextDocument): Hover | null {
-    // Reset regex state
-    this.CONTROL_RECORD_REGEX.lastIndex = 0;
+    const controlRegex = this.createControlRecordRegex();
     let match: RegExpExecArray | null;
 
-    while ((match = this.CONTROL_RECORD_REGEX.exec(text)) !== null) {
+    while ((match = controlRegex.exec(text)) !== null) {
       const start = match.index;
       const end = match.index + match[0].length;
-      
+
       if (start <= offset && offset <= end) {
         const controlRecord = match[0];
         const fullControlRecord = getFullControlRecordName(controlRecord);
-        
+
         const hoverInfo: MarkupContent = {
           kind: MarkupKind.Markdown,
           value: explainControlRecordHover(controlRecord, fullControlRecord)
@@ -133,28 +130,33 @@ export class HoverService {
   /**
    * Build hover content for parameter references by extracting definition text
    */
-  private buildParameterHoverContent(document: TextDocument, definition: ParameterLocation, paramType: string, paramIndex: number): string {
-    const lines = document.getText().split('\n');
+  private buildParameterHoverContent(
+    definition: ParameterLocation,
+    paramType: string,
+    paramIndex: number,
+    parameterLocations: ParameterLocation[],
+    lines: string[]
+  ): string {
     const definitionLine = lines[definition.line];
-    
+
     if (!definitionLine) {
       return `**${paramType}(${paramIndex})**: Definition not found`;
     }
-    
+
     // Extract the parameter value from the main range
     let parameterValue = '';
     if (definition.startChar !== undefined && definition.endChar !== undefined) {
       parameterValue = definitionLine.substring(definition.startChar, definition.endChar).trim();
     }
-    
+
     // Check if this is a SAME keyword and resolve it
     if (parameterValue === 'SAME') {
-      const resolvedValue = this.resolveSameKeyword(document, definition, paramType, paramIndex);
+      const resolvedValue = this.resolveSameKeyword(definition, paramType, paramIndex, parameterLocations, lines);
       if (resolvedValue) {
         parameterValue = resolvedValue;
       }
     }
-    
+
     // Extract FIXED keywords from additional ranges
     const fixedKeywords: string[] = [];
     if (definition.additionalRanges) {
@@ -173,10 +175,10 @@ export class HoverService {
         }
       }
     }
-    
+
     // Build the hover content
     let content = `**${paramType}(${paramIndex})**`;
-    
+
     if (parameterValue || fixedKeywords.length > 0) {
       const parts = [];
       if (parameterValue) {
@@ -187,41 +189,44 @@ export class HoverService {
       }
       content += `: ${parts.join(' ')}`;
     }
-    
+
     return content;
   }
 
   /**
    * Resolve SAME keyword by finding the previous parameter value
    */
-  private resolveSameKeyword(document: TextDocument, _definition: ParameterLocation, paramType: string, paramIndex: number): string | null {
-    // Get all parameter locations for this type
-    const parameterLocations = ParameterScanner.scanDocument(document);
+  private resolveSameKeyword(
+    _definition: ParameterLocation,
+    paramType: string,
+    paramIndex: number,
+    parameterLocations: ParameterLocation[],
+    lines: string[]
+  ): string | null {
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
-    
+
     if (sameTypeParams.length === 0) {
       return null;
     }
-    
+
     // Find the most recent parameter of the same type
     const previousParam = sameTypeParams[sameTypeParams.length - 1];
     if (!previousParam) {
       return null;
     }
-    
-    const lines = document.getText().split('\n');
+
     const previousLine = lines[previousParam.line];
-    
+
     if (!previousLine || previousParam.startChar === undefined || previousParam.endChar === undefined) {
       return null;
     }
-    
+
     let previousValue = previousLine.substring(previousParam.startChar, previousParam.endChar).trim();
     let originalParamIndex = previousParam.index;
-    
+
     // If the previous value is also SAME, recursively resolve it to find the original value
     if (previousValue === 'SAME') {
-      const resolvedInfo = this.resolveSameKeywordWithReference(document, previousParam, paramType, previousParam.index);
+      const resolvedInfo = this.resolveSameKeywordWithReference(previousParam, paramType, previousParam.index, parameterLocations, lines);
       if (resolvedInfo) {
         previousValue = resolvedInfo.value;
         originalParamIndex = resolvedInfo.originalIndex;
@@ -229,42 +234,45 @@ export class HoverService {
         previousValue = 'SAME';
       }
     }
-    
+
     return `${previousValue} SAME as ${paramType}(${originalParamIndex})`;
   }
 
   /**
    * Helper method to resolve SAME keyword and track the original parameter index
    */
-  private resolveSameKeywordWithReference(document: TextDocument, _definition: ParameterLocation, paramType: string, paramIndex: number): { value: string; originalIndex: number } | null {
-    // Get all parameter locations for this type
-    const parameterLocations = ParameterScanner.scanDocument(document);
+  private resolveSameKeywordWithReference(
+    _definition: ParameterLocation,
+    paramType: string,
+    paramIndex: number,
+    parameterLocations: ParameterLocation[],
+    lines: string[]
+  ): { value: string; originalIndex: number } | null {
     const sameTypeParams = parameterLocations.filter(loc => loc.type === paramType && loc.index < paramIndex);
-    
+
     if (sameTypeParams.length === 0) {
       return null;
     }
-    
+
     // Find the most recent parameter of the same type
     const previousParam = sameTypeParams[sameTypeParams.length - 1];
     if (!previousParam) {
       return null;
     }
-    
-    const lines = document.getText().split('\n');
+
     const previousLine = lines[previousParam.line];
-    
+
     if (!previousLine || previousParam.startChar === undefined || previousParam.endChar === undefined) {
       return null;
     }
-    
+
     const previousValue = previousLine.substring(previousParam.startChar, previousParam.endChar).trim();
-    
+
     // If the previous value is also SAME, recursively resolve it
     if (previousValue === 'SAME') {
-      return this.resolveSameKeywordWithReference(document, previousParam, paramType, previousParam.index);
+      return this.resolveSameKeywordWithReference(previousParam, paramType, previousParam.index, parameterLocations, lines);
     }
-    
+
     return { value: previousValue, originalIndex: previousParam.index };
   }
 
@@ -284,15 +292,15 @@ export class HoverService {
     const beforeOffset = Math.max(0, offset - 10);
     const afterOffset = Math.min(text.length, offset + 10);
     const searchText = text.substring(beforeOffset, afterOffset);
-    
+
     for (const [variable, description] of Object.entries(reservedVariables)) {
       const regex = new RegExp(`\\b${variable}\\b`, 'i');
       const match = regex.exec(searchText);
-      
+
       if (match) {
         const matchStart = beforeOffset + match.index;
         const matchEnd = matchStart + match[0].length;
-        
+
         // Check if the cursor is within the match
         if (offset >= matchStart && offset <= matchEnd) {
           return {

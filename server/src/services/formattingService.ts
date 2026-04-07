@@ -97,15 +97,18 @@ export class FormattingService {
   /**
    * Formats a specific range in the document
    * @param document The text document to format
-   * @param _range The range to format (currently formats entire document)
+   * @param range The range to format
    * @param indentSize Number of spaces for indentation (2 or 4)
    */
-  formatRange(document: TextDocument, _range: Range, indentSize: number = FormattingService.DEFAULT_INDENT_SIZE): TextEdit[] {
+  formatRange(document: TextDocument, range: Range, indentSize: number = FormattingService.DEFAULT_INDENT_SIZE): TextEdit[] {
     try {
-      // For simplicity, format the entire document
-      return this.formatDocument(document, indentSize);
+      const allEdits = this.formatDocument(document, indentSize);
+      return allEdits.filter(edit =>
+        edit.range.start.line >= range.start.line &&
+        edit.range.end.line <= range.end.line
+      );
     } catch (error) {
-      this.connection.console.error(`❌ Error formatting range: ${error}`);
+      this.connection.console.error(`Error formatting range: ${error}`);
       return [];
     }
   }

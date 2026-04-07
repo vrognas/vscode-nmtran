@@ -128,6 +128,36 @@ describe('DocumentService', () => {
     });
   });
 
+  describe('getLines', () => {
+    it('should return lines array for cached document', () => {
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, '$THETA 1.0\n$OMEGA 0.1');
+      documentService.setDocument(doc);
+      const lines = documentService.getLines('test://test.mod');
+      expect(lines).toEqual(['$THETA 1.0', '$OMEGA 0.1']);
+    });
+
+    it('should return same array reference on repeated calls (caching)', () => {
+      const doc = TextDocument.create('test://test.mod', 'nmtran', 1, '$THETA 1.0');
+      documentService.setDocument(doc);
+      const lines1 = documentService.getLines('test://test.mod');
+      const lines2 = documentService.getLines('test://test.mod');
+      expect(lines1).toBe(lines2);
+    });
+
+    it('should invalidate cache when document version changes', () => {
+      const doc1 = TextDocument.create('test://test.mod', 'nmtran', 1, '$THETA 1.0');
+      documentService.setDocument(doc1);
+      const lines1 = documentService.getLines('test://test.mod');
+
+      const doc2 = TextDocument.create('test://test.mod', 'nmtran', 2, '$THETA 2.0');
+      documentService.setDocument(doc2);
+      const lines2 = documentService.getLines('test://test.mod');
+
+      expect(lines1).not.toBe(lines2);
+      expect(lines2).toEqual(['$THETA 2.0']);
+    });
+  });
+
   describe('getCacheStats', () => {
     it('should return correct cache statistics', () => {
       const doc1 = TextDocument.create('test://doc1.mod', 'nmtran', 1, '$THETA 1');

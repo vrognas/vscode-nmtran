@@ -64,10 +64,37 @@ const PARAMETER_PATTERNS = {
 } as const;
 
 export class ParameterScanner {
+  private static scanCacheMap = new Map<string, ParameterLocation[]>();
+  private static readonly MAX_SCAN_CACHE = 20;
+
+  static clearCache(): void {
+    this.scanCacheMap.clear();
+  }
+
+  static clearCacheForUri(uri: string): void {
+    const prefix = uri + ':';
+    for (const key of this.scanCacheMap.keys()) {
+      if (key.startsWith(prefix)) {
+        this.scanCacheMap.delete(key);
+      }
+    }
+  }
+
+  private static deepCopyLocations(locations: ParameterLocation[]): ParameterLocation[] {
+    return locations.map(loc => ({
+      ...loc,
+      additionalRanges: loc.additionalRanges?.map(r => ({ ...r }))
+    }));
+  }
+
   /**
    * Scan document for all parameter definitions
    */
   static scanDocument(document: TextDocument): ParameterLocation[] {
+    const cacheKey = `${document.uri}:${document.version}`;
+    const cached = this.scanCacheMap.get(cacheKey);
+    if (cached) return this.deepCopyLocations(cached);
+
     const locations: ParameterLocation[] = [];
     const lines = document.getText().split('\n');
     const state = ParameterFactory.createScannerState();
@@ -112,8 +139,15 @@ export class ParameterScanner {
         locations.push(...lineLocations);
       }
     }
-    
-    return locations;
+
+    // Cache the scan result
+    this.scanCacheMap.set(cacheKey, locations);
+    if (this.scanCacheMap.size > this.MAX_SCAN_CACHE) {
+      const firstKey = this.scanCacheMap.keys().next().value;
+      if (firstKey) this.scanCacheMap.delete(firstKey);
+    }
+
+    return this.deepCopyLocations(locations);
   }
 
   /**
@@ -179,6 +213,7 @@ export class ParameterScanner {
    * Detect and store FIXED keywords from BLOCK declaration line
    */
   private static detectBlockFixedKeywords(line: string, lineNum: number, state: ScannerState): void {
+    PARAMETER_PATTERNS.FIXED.lastIndex = 0;
     let match;
     while ((match = PARAMETER_PATTERNS.FIXED.exec(line)) !== null) {
       state.blockFixedKeywords.push({

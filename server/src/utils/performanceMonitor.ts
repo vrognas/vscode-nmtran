@@ -14,6 +14,8 @@ export interface PerformanceMetric {
 
 export class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
+  private writeIndex = 0;
+  private count = 0;
   private readonly maxMetrics = 1000;
   private enabled = process.env.NODE_ENV === 'development';
   
@@ -68,17 +70,17 @@ export class PerformanceMonitor {
    * Record a performance metric locally
    */
   private recordMetric(metric: PerformanceMetric): void {
-    this.metrics.push(metric);
-    
-    // Keep only recent metrics
-    if (this.metrics.length > this.maxMetrics) {
-      this.metrics.shift();
+    if (this.metrics.length < this.maxMetrics) {
+      this.metrics.push(metric);
+    } else {
+      this.metrics[this.writeIndex] = metric;
     }
-    
-    // Log slow operations in development
+    this.writeIndex = (this.writeIndex + 1) % this.maxMetrics;
+    this.count = Math.min(this.count + 1, this.maxMetrics);
+
     if (metric.duration > 100) {
       this.connection.console.warn(
-        `⚠️ Slow operation: ${metric.operation} took ${metric.duration.toFixed(2)}ms`
+        `Slow operation: ${metric.operation} took ${metric.duration.toFixed(2)}ms`
       );
     }
   }
@@ -143,6 +145,8 @@ export class PerformanceMonitor {
    */
   clear(): void {
     this.metrics = [];
+    this.writeIndex = 0;
+    this.count = 0;
   }
 
   /**
