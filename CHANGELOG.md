@@ -7,6 +7,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-15
+
+### Fixed
+
+* **Minimap section headers**: control records no longer render as section headers in the minimap; removed redundant `$KEYWORD` folding markers since `FoldingRangeProvider` already handles folding
+
 ## [0.3.0] - 2026-04-09
 
 ### Added
