@@ -1,6 +1,6 @@
 {
   "name": "nmtran",
-  "version": "0.2.19",
+  "version": "0.3.0",
   "license": "MIT",
   "displayName": "NMTRAN",
   "publisher": "vrognas",
@@ -142,7 +142,85 @@
           "description": "Number of spaces to use for NMTRAN indentation (2 or 4 spaces)."
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "nmtran-getting-started",
+        "title": "Get Started with NMTRAN",
+        "description": "Intelligent language support for NONMEM control streams — learn the key features in 5 minutes.",
+        "steps": [
+          {
+            "id": "open-nmtran-file",
+            "title": "Open a NMTRAN file",
+            "description": "The extension activates automatically for `.mod`, `.ctl`, `.lst`, and 14 other extensions.\n\nOpen an existing control stream or create a new `.mod` file to see syntax highlighting immediately.\n\n[Open a file](command:workbench.action.files.openFile)",
+            "media": {
+              "image": "images/demo_syntax-highlight.png",
+              "altText": "Syntax highlighting for an NMTRAN control stream showing control records in distinct colors"
+            },
+            "completionEvents": [
+              "onCommand:workbench.action.files.openFile"
+            ]
+          },
+          {
+            "id": "hover-documentation",
+            "title": "Hover for inline documentation",
+            "description": "Hover over any control record (`$THETA`, `$ESTIMATION`) or parameter reference (`THETA(1)`, `ETA(2)`) to see an explanation inline.\n\nParameter hovers surface the comment from the matching `$THETA` declaration line.\n\n[Browse NMTRAN reference](https://nmhelp.tingjieguo.com)",
+            "media": {
+              "image": "images/demo_hover-peek.gif",
+              "altText": "Hovering over THETA(1) shows its declaration and comment; hovering over $ESTIMATION shows a description"
+            },
+            "completionEvents": [
+              "onLink:https://nmhelp.tingjieguo.com"
+            ]
+          },
+          {
+            "id": "navigate-model",
+            "title": "Navigate with Go to Definition and Find References",
+            "description": "Press `F12` on any `THETA(n)`, `ETA(n)`, or `EPS(n)` to jump to its declaration in `$THETA`, `$OMEGA`, or `$SIGMA`.\n\nRight-click a parameter → **Find All References** to see every usage — useful when auditing or renumbering.\n\n[Trigger Find All References](command:editor.action.referenceSearch.trigger)",
+            "media": {
+              "image": "images/demo_hover-peek.gif",
+              "altText": "Peek References panel showing all usages of THETA(1) across the model"
+            },
+            "completionEvents": [
+              "onCommand:editor.action.referenceSearch.trigger"
+            ]
+          },
+          {
+            "id": "real-time-diagnostics",
+            "title": "Catch errors as you type",
+            "description": "The extension validates control records and parameter sequences in real time.\n\n- Misspelled records are flagged with a suggested correction (e.g. `$EST` → `$ESTIMATION`).\n- Non-sequential parameter indices are reported immediately.\n- Press `Ctrl+.` on a flagged record to apply a **Quick Fix** automatically.\n\n> **Tip**: Install [ErrorLens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) to see diagnostics inline on every affected line.",
+            "media": {
+              "image": "images/demo_syntax-highlight.png",
+              "altText": "An NMTRAN model with real-time diagnostics highlighting errors"
+            }
+          },
+          {
+            "id": "model-snippets",
+            "title": "Insert models with snippets",
+            "description": "Type `ADVAN` inside `$SUBROUTINES` and press `Tab` to browse all ADVAN/TRANS subroutine combinations.\n\nMore snippets are available for residual error models, baseline models (B1–B4), BQL handling (M3), and mixture models.\n\nPress `Ctrl+Space` anywhere in an NMTRAN file to open the full completion list.\n\n[Trigger suggestions](command:editor.action.triggerSuggest)",
+            "media": {
+              "image": "images/demo_advan-snippets.gif",
+              "altText": "Typing ADVAN in $SUBROUTINES triggers a list of ADVAN/TRANS combinations; selecting one inserts the snippet"
+            },
+            "completionEvents": [
+              "onCommand:editor.action.triggerSuggest"
+            ]
+          },
+          {
+            "id": "configure-formatting",
+            "title": "Format and configure",
+            "description": "Press `Shift+Alt+F` to format the current file. The formatter standardizes indentation inside `$PK`, `$DES`, `$ERROR`, and other code blocks.\n\nSearch for `nmtran.formatting.indentSize` in Settings to switch between 2-space and 4-space indentation.\n\n[Open NMTRAN settings](command:workbench.action.openSettings?%5B%22nmtran%22%5D)",
+            "media": {
+              "image": "images/nmtran.png",
+              "altText": "NMTRAN extension logo"
+            },
+            "completionEvents": [
+              "onSettingChanged:nmtran.formatting.indentSize"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "capabilities": {
     "virtualWorkspaces": {
