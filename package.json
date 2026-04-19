@@ -1,6 +1,6 @@
 {
   "name": "nmtran",
-  "version": "0.3.1",
+  "version": "0.4.4",
   "license": "MIT",
   "displayName": "NMTRAN",
   "publisher": "vrognas",
@@ -73,7 +73,10 @@
           ".shm",
           ".smt",
           ".rmt",
-          ".phm"
+          ".phm",
+          ".ctl_dde",
+          ".dde",
+          ".res"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -152,7 +155,7 @@
           {
             "id": "open-nmtran-file",
             "title": "Open a NMTRAN file",
-            "description": "The extension activates automatically for `.mod`, `.ctl`, `.lst`, and 14 other extensions.\n\nOpen an existing control stream or create a new `.mod` file to see syntax highlighting immediately.\n\n[Open a file](command:workbench.action.files.openFile)",
+            "description": "The extension activates automatically for `.mod`, `.ctl`, `.lst`, and 17 other extensions.\n\nOpen an existing control stream or create a new `.mod` file to see syntax highlighting immediately.\n\n[Open a file](command:workbench.action.files.openFile)",
             "media": {
               "image": "images/demo_syntax-highlight.png",
               "altText": "Syntax highlighting for an NMTRAN control stream showing control records in distinct colors"

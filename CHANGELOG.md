@@ -7,6 +7,41 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-04-19
+
+### Fixed
+
+* **Case-insensitive parameter references**: lowercase `theta(n)`, `eta(n)`, `eps(n)`, `err(n)` are now detected as uses, matching NONMEM's case-insensitivity. Previously only uppercase matched, causing spurious "defined but never referenced" warnings on models using lowercase style.
+
+## [0.4.3] - 2026-04-19
+
+### Added
+
+* **File extensions**: `.ctl_dde`, `.dde`, and `.res` are now recognized as NMTRAN files.
+
+## [0.4.2] - 2026-04-19
+
+### Fixed
+
+* **BLOCK matrix off-diagonals**: negative covariance elements in `$OMEGA BLOCK(n)` / `$SIGMA BLOCK(n)` matrices are no longer flagged as "should generally be positive". Only diagonal elements (variances) require positive values; off-diagonals (covariances) are permitted to be negative. Fix also validates compact-form BLOCK values (e.g. `$OMEGA BLOCK(2) 0.1 0.05 0.2`), which were previously not validated at all.
+
+## [0.4.1] - 2026-04-19
+
+### Fixed
+
+* **ERR(n) semantics**: `ERR(n)` now correctly resolves to `ETA(n)` in individual-data models (no `$SIGMA`) and `EPS(n)` in population models (`$SIGMA` present), per NONMEM Help Ch.8 ($ERROR). Previously always treated as `EPS(n)`, producing spurious "ERR(n) referenced but only 0 EPS parameters defined" on valid individual-data models. Applies to diagnostics, go-to-definition, and hover.
+* **Grammar**: zero-count diagnostic now reads `"referenced but no X parameters defined"` instead of `"only 0 X parameters defined"`.
+
+## [0.4.0] - 2026-04-15
+
+### Added
+
+* **Parameter children in outline**: `$THETA`, `$OMEGA`, `$SIGMA` symbols now show nested parameter children (THETA(1), ETA(1), EPS(1)) with inline comment labels as detail text
+
+### Changed
+
+* **Enhanced outline view**: migrated from `SymbolInformation` to `DocumentSymbol` API; outline now shows detail text (e.g. problem title, data file, estimation method), full-block ranges enable follow-cursor highlighting, sticky scroll, and breadcrumbs
+
 ## [0.3.1] - 2026-04-15
 
 ### Fixed

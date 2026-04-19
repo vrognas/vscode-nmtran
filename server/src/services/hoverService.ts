@@ -15,7 +15,7 @@ export class HoverService {
   private connection: Connection;
 
   private createControlRecordRegex() { return /\$[A-Z]+\b/g; }
-  private createParameterUsageRegex() { return /\b(THETA|ETA|EPS|ERR)\((\d+)\)/g; }
+  private createParameterUsageRegex() { return /\b(THETA|ETA|EPS|ERR)\((\d+)\)/gi; }
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -63,11 +63,13 @@ export class HoverService {
       const end = match.index + match[0].length;
 
       if (start <= offset && offset <= end) {
-        const paramType = match[1] as 'THETA' | 'ETA' | 'EPS' | 'ERR';
+        const paramType = match[1]!.toUpperCase() as 'THETA' | 'ETA' | 'EPS' | 'ERR';
         const paramIndex = parseInt(match[2] || '0', 10);
 
-        // Convert ERR to EPS for consistency
-        const normalizedType = paramType === 'ERR' ? 'EPS' : paramType;
+        // Resolve ERR -> ETA (individual) or EPS (population) per NONMEM Help Ch.8.
+        const normalizedType = paramType === 'ERR'
+          ? ParameterScanner.resolveErrBinding(document).binding
+          : paramType;
 
         // Find the parameter definition
         const definition = parameterLocations.find(loc =>

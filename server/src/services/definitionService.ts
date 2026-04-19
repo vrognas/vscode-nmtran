@@ -138,8 +138,10 @@ export class DefinitionService {
       
       if (position.character >= start && position.character <= end) {
         const rawType = match[1]!.toUpperCase();
-        // Map ERR to EPS for consistency
-        const mappedType = rawType === 'ERR' ? 'EPS' : rawType;
+        // Resolve ERR -> ETA (individual) or EPS (population) per NONMEM Help Ch.8.
+        const mappedType = rawType === 'ERR'
+          ? ParameterScanner.resolveErrBinding(document).binding
+          : rawType;
         return {
           type: mappedType,
           index: parseInt(match[2]!, 10)

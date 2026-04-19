@@ -82,8 +82,8 @@ Comprehensive snippet library for rapid model development:
 
 The extension activates for these NONMEM-related file extensions:
 
-- **Control streams**: `.mod`, `.ctl`, `.modt`
-- **Output files**: `.lst`, `.ext`, `.cov`, `.cor`, `.coi`, `.cnv`
+- **Control streams**: `.mod`, `.ctl`, `.modt`, `.ctl_dde`, `.dde`
+- **Output files**: `.lst`, `.ext`, `.cov`, `.cor`, `.coi`, `.cnv`, `.res`
 - **Special files**: `.phi`, `.scm`, `.grd`, `.shk`, `.shm`, `.smt`, `.rmt`, `.phm`
 
 ## Community & support

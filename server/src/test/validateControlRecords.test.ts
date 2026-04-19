@@ -59,6 +59,21 @@ $ESTIMATION`;
     expect(getFullControlRecordName('$INVALID')).toBe('$INVALID'); // Should return as-is if no match
   });
 
+  test('Should prefer exact match over alphabetically-earlier prefix match', () => {
+    // $ESTIMATE and $SIMULATE are fully-typed valid records; should NOT be rewritten
+    expect(getFullControlRecordName('$ESTIMATE')).toBe('$ESTIMATE');
+    expect(getFullControlRecordName('$SIMULATE')).toBe('$SIMULATE');
+  });
+
+  test('Should ignore control records after inline semicolon comments', () => {
+    // $PK in an inline comment must NOT be picked up as a control record
+    const text = '$THETA 1 ; see $PK block\n$OMEGA 0.1';
+    const matches = locateControlRecordsInText(text);
+    expect(matches).toHaveLength(2);
+    expect(matches[0]?.[0]).toBe('$THETA');
+    expect(matches[1]?.[0]).toBe('$OMEGA');
+  });
+
   test('Should not flag valid control records', () => {
   const document = createTestDocument('$THETA 1');
   const matches = locateControlRecordsInText(document.getText());

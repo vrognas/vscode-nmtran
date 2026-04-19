@@ -52,7 +52,7 @@ const PARAMETER_PATTERNS = {
   CONTROL_RECORD: /^\s*\$\w+\s*/i,
   COMMENT: /;.*$/,
   COMMENT_END: /;.*$/,
-  PARAMETER_REFERENCE: /\b(THETA|ETA|EPS|ERR)\((\d+)\)/g,
+  PARAMETER_REFERENCE: /\b(THETA|ETA|EPS|ERR)\((\d+)\)/gi,
   WHITESPACE: /\s/,
   WHITESPACE_OR_PAREN: /[\s(]/,
   BLOCK_INLINE: /^\s*\$\w+\s+BLOCK\(\d+\)\s*/i,
@@ -700,54 +700,56 @@ export class ParameterScanner {
    * Validate parameter references against definitions (optimized version with pre-scanned parameters)
    */
   static validateParameterReferencesWithParameters(
-    document: TextDocument, 
+    document: TextDocument,
     parameters: ParameterLocation[]
-  ): { 
-    isValid: boolean; 
-    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  ): {
+    isValid: boolean;
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
   } {
     const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
     const text = document.getText();
     const lines = text.split('\n');
-    
-    // Use pre-scanned parameters to get counts (no document re-scanning)
+
     const maxCounts = { THETA: 0, ETA: 0, EPS: 0 };
-    
     for (const param of parameters) {
       maxCounts[param.type] = Math.max(maxCounts[param.type], param.index);
     }
-    
-    // Track which parameters are actually referenced
+
+    const { binding: errBinding, hasOmega, hasSigma } = ParameterScanner.resolveErrBinding(document);
+
     const referencedParams = new Set<string>();
-    
-    // Then scan document for parameter references
-    // Reset global regex for reuse
     PARAMETER_PATTERNS.PARAMETER_REFERENCE.lastIndex = 0;
-    
+
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
       const line = lines[lineNum];
       if (!line) continue;
-      
-      // Remove comments before scanning for references
+
       const commentIndex = line.indexOf(';');
       const lineWithoutComment = commentIndex !== -1 ? line.substring(0, commentIndex) : line;
-      
+
       let match;
       while ((match = PARAMETER_PATTERNS.PARAMETER_REFERENCE.exec(lineWithoutComment)) !== null) {
-        const rawParamType = match[1] as 'THETA' | 'ETA' | 'EPS' | 'ERR';
+        const rawParamType = match[1]!.toUpperCase() as 'THETA' | 'ETA' | 'EPS' | 'ERR';
         const paramIndex = parseInt(match[2]!, 10);
-        
-        // Normalize ERR to EPS since they are synonymous in NMTRAN
-        const paramType = rawParamType === 'ERR' ? 'EPS' : rawParamType;
-        
-        // Track this parameter as referenced (use normalized type)
-        referencedParams.add(`${paramType}:${paramIndex}`);
-        
-        if (paramIndex > maxCounts[paramType]) {
-          // Use appropriate type name in error message
-          const definitionType = paramType === 'EPS' ? 'EPS' : paramType;
+
+        if (rawParamType === 'ERR' && !hasSigma && !hasOmega) {
           errors.push({
-            message: `${rawParamType}(${paramIndex}) referenced but only ${maxCounts[paramType]} ${definitionType} parameters defined`,
+            message: `ERR(${paramIndex}) cannot resolve - no $OMEGA or $SIGMA defined`,
+            line: lineNum,
+            startChar: match.index!,
+            endChar: match.index! + match[0].length
+          });
+          continue;
+        }
+
+        const paramType = rawParamType === 'ERR' ? errBinding : rawParamType;
+        referencedParams.add(`${paramType}:${paramIndex}`);
+
+        if (paramIndex > maxCounts[paramType]) {
+          const count = maxCounts[paramType];
+          const countPhrase = count === 0 ? 'no' : `only ${count}`;
+          errors.push({
+            message: `${rawParamType}(${paramIndex}) referenced but ${countPhrase} ${paramType} parameters defined`,
             line: lineNum,
             startChar: match.index!,
             endChar: match.index! + match[0].length
@@ -775,13 +777,37 @@ export class ParameterScanner {
   /**
    * Validate parameter references against definitions (backward compatibility wrapper)
    */
-  static validateParameterReferences(document: TextDocument): { 
-    isValid: boolean; 
-    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  static validateParameterReferences(document: TextDocument): {
+    isValid: boolean;
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
   } {
     // Use optimized version with fresh parameter scan
     const parameters = this.scanDocument(document);
     return this.validateParameterReferencesWithParameters(document, parameters);
+  }
+
+  private static hasControlRecord(lines: string[], pattern: RegExp): boolean {
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(';')) continue;
+      if (pattern.test(trimmed)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Resolve ERR(n) binding target per NONMEM Help Ch.8 ($ERROR).
+   * Static heuristic: $SIGMA present -> population (ERR=EPS); absent -> individual (ERR=ETA).
+   */
+  static resolveErrBinding(document: TextDocument): {
+    binding: 'ETA' | 'EPS';
+    hasOmega: boolean;
+    hasSigma: boolean;
+  } {
+    const lines = document.getText().split('\n');
+    const hasSigma = ParameterScanner.hasControlRecord(lines, PARAMETER_PATTERNS.SIGMA);
+    const hasOmega = ParameterScanner.hasControlRecord(lines, PARAMETER_PATTERNS.OMEGA);
+    return { binding: hasSigma ? 'EPS' : 'ETA', hasOmega, hasSigma };
   }
 
   /**
@@ -1081,81 +1107,104 @@ export class ParameterScanner {
   /**
    * Validate parameter bounds for THETA, OMEGA, and SIGMA parameters
    */
-  static validateParameterBounds(document: TextDocument): { 
-    isValid: boolean; 
-    errors: Array<{ message: string; line: number; startChar: number; endChar: number }> 
+  static validateParameterBounds(document: TextDocument): {
+    isValid: boolean;
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
   } {
     const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
     const lines = document.getText().split('\n');
     let currentBlockType: 'THETA' | 'OMEGA' | 'SIGMA' | null = null;
+    // BLOCK matrix state: tracks cumulative value count for diagonal/off-diagonal detection
+    let blockState: { size: number; count: number } | null = null;
 
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
       const line = lines[lineNum];
       if (!line) continue;
-      
+
       const trimmed = line.trim();
-      if (trimmed.startsWith(';')) continue; // Skip comments
-      
-      // Remove inline comments
+      if (trimmed.startsWith(';')) continue;
+
       const commentIndex = trimmed.indexOf(';');
       const lineWithoutComment = commentIndex !== -1 ? trimmed.substring(0, commentIndex).trim() : trimmed;
-      
-      // Detect parameter block type
+
+      // Detect parameter block type and BLOCK(n) declarations
+      let startedBlockLine = false;
       if (PARAMETER_PATTERNS.THETA.test(lineWithoutComment)) {
         currentBlockType = 'THETA';
-      } else if (PARAMETER_PATTERNS.OMEGA.test(lineWithoutComment)) {
-        currentBlockType = 'OMEGA';
-      } else if (PARAMETER_PATTERNS.SIGMA.test(lineWithoutComment)) {
-        currentBlockType = 'SIGMA';
+        blockState = null;
+      } else if (PARAMETER_PATTERNS.OMEGA.test(lineWithoutComment) || PARAMETER_PATTERNS.SIGMA.test(lineWithoutComment)) {
+        currentBlockType = PARAMETER_PATTERNS.OMEGA.test(lineWithoutComment) ? 'OMEGA' : 'SIGMA';
+        const bm = lineWithoutComment.match(/BLOCK\((\d+)\)/i);
+        if (bm) {
+          blockState = { size: parseInt(bm[1]!, 10), count: 0 };
+          startedBlockLine = true;
+        } else {
+          blockState = null;
+        }
       } else if (lineWithoutComment.startsWith('$')) {
-        currentBlockType = null; // Different control record
+        currentBlockType = null;
+        blockState = null;
       }
-      
-      // Validate bounds if in a parameter block
-      if (currentBlockType) {
-        if (lineWithoutComment.includes('(')) {
-          // Handle parenthesized expressions (bounds for THETA, invalid for OMEGA/SIGMA)
-          const boundExpressions = this.extractBoundExpressions(lineWithoutComment);
-          
-          for (const expr of boundExpressions) {
-            const validation = this.validateSingleParameterBound(expr.text, currentBlockType);
-            if (!validation.isValid) {
-              for (const error of validation.errors) {
-                const absoluteStart = line.indexOf(expr.text, expr.startPos);
-                if (absoluteStart !== -1) {
-                  errors.push({
-                    message: error,
-                    line: lineNum,
-                    startChar: absoluteStart,
-                    endChar: absoluteStart + expr.text.length
-                  });
-                }
-              }
-            }
-          }
-        } else if (currentBlockType === 'OMEGA' || currentBlockType === 'SIGMA') {
-          // Handle simple values for OMEGA/SIGMA (no parentheses)
-          // Extract numeric values from the line (excluding BLOCK syntax and SAME keywords)
-          const simpleValues = this.extractSimpleParameterValues(lineWithoutComment, currentBlockType);
-          
-          for (const value of simpleValues) {
-            const validation = this.validateSimpleParameterValue(value.text, currentBlockType);
-            if (!validation.isValid) {
-              for (const error of validation.errors) {
+
+      if (!currentBlockType) continue;
+
+      const isOmegaOrSigma = currentBlockType === 'OMEGA' || currentBlockType === 'SIGMA';
+
+      if (!startedBlockLine && lineWithoutComment.includes('(')) {
+        // Parenthesized bound expressions (THETA bounds; invalid for OMEGA/SIGMA non-BLOCK).
+        const boundExpressions = this.extractBoundExpressions(lineWithoutComment);
+        for (const expr of boundExpressions) {
+          const validation = this.validateSingleParameterBound(expr.text, currentBlockType);
+          if (!validation.isValid) {
+            for (const error of validation.errors) {
+              const absoluteStart = line.indexOf(expr.text, expr.startPos);
+              if (absoluteStart !== -1) {
                 errors.push({
                   message: error,
                   line: lineNum,
-                  startChar: value.startPos,
-                  endChar: value.endPos
+                  startChar: absoluteStart,
+                  endChar: absoluteStart + expr.text.length
                 });
               }
             }
           }
         }
+      } else if (isOmegaOrSigma) {
+        const osType = currentBlockType as 'OMEGA' | 'SIGMA';
+        // Simple values (BLOCK line after stripping BLOCK(n) prefix, or plain continuation line).
+        const simpleValues = this.extractSimpleParameterValues(lineWithoutComment, osType);
+        for (const value of simpleValues) {
+          let isOffDiagonal = false;
+          if (blockState) {
+            blockState.count++;
+            isOffDiagonal = !this.isBlockDiagonalPosition(blockState.count);
+          }
+          const validation = this.validateSimpleParameterValue(value.text, osType, isOffDiagonal);
+          if (!validation.isValid) {
+            for (const error of validation.errors) {
+              errors.push({
+                message: error,
+                line: lineNum,
+                startChar: value.startPos,
+                endChar: value.endPos
+              });
+            }
+          }
+        }
       }
     }
-    
+
     return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Given a 1-indexed flat position in a lower-triangular BLOCK matrix, is it a diagonal?
+   * Positions 1,3,6,10,... (triangular numbers) are diagonals.
+   */
+  private static isBlockDiagonalPosition(oneIndexedCount: number): boolean {
+    const r = Math.ceil((-1 + Math.sqrt(1 + 8 * oneIndexedCount)) / 2);
+    const posInRow = oneIndexedCount - (r * (r - 1)) / 2;
+    return posInRow === r;
   }
 
   /**
@@ -1415,18 +1464,23 @@ export class ParameterScanner {
   }
 
   /**
-   * Validate a simple parameter value for OMEGA/SIGMA
+   * Validate a simple parameter value for OMEGA/SIGMA.
+   * When isOffDiagonal=true (BLOCK covariance element), negative values are allowed.
    */
-  private static validateSimpleParameterValue(valueStr: string, paramType: 'OMEGA' | 'SIGMA'): { isValid: boolean; errors: string[] } {
+  private static validateSimpleParameterValue(
+    valueStr: string,
+    paramType: 'OMEGA' | 'SIGMA',
+    isOffDiagonal: boolean = false
+  ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     const value = this.parseNumericValue(valueStr);
     if (value === null) {
       errors.push(`Invalid ${paramType} value: ${valueStr}`);
-    } else if (value < 0) {
+    } else if (value < 0 && !isOffDiagonal) {
       errors.push(`${paramType} initial value (${value}) should generally be positive (variance parameter)`);
     }
-    
+
     return { isValid: errors.length === 0, errors };
   }
 }

@@ -1,5 +1,6 @@
-import { Diagnostic, DiagnosticSeverity, TextDocument } from 'vscode-languageserver/node';
+import { Diagnostic, DiagnosticSeverity, DocumentSymbol, SymbolKind, TextDocument } from 'vscode-languageserver/node';
 import { allowedControlRecords } from '../constants';
+import type { ParameterLocation } from '../services/ParameterScanner';
 
 /**
  * Finds the full allowed control record name if the given record is a recognized abbreviation.
@@ -64,10 +65,15 @@ function locateControlRecordsInText(text: string): RegExpExecArray[] {
   const findings: RegExpExecArray[] = [];
   let match: RegExpExecArray | null;
 
-  // Replace commented lines with whitespace so indexes remain correct
+  // Replace comments with whitespace so indexes remain correct.
+  // Strips both full comment lines AND inline `; ...` tails.
   const sanitizedText = text
     .split('\n')
-    .map(line => (line.trim().startsWith(';') ? ' '.repeat(line.length) : line))
+    .map(line => {
+      if (line.trim().startsWith(';')) return ' '.repeat(line.length);
+      const ci = line.indexOf(';');
+      return ci === -1 ? line : line.substring(0, ci) + ' '.repeat(line.length - ci);
+    })
     .join('\n');
 
   while ((match = controlRecordRegex.exec(sanitizedText)) !== null) {
@@ -193,9 +199,133 @@ function validateContinuationMarkers(document: TextDocument): {
   return { isValid: errors.length === 0, errors };
 }
 
+/**
+ * Extracts a detail snippet from content after a control record keyword.
+ * Strips trailing comments and truncates long content.
+ */
+function extractControlRecordDetail(restOfLine: string): string {
+  let detail = restOfLine.trim();
+  // Strip trailing comment
+  const commentIdx = detail.indexOf(';');
+  if (commentIdx >= 0) {
+    detail = detail.substring(0, commentIdx).trim();
+  }
+  // Truncate
+  if (detail.length > 60) {
+    detail = detail.substring(0, 57) + '...';
+  }
+  return detail;
+}
+
+const PARAM_TYPE_MAP: Record<string, ParameterLocation['type']> = {
+  '$THETA': 'THETA',
+  '$OMEGA': 'ETA',
+  '$SIGMA': 'EPS',
+};
+
+/**
+ * Builds DocumentSymbol array for the outline view.
+ * Each control record becomes a symbol with full-block range and detail text.
+ * When parameterLocations provided, nests parameter children under $THETA/$OMEGA/$SIGMA.
+ */
+function buildDocumentSymbols(doc: TextDocument, parameterLocations?: ParameterLocation[]): DocumentSymbol[] {
+  const text = doc.getText();
+  const matches = locateControlRecordsInText(text);
+  const symbols: DocumentSymbol[] = [];
+
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i]!;
+    const fullName = getFullControlRecordName(match[0]);
+
+    // selectionRange: just the $KEYWORD
+    const selectionStart = doc.positionAt(match.index);
+    const selectionEnd = doc.positionAt(match.index + match[0].length);
+
+    // range: from $KEYWORD line to line before next $KEYWORD (or EOF)
+    const rangeStart = { line: selectionStart.line, character: 0 };
+    let rangeEnd;
+    const nextMatch = matches[i + 1];
+    if (nextMatch) {
+      const nextLine = doc.positionAt(nextMatch.index).line;
+      const endLine = Math.max(nextLine - 1, rangeStart.line);
+      const endLineStart = doc.offsetAt({ line: endLine, character: 0 });
+      const nextNewline = text.indexOf('\n', endLineStart);
+      let endLineLength = nextNewline === -1
+        ? text.length - endLineStart
+        : nextNewline - endLineStart;
+      if (endLineLength > 0 && text[endLineStart + endLineLength - 1] === '\r') {
+        endLineLength--;
+      }
+      rangeEnd = { line: endLine, character: endLineLength };
+    } else {
+      rangeEnd = doc.positionAt(text.length);
+    }
+
+    // detail: rest of the keyword's line
+    const lineEnd = text.indexOf('\n', match.index);
+    const restOfLineRaw = lineEnd === -1
+      ? text.slice(match.index + match[0].length)
+      : text.slice(match.index + match[0].length, lineEnd);
+    const restOfLine = restOfLineRaw.replace(/\r$/, '');
+    const detail = extractControlRecordDetail(restOfLine);
+
+    const symbol = DocumentSymbol.create(
+      fullName,
+      detail || undefined,
+      SymbolKind.Module,
+      { start: rangeStart, end: rangeEnd },
+      { start: selectionStart, end: selectionEnd }
+    );
+
+    // Add parameter children for $THETA, $OMEGA, $SIGMA
+    const expectedType = parameterLocations ? PARAM_TYPE_MAP[fullName] : undefined;
+    if (expectedType && parameterLocations) {
+      const children: DocumentSymbol[] = [];
+      for (const loc of parameterLocations) {
+        if (loc.type !== expectedType) continue;
+        if (loc.line < rangeStart.line || loc.line > rangeEnd.line) continue;
+
+        const childName = `${loc.type}(${loc.index})`;
+
+        // Extract inline comment as detail
+        const paramLineStart = doc.offsetAt({ line: loc.line, character: 0 });
+        const paramLineEnd = text.indexOf('\n', paramLineStart);
+        const paramLineRaw = paramLineEnd === -1
+          ? text.slice(paramLineStart)
+          : text.slice(paramLineStart, paramLineEnd);
+        const paramLine = paramLineRaw.replace(/\r$/, '');
+        const commentMatch = paramLine.match(/;(.+)/);
+        const childDetail = commentMatch?.[1]?.trim() || undefined;
+
+        // Range: full line; selectionRange: the numeric value
+        const childRangeStart = { line: loc.line, character: 0 };
+        const childRangeEnd = { line: loc.line, character: paramLine.length };
+        const childSelStart = { line: loc.line, character: loc.startChar ?? 0 };
+        const childSelEnd = { line: loc.line, character: loc.endChar ?? paramLine.length };
+
+        children.push(DocumentSymbol.create(
+          childName,
+          childDetail,
+          SymbolKind.Variable,
+          { start: childRangeStart, end: childRangeEnd },
+          { start: childSelStart, end: childSelEnd }
+        ));
+      }
+      if (children.length > 0) {
+        symbol.children = children;
+      }
+    }
+
+    symbols.push(symbol);
+  }
+
+  return symbols;
+}
+
 export {
   locateControlRecordsInText,
   generateDiagnosticForControlRecord,
   getFullControlRecordName,
-  validateContinuationMarkers
+  validateContinuationMarkers,
+  buildDocumentSymbols
 };

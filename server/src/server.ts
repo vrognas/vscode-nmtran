@@ -21,8 +21,6 @@ import {
   InitializeParams,
   InitializeResult,
   ProposedFeatures,
-  SymbolInformation,
-  SymbolKind,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 
@@ -39,10 +37,7 @@ import { ParameterScanner } from './services/ParameterScanner';
 
 // Import types and utilities
 import { DEFAULT_SETTINGS, NMTRANSettings } from './types';
-import {
-  locateControlRecordsInText,
-  getFullControlRecordName
-} from './utils/validateControlRecords';
+import { buildDocumentSymbols } from './utils/validateControlRecords';
 
 // =================================================================
 // SERVER SETUP
@@ -238,28 +233,8 @@ connection.onDocumentSymbol((params) => {
       connection.console.error(`❌ Document not found for symbols: ${params.textDocument.uri}`);
       return null;
     }
-
-    const text = doc.getText();
-    const controlRecords = locateControlRecordsInText(text);
-    const symbols: SymbolInformation[] = [];
-
-    for (const match of controlRecords) {
-      const fullControlRecord = getFullControlRecordName(match[0]);
-      const symbolInfo: SymbolInformation = {
-        name: fullControlRecord,
-        kind: SymbolKind.Module,
-        location: {
-          uri: params.textDocument.uri,
-          range: {
-            start: doc.positionAt(match.index),
-            end: doc.positionAt(match.index + match[0].length)
-          }
-        }
-      };
-      symbols.push(symbolInfo);
-    }
-
-    return symbols;
+    const parameterLocations = ParameterScanner.scanDocument(doc);
+    return buildDocumentSymbols(doc, parameterLocations);
   } catch (error) {
     connection.console.error(`❌ Error in document symbol handler: ${error}`);
     return [];

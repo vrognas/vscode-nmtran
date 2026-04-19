@@ -199,7 +199,48 @@ $OMEGA BLOCK(2) 0.1 0.05 0.2
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
-      
+
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    it('should accept negative off-diagonals in OMEGA BLOCK (covariances)', () => {
+      // User's real case: multi-line BLOCK(4) with negative off-diagonal.
+      // NONMEM allows off-diagonals (covariances) to be negative; only diagonals (variances) must be positive.
+      const content = `
+$OMEGA BLOCK(4)
+0.1
+6.83328E-04  0.1
+1.05324E-03 -1.82494E-03  0.1
+7.11753E-04  8.46056E-04  1.47772E-03  0.1
+`;
+      const document = createDocument(content);
+      const validation = ParameterScanner.validateParameterBounds(document);
+
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    it('should still flag negative diagonal in OMEGA BLOCK', () => {
+      // Diagonal (variance) must be positive even in BLOCK. BLOCK(2): values [d1, c21, d2].
+      const content = `
+$OMEGA BLOCK(2) 0.1 0.05 -0.2
+`;
+      const document = createDocument(content);
+      const validation = ParameterScanner.validateParameterBounds(document);
+
+      expect(validation.isValid).toBe(false);
+      expect(validation.errors.some(e => e.message.includes('-0.2'))).toBe(true);
+    });
+
+    it('should accept negative off-diagonals in compact BLOCK form', () => {
+      // All values on BLOCK line; -0.05 is off-diagonal (position 2,1).
+      const content = `
+$OMEGA BLOCK(2) 0.1 -0.05 0.2
+`;
+      const document = createDocument(content);
+      const validation = ParameterScanner.validateParameterBounds(document);
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });

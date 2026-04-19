@@ -305,11 +305,84 @@ CL = THETA(1) * EXP(ETA(1))  ; Use all other parameters`;
 
     const unusedEpsDocument = TextDocument.create('test://test.mod', 'nmtran', 1, contentWithUnusedEps);
     const result = ParameterScanner.validateParameterReferences(unusedEpsDocument);
-    
+
     // Should be invalid - EPS(2) is defined but never referenced (ERR(1) maps to EPS(1))
     expect(result.isValid).toBe(false);
-    
+
     const unusedError = result.errors.find(e => e.message.includes('EPS(2)') && e.message.includes('never referenced'));
     expect(unusedError).toBeDefined();
+  });
+
+  // NONMEM Help Ch.8 ($ERROR): ERR(I) = ETA(I) for individual data, EPS(I) for population data.
+  // Static heuristic: $SIGMA absent = individual, $SIGMA present = population.
+  test('ERR(n) resolves to ETA(n) when $OMEGA present and $SIGMA absent (individual data)', () => {
+    const content = `$THETA 1 FIX
+$OMEGA 1 FIX
+$PK
+CL = THETA(1)
+$ERROR
+Y = A(3) + ERR(1)`;
+    const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+    const result = ParameterScanner.validateParameterReferences(doc);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('ERR(n) out-of-range in individual-data model reports ETA count, not EPS', () => {
+    const content = `$THETA 1 FIX
+$OMEGA 1 FIX
+$PK
+CL = THETA(1) * EXP(ETA(1))
+$ERROR
+Y = F + ERR(2)`;
+    const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+    const result = ParameterScanner.validateParameterReferences(doc);
+    expect(result.isValid).toBe(false);
+    const err = result.errors.find(e => e.message.includes('ERR(2)'));
+    expect(err?.message).toBe('ERR(2) referenced but only 1 ETA parameters defined');
+  });
+
+  test('parameter references are case-insensitive (theta/eta/eps/err)', () => {
+    // NONMEM is case-insensitive; lowercase refs must be detected as uses.
+    const content = `$THETA 1 2
+$OMEGA 0.1
+$SIGMA 0.01
+$PK
+CL = theta(1) * EXP(eta(1))
+V = Theta(2)
+$ERROR
+Y = F + F * err(1)`;
+    const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+    const result = ParameterScanner.validateParameterReferences(doc);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('lowercase out-of-range ref still flagged (canonical uppercase in message)', () => {
+    // Case-insensitive match must also preserve error reporting path.
+    const content = `$THETA 1
+$OMEGA 0.1
+$SIGMA 0.01
+$PK
+CL = theta(5) * EXP(eta(1))
+Y = F + F * eps(1)`;
+    const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+    const result = ParameterScanner.validateParameterReferences(doc);
+    expect(result.isValid).toBe(false);
+    const err = result.errors.find(e => e.message.includes('THETA(5)'));
+    expect(err?.message).toBe('THETA(5) referenced but only 1 THETA parameters defined');
+  });
+
+  test('zero-count diagnostic uses grammatical "no" phrasing', () => {
+    const content = `$OMEGA 1
+$SIGMA 0.01
+$PK
+CL = THETA(1) * EXP(ETA(1))
+$ERROR
+Y = F + EPS(1)`;
+    const doc = TextDocument.create('test://test.mod', 'nmtran', 1, content);
+    const result = ParameterScanner.validateParameterReferences(doc);
+    const err = result.errors.find(e => e.message.includes('THETA(1)'));
+    expect(err?.message).toBe('THETA(1) referenced but no THETA parameters defined');
   });
 });
