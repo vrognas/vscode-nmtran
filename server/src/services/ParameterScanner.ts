@@ -1409,8 +1409,11 @@ export class ParameterScanner {
    */
   private static isInfinity(valueStr: string): boolean {
     const trimmed = valueStr.trim().toUpperCase();
-    return trimmed === 'INF' || trimmed === '-INF' || trimmed === '+INF' || 
-           trimmed === 'INFINITY' || trimmed === '-INFINITY' || trimmed === '+INFINITY';
+    // Strip optional sign
+    const core = trimmed.startsWith('+') || trimmed.startsWith('-') ? trimmed.substring(1) : trimmed;
+    // Per NONMEM Users Guide Part IV Ch.III + NMTRAN 7.6.0 prefix-matching:
+    // INF, INFINITY, INFIN, INFTY are all valid infinity tokens (resolve to +/-1e6).
+    return core === 'INF' || core === 'INFINITY' || core === 'INFIN' || core === 'INFTY';
   }
 
   /**
@@ -1479,6 +1482,64 @@ export class ParameterScanner {
       errors.push(`Invalid ${paramType} value: ${valueStr}`);
     } else if (value < 0 && !isOffDiagonal) {
       errors.push(`${paramType} initial value (${value}) should generally be positive (variance parameter)`);
+    }
+
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Detect misuse of infinity tokens (INF/INFINITY/INFIN/INFTY) in abbreviated code.
+   * These are lexical tokens recognized ONLY inside $THETA bound triples. Using them
+   * as identifiers in $PK/$PRED/$ERROR/etc. produces NMTRAN ERROR 208 (UNDEFINED VARIABLE).
+   */
+  static validateInfinityTokenUsage(document: TextDocument): {
+    isValid: boolean;
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const lines = document.getText().split('\n');
+
+    const ABBREVIATED_BLOCKS = new Set([
+      '$PK', '$PRED', '$ERROR', '$DES', '$MIX', '$AES', '$AESINITIAL', '$INFN', '$CONTR'
+    ]);
+    // Order longest->shortest so alternation matches the longest first.
+    const INFINITY_TOKEN = /\b(INFINITY|INFIN|INFTY|INF)\b/gi;
+
+    let inAbbreviatedBlock = false;
+
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const line = lines[lineNum];
+      if (!line) continue;
+
+      const trimmed = line.trim();
+      if (trimmed.startsWith(';')) continue;
+
+      const commentIdx = trimmed.indexOf(';');
+      const withoutComment = commentIdx !== -1 ? trimmed.substring(0, commentIdx) : trimmed;
+
+      // Control record keyword resets block context; don't scan the $RECORD line itself.
+      const controlRecordMatch = withoutComment.match(/^\$(\w+)/);
+      if (controlRecordMatch) {
+        const recordName = '$' + controlRecordMatch[1]!.toUpperCase();
+        inAbbreviatedBlock = ABBREVIATED_BLOCKS.has(recordName);
+        continue;
+      }
+
+      if (!inAbbreviatedBlock) continue;
+
+      const leadingWhitespace = line.length - line.trimStart().length;
+      INFINITY_TOKEN.lastIndex = 0;
+      let match;
+      while ((match = INFINITY_TOKEN.exec(withoutComment)) !== null) {
+        const tokenStart = leadingWhitespace + match.index;
+        const tokenEnd = tokenStart + match[0].length;
+        errors.push({
+          message: `${match[0].toUpperCase()} is only valid inside $THETA bound triples. Use e.g. 1.0D+30 or the NMPRD_REAL::INFNTY constant via verbatim code.`,
+          line: lineNum,
+          startChar: tokenStart,
+          endChar: tokenEnd
+        });
+      }
     }
 
     return { isValid: errors.length === 0, errors };

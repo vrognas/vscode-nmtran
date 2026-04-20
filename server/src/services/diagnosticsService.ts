@@ -142,6 +142,23 @@ export class DiagnosticsService {
         }
       }
 
+      // Validate infinity token misuse in abbreviated code (ERROR 208 UNDEFINED VARIABLE)
+      const infinityTokenValidation = ParameterScanner.validateInfinityTokenUsage(document);
+      if (!infinityTokenValidation.isValid) {
+        for (const error of infinityTokenValidation.errors) {
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: { line: error.line, character: error.startChar },
+              end: { line: error.line, character: error.endChar }
+            },
+            message: error.message,
+            source: 'nmtran'
+          };
+          diagnostics.push(diagnostic);
+        }
+      }
+
       this.connection.sendDiagnostics({
         uri: document.uri, 
         diagnostics 

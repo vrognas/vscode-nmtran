@@ -35,7 +35,21 @@ $THETA (0,2.1,INF)       ; Mixed finite and infinite
 `;
       const document = createDocument(content);
       const validation = ParameterScanner.validateParameterBounds(document);
-      
+
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    it('should accept INFIN and INFTY infinity forms (NMTRAN 7.6.0)', () => {
+      // Per NONMEM Users Guide Part IV Ch.III + NMTRAN 7.6.0 prefix-matching:
+      // INF, INFINITY, INFIN, INFTY are all valid infinity tokens in $THETA bound triples.
+      const content = `
+$THETA (-INFIN,1,INFIN)
+$THETA (-INFTY,1,INFTY)
+`;
+      const document = createDocument(content);
+      const validation = ParameterScanner.validateParameterBounds(document);
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });

@@ -7,7 +7,8 @@
 
 import { Connection, CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { allowedControlRecords } from '../constants';
+import { allowedControlRecords, reservedDiagnosticItems } from '../constants';
+import { getFullControlRecordName } from '../utils/validateControlRecords';
 
 export class CompletionService {
   private connection: Connection;
@@ -31,8 +32,14 @@ export class CompletionService {
         return this.getControlRecordCompletions();
       }
 
-      // Complete common NMTRAN parameters
       const currentWord = this.getCurrentWord(linePrefix);
+
+      // Inside $TABLE: suggest reserved diagnostic items
+      if (this.isInTableBlock(lines, position.line)) {
+        return this.getDiagnosticItemCompletions(currentWord);
+      }
+
+      // Complete common NMTRAN parameters
       if (currentWord.length > 0) {
         return this.getParameterCompletions(currentWord);
       }
@@ -91,5 +98,38 @@ export class CompletionService {
   private getCurrentWord(linePrefix: string): string {
     const match = linePrefix.match(/[A-Za-z_][A-Za-z0-9_]*$/);
     return match ? match[0] : '';
+  }
+
+  /**
+   * Is the cursor inside a $TABLE block? Scans backward for the nearest $RECORD keyword.
+   */
+  private isInTableBlock(lines: string[], currentLine: number): boolean {
+    for (let i = currentLine; i >= 0; i--) {
+      const trimmed = (lines[i] || '').trim();
+      if (trimmed.startsWith(';')) continue;
+      const m = trimmed.match(/^\$(\w+)/);
+      if (m) {
+        const full = getFullControlRecordName('$' + m[1]!);
+        return full === '$TABLE';
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Completion items for the 43 reserved NONMEM diagnostic items.
+   */
+  private getDiagnosticItemCompletions(prefix: string): CompletionItem[] {
+    const lcPrefix = prefix.toLowerCase();
+    return Object.entries(reservedDiagnosticItems)
+      .filter(([name]) => name.toLowerCase().startsWith(lcPrefix))
+      .map(([name, description]) => ({
+        label: name,
+        kind: CompletionItemKind.Variable,
+        detail: 'NONMEM diagnostic item',
+        documentation: description,
+        insertText: name,
+        sortText: name
+      }));
   }
 }

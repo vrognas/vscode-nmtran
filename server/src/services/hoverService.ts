@@ -10,6 +10,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { explainControlRecordHover } from '../hoverInfo';
 import { getFullControlRecordName } from '../utils/validateControlRecords';
 import { ParameterScanner, ParameterLocation } from './ParameterScanner';
+import { reservedDiagnosticItems } from '../constants';
 
 export class HoverService {
   private connection: Connection;
@@ -36,6 +37,9 @@ export class HoverService {
 
       const reservedVariableHover = this.getReservedVariableHover(text, offset);
       if (reservedVariableHover) return reservedVariableHover;
+
+      const diagnosticItemHover = this.getDiagnosticItemHover(text, offset);
+      if (diagnosticItemHover) return diagnosticItemHover;
 
       return this.getControlRecordHover(text, offset, document);
     } catch (error) {
@@ -276,6 +280,40 @@ export class HoverService {
     }
 
     return { value: previousValue, originalIndex: previousParam.index };
+  }
+
+  /**
+   * Get hover information for reserved diagnostic items (PRED, CWRES, etc.)
+   * available in $TABLE without user definition.
+   */
+  private getDiagnosticItemHover(text: string, offset: number): Hover | null {
+    // Find the word surrounding the cursor.
+    const wordStart = this.findWordStart(text, offset);
+    const wordEnd = this.findWordEnd(text, offset);
+    if (wordStart === wordEnd) return null;
+
+    const word = text.substring(wordStart, wordEnd).toUpperCase();
+    const description = reservedDiagnosticItems[word];
+    if (!description) return null;
+
+    return {
+      contents: {
+        kind: MarkupKind.Markdown,
+        value: `**${word}** — ${description}\n\nReserved NONMEM diagnostic item. Available directly in \`$TABLE\` without definition in \`$PK\`/\`$PRED\`/\`$ERROR\`.`
+      } as MarkupContent
+    } as Hover;
+  }
+
+  private findWordStart(text: string, offset: number): number {
+    let i = offset;
+    while (i > 0 && /[A-Za-z0-9_]/.test(text[i - 1] || '')) i--;
+    return i;
+  }
+
+  private findWordEnd(text: string, offset: number): number {
+    let i = offset;
+    while (i < text.length && /[A-Za-z0-9_]/.test(text[i] || '')) i++;
+    return i;
   }
 
   /**

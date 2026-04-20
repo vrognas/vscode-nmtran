@@ -50,7 +50,12 @@
       {
         "comment": "Special constants",
         "name": "constant.language.special.nmtran",
-        "match": "(?i:\\b(TRUE|FALSE|NULL|\\-Inf|Inf)\\b)"
+        "match": "(?i:\\b(TRUE|FALSE|NULL)\\b)"
+      },
+      {
+        "comment": "Infinity tokens: valid inside $THETA bound triples. Resolve to +/-1e6 per NMTRAN translation. Prefix-matched forms INF/INFINITY/INFIN/INFTY all accepted.",
+        "name": "constant.numeric.infinity.nmtran",
+        "match": "(?i:[+-]?\\b(INFINITY|INFIN|INFTY|INF)\\b)"
       }]
     },
     "control-records": {
@@ -138,6 +143,16 @@
     },
     "reserved" : {
       "patterns": [{
+        "comment": "NONMEM reserved diagnostic output items (always available in $TABLE without user definition). 43 names: 6 documented + 37 lexical reserved.",
+        "name": "support.variable.diagnostic.nmtran",
+        "match": "(?i:\\b(CIWRESI|CIPREDI|CIWRES|CIPRED|CIRESI|CWRESI|CPREDI|NIWRES|NIPRED|IWRESI|IPREDI|EIWRES|EIPRED|ECWRES|CIRES|CWRES|CPRED|CRESI|NIRES|NWRES|NPRED|IWRES|IPRED|IRESI|EIRES|EWRES|EPRED|PREDI|WRESI|IWRS|IPRD|NRES|ERES|CRES|NPDE|OBJI|WRES|PRED|RESI|IRES|RES|IRS|NPD)\\b)"
+      },
+      {
+        "comment": "$TABLE ETA range syntax (NONMEM 7.3+): ETAS(k:n), ETAS(k TO n BY step), ETAS(LAST TO 1 BY -3), number-list forms. LAST denotes the highest-numbered eta.",
+        "name": "support.function.eta-range.nmtran",
+        "match": "(?i:\\bETAS\\s*\\([^)]*\\))"
+      },
+      {
         "name": "support.variable.reserved.nmtran",
         "match":"(?i:\\b((A(_0|_U)?\\([\\d]+\\))|(DADT\\([\\d]+\\))|((T|X)+SCALE)))"
       },

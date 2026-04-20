@@ -7,6 +7,21 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.7] - 2026-04-20
+
+### Added
+
+* **Reserved NONMEM diagnostic items**: 43 reserved diagnostic output names (`PRED`, `IPRED`, `CWRES`, `NPDE`, `OBJI`, etc.) now have dedicated syntax scope `support.variable.diagnostic.nmtran`, hover descriptions explaining each item, and context-aware completion suggestions inside `$TABLE` blocks (including abbreviations like `$TAB`). The full list includes all conditional/interaction/Monte-Carlo variants that NONMEM accepts without user definition.
+* **`ETAS(...)` range syntax highlighting**: `$TABLE` eta-range forms like `ETAS(1:LAST)`, `ETAS(1 TO 10 BY 3)`, `ETAS(4:1 BY -2)`, and number-list forms now receive a dedicated scope (`support.function.eta-range.nmtran`).
+
+## [0.4.6] - 2026-04-20
+
+### Added
+
+* **Infinity tokens**: all four NMTRAN infinity forms — `INF`, `INFINITY`, `INFIN`, `INFTY` — are now recognized in `$THETA` bound triples (previously only `INF`/`INFINITY`). `INFIN` and `INFTY` are prefix-matched forms accepted by NMTRAN 7.6.0.
+* **Dedicated infinity scope**: a new `constant.numeric.infinity.nmtran` scope colors all four infinity tokens (optionally signed) so themes can distinguish them from regular constants.
+* **Infinity misuse diagnostic**: using `INF`/`INFINITY`/`INFIN`/`INFTY` as identifiers in abbreviated-code blocks (`$PK`, `$PRED`, `$ERROR`, `$DES`, `$MIX`, `$AES`, `$AESINITIAL`, `$INFN`, `$CONTR`) is now flagged as an error, matching NMTRAN `ERROR 208 UNDEFINED VARIABLE`. Word-boundary matching prevents false positives on similar identifiers like `INFO`, `INFN`, `INFNTY`.
+
 ## [0.4.5] - 2026-04-20
 
 ### Added
