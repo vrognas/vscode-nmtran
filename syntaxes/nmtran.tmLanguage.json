@@ -16,9 +16,16 @@
   "repository": {
     "verbatim": {
       "patterns": [{
-        "comment": "Verbatim FORTRAN code",
-        "name": "markup.raw.verbatim.nmtran",
-        "match": "^\".*$"
+        "comment": "Verbatim FORTRAN code (line begins with a double-quote). Embeds source.fortran if a Fortran grammar is available; falls back to plain text otherwise.",
+        "name": "meta.embedded.block.fortran",
+        "begin": "^(\")",
+        "beginCaptures": {
+          "1": { "name": "punctuation.definition.embedded.nmtran" }
+        },
+        "end": "$",
+        "patterns": [
+          { "include": "source.fortran" }
+        ]
       }]
     },
     "comments": {

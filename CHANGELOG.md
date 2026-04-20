@@ -7,6 +7,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-04-20
+
+### Added
+
+* **Verbatim FORTRAN highlighting**: lines beginning with `"` now embed `source.fortran` for Fortran syntax highlighting (requires a Fortran grammar extension such as Modern Fortran; falls back to plain text otherwise). Verbatim lines also get a subtle background tint — lighter in dark mode, darker in light mode — to make embedded Fortran visually distinct from surrounding NMTRAN code.
+
 ## [0.4.4] - 2026-04-19
 
 ### Fixed

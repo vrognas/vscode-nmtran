@@ -14,6 +14,7 @@ import { ConfigurationService } from './config';
 import { Logger } from './logger';
 import { NMTRANFoldingProvider } from './features/foldingProvider';
 import { LanguageServerManager } from './features/languageServer';
+import { VerbatimDecorator } from './features/verbatimDecorator';
 
 // Service instances
 let languageServerManager: LanguageServerManager;
@@ -59,9 +60,13 @@ async function registerLanguageFeatures(context: vscode.ExtensionContext): Promi
     { language: 'nmtran', scheme: 'file' },
     new NMTRANFoldingProvider()
   );
-  
+
   context.subscriptions.push(foldingProvider);
   logger.debug('Folding provider registered');
+
+  // Register verbatim FORTRAN decorator (background highlight for "-prefixed lines)
+  context.subscriptions.push(new VerbatimDecorator());
+  logger.debug('Verbatim decorator registered');
 }
 
 /**
