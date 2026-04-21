@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.9] - 2026-04-22
+
+### Added
+
+* **`F_FLAG` reserved variable**: the likelihood/observation switch `F_FLAG` now highlights as `support.variable.reserved.other.nmtran`.
+* **`PHI(x)` function**: the cumulative standard normal distribution function now highlights as `entity.name.function.nmtran` when called (`PHI(...)`); bare `PHI` and identifiers containing `PHI` (e.g. `MYPHI`) are not matched.
+* **Grammar tokenizer tests**: new `grammar-reserved-words.test.ts` exercises the TextMate grammar via `vscode-textmate` + `vscode-oniguruma`, enabling real tokenizer-based assertions for scope names.
+
 ## [0.4.8] - 2026-04-21
 
 ### Added

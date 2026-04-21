@@ -19,7 +19,9 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.4",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.3.2"
   },
   "scripts": {
     "test": "vitest run",

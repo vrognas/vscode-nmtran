@@ -170,7 +170,7 @@
       },
       {
         "name": "support.variable.reserved.other.nmtran",
-        "match": "(?i:\\b(ETASXI\\([\\d]+\\)|HINIT|HMIN|HMAX|STOP_TIME|ITASK|PASTZERO))"
+        "match": "(?i:\\b(ETASXI\\([\\d]+\\)|F_FLAG|HINIT|HMIN|HMAX|STOP_TIME|ITASK|PASTZERO))"
       },
       {
         "name": "support.variable.reserved.nmtran",
@@ -251,7 +251,7 @@
       {
         "comment": "functions",
         "name": "entity.name.function.nmtran",
-        "match": "(?i:\\b(LOG(10)?|SQRT|EXP|ABS|A?(COS|SIN|TAN)|ATAN2|SIGN|SIN|SINH|TAN|TANH|COTAN|INT|MOD|MIN|MAX|MAXLOG|LOG10|RANDOM|RANDMT(U)?|GAMLN|REAL|PASS|SUPP)(?=\\())"
+        "match": "(?i:\\b(LOG(10)?|SQRT|EXP|ABS|A?(COS|SIN|TAN)|ATAN2|SIGN|SIN|SINH|TAN|TANH|COTAN|INT|MOD|MIN|MAX|MAXLOG|LOG10|PHI|RANDOM|RANDMT(U)?|GAMLN|REAL|PASS|SUPP)(?=\\())"
       },
       {
         "comment": "arithmetic operators",
