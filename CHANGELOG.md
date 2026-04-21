@@ -7,6 +7,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.8] - 2026-04-21
+
+### Added
+
+* **COM(i) index diagnostic**: references to `COM(i)` are now validated against the `COMRES` + `COMSAV` size declared via `$ABBREV` / `$ABBR`. `COM(i)` references beyond the declared sum are flagged as errors, catching silent overflows into adjacent NMPRD data. No diagnostic is emitted when no declaration exists (declared-only enforcement).
+
 ## [0.4.7] - 2026-04-20
 
 ### Added

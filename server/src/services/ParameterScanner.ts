@@ -1488,6 +1488,67 @@ export class ParameterScanner {
   }
 
   /**
+   * Detect COM(i) references whose index exceeds COMRES+COMSAV declared in $ABBREV.
+   * NONMEM's COM array is shared across blocks; writing past the declared size
+   * silently overflows into other data.
+   */
+  static validateComIndices(document: TextDocument): {
+    isValid: boolean;
+    errors: Array<{ message: string; line: number; startChar: number; endChar: number }>
+  } {
+    const errors: Array<{ message: string; line: number; startChar: number; endChar: number }> = [];
+    const lines = document.getText().split('\n');
+
+    const ABBR_RE = /^\$ABBR(EV)?\b/i;
+    const COMRES_RE = /\bCOMRES\s*=\s*(\d+)/i;
+    const COMSAV_RE = /\bCOMSAV\s*=\s*(\d+)/i;
+
+    let comres = 0;
+    let comsav = 0;
+    let declared = false;
+
+    for (const rawLine of lines) {
+      const trimmed = rawLine.trim();
+      if (!trimmed || trimmed.startsWith(';')) continue;
+      if (!ABBR_RE.test(trimmed)) continue;
+      const commentIdx = trimmed.indexOf(';');
+      const line = commentIdx !== -1 ? trimmed.substring(0, commentIdx) : trimmed;
+      const r = line.match(COMRES_RE);
+      const s = line.match(COMSAV_RE);
+      if (r) { comres = Math.max(comres, parseInt(r[1]!, 10)); declared = true; }
+      if (s) { comsav = Math.max(comsav, parseInt(s[1]!, 10)); declared = true; }
+    }
+
+    if (!declared) return { isValid: true, errors };
+
+    const maxAllowed = comres + comsav;
+    const COM_REF = /\bCOM\s*\(\s*(\d+)\s*\)/gi;
+
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+      const rawLine = lines[lineNum];
+      if (!rawLine) continue;
+      const commentIdx = rawLine.indexOf(';');
+      const scanLine = commentIdx !== -1 ? rawLine.substring(0, commentIdx) : rawLine;
+
+      COM_REF.lastIndex = 0;
+      let match;
+      while ((match = COM_REF.exec(scanLine)) !== null) {
+        const idx = parseInt(match[1]!, 10);
+        if (idx > maxAllowed) {
+          errors.push({
+            message: `COM(${idx}) exceeds COMRES+COMSAV (${comres}+${comsav}=${maxAllowed}) declared in $ABBREV`,
+            line: lineNum,
+            startChar: match.index!,
+            endChar: match.index! + match[0].length
+          });
+        }
+      }
+    }
+
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
    * Detect misuse of infinity tokens (INF/INFINITY/INFIN/INFTY) in abbreviated code.
    * These are lexical tokens recognized ONLY inside $THETA bound triples. Using them
    * as identifiers in $PK/$PRED/$ERROR/etc. produces NMTRAN ERROR 208 (UNDEFINED VARIABLE).
