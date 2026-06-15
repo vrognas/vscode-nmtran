@@ -13,12 +13,12 @@
     "vscode": "^1.109.0"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^10.0.0"
   },
   "devDependencies": {
-    "@types/vscode": "~1.109.0",
+    "@types/vscode": "~1.120.0",
     "@types/mocha": "^10.0.0",
-    "@vscode/test-electron": "^2.4.1",
+    "@vscode/test-electron": "^3.0.0",
     "mocha": "^11.7.5"
   },
   "scripts": {
